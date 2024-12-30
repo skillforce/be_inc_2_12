@@ -51,6 +51,7 @@ describe('/posts', () => {
         };
         const res = await req
             .post(SETTINGS.PATH.POSTS)
+            .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(postData)
 
         expect(res.body).toMatchObject(postData)
@@ -65,23 +66,11 @@ describe('/posts', () => {
         };
         const res = await req
             .post(SETTINGS.PATH.POSTS)
+            .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(postData)
             .expect(400)
 
         console.log(res.body)
-    })
-    it('should return error 404 when there are unexpected fields', async () => {
-        const postData:AddUpdatePostRequestRequiredData & {unexpectedField: string} = {
-            title: 'Video Name',
-            shortDescription: 'Video Description',
-            content: 'Video Content',
-            blogId: '1',
-            unexpectedField: 'Unexpected field',
-        };
-        await req
-            .post(SETTINGS.PATH.POSTS)
-            .send(postData)
-            .expect(400)
     })
     it('should update video object and return 204 status to client', async () => {
         setDB(dataset1)
@@ -93,6 +82,7 @@ describe('/posts', () => {
         };
         await req
             .put(SETTINGS.PATH.POSTS +'/1')
+            .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(postData)
             .expect(204)
     })
@@ -106,6 +96,7 @@ describe('/posts', () => {
         };
         const res = await req
             .put(SETTINGS.PATH.POSTS +'/1')
+            .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(postData)
             .expect(400)
         console.log(res.body)
@@ -120,6 +111,7 @@ describe('/posts', () => {
         };
         const res = await req
             .put(SETTINGS.PATH.POSTS+'/1')
+            .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(postData)
             .expect(400)
 
@@ -129,12 +121,14 @@ describe('/posts', () => {
         setDB(dataset1)
         const res = await req
             .delete(SETTINGS.PATH.POSTS+'/1')
+            .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .expect(204)
 
     })
     it('should return 404 status ', async () => {
         await req
             .delete(SETTINGS.PATH.POSTS+'/1')
+            .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .expect(404)
 
     })

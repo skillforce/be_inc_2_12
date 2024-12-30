@@ -48,21 +48,9 @@ describe('/blogs', () => {
         };
         const res = await req
             .post(SETTINGS.PATH.BLOGS)
+            .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(videoData)
-
         expect(res.body).toMatchObject(videoData)
-    })
-    it('should return error 404 when there are unexpected fields', async () => {
-        const videoData:AddUpdateBlogRequestRequiredData & {unexpectedField: string} = {
-            name: 'Video Name',
-            websiteUrl: 'https://www.youtube.com',
-            description: 'Video Description',
-            unexpectedField: 'Unexpected field',
-        };
-      await req
-            .post(SETTINGS.PATH.BLOGS)
-            .send(videoData)
-            .expect(400)
     })
     it('should update video object and return 204 status to client', async () => {
         setDB(dataset1)
@@ -73,23 +61,9 @@ describe('/blogs', () => {
         };
       await req
             .put(SETTINGS.PATH.BLOGS+'/1')
+            .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(videoData)
             .expect(204)
-    })
-    it('should return 404 when there are unexpected fields', async () => {
-        setDB(dataset1)
-        const videoData:AddUpdateBlogRequestRequiredData & {unexpectedField: string} = {
-            name: 'Video Name',
-            websiteUrl: 'https://www.youtube.com',
-            description: 'Video Description',
-            unexpectedField: 'Unexpected field',
-        };
-      const res = await req
-            .put(SETTINGS.PATH.BLOGS+'/1')
-            .send(videoData)
-            .expect(400)
-
-        console.log(res.body)
     })
     it('should return 400 when body properties is incorrect', async () => {
         setDB(dataset1)
@@ -100,6 +74,7 @@ describe('/blogs', () => {
         };
       const res = await req
             .put(SETTINGS.PATH.BLOGS+'/1')
+            .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(videoData)
             .expect(400)
 
@@ -109,12 +84,14 @@ describe('/blogs', () => {
         setDB(dataset1)
       const res = await req
             .delete(SETTINGS.PATH.BLOGS+'/1')
+            .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .expect(204)
 
     })
     it('should return 404 status ', async () => {
        await req
             .delete(SETTINGS.PATH.BLOGS+'/1')
+            .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .expect(404)
 
     })

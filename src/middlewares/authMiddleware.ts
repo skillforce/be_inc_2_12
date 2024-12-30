@@ -10,6 +10,7 @@ export const ADMIN_AUTH = SETTINGS.ADMIN_AUTH;
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const auth = req.headers['authorization'] as string
 
+
     if (!auth) {
         res
             .status(401)
@@ -22,7 +23,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     const buff2 = Buffer.from(ADMIN_AUTH, 'utf8')
     const codedAuth = buff2.toString('base64')
 
-    if (auth.slice(6) !== codedAuth || auth.slice(0, 5) !== 'Basic ') {
+    if (auth.slice(6) !== codedAuth || auth.slice(0, 6) !== 'Basic ') {
         res
             .status(401)
             .json({})
