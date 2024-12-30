@@ -1,16 +1,8 @@
 import { ValidationChain } from "express-validator";
 import { basicStringFieldMiddlewareGenerator, ErrorMessages } from "../../middlewares/helper";
-import {
-    inputValidationMiddleware,
-    validateUnexpectedFields,
-    validateUrlParamId
-} from "../../middlewares/commonValidationMiddlewares";
+import { inputValidationMiddleware, validateUrlParamId } from "../../middlewares/commonValidationMiddlewares";
 import { db } from "../../db/db";
-import { AddUpdatePostRequestRequiredData } from "../types/types";
-
-type PostAllowedKeys = keyof AddUpdatePostRequestRequiredData
-
-const postUpdateVideoAllowedKeys: PostAllowedKeys[] = ["title", "shortDescription", "content", "blogId"]
+import { authMiddleware } from "../../middlewares/authMiddleware";
 
 
 const postTitleErrors: ErrorMessages = {
@@ -73,7 +65,7 @@ export const postBlogIdBodyValidationMiddleware = basicStringFieldMiddlewareGene
 
 
 export const addPostBodyValidators = [
-    validateUnexpectedFields(postUpdateVideoAllowedKeys),
+    authMiddleware,
     postTitleBodyValidationMiddleware,
     postShortDescriptionBodyValidationMiddleware,
     postContentBodyValidationMiddleware,

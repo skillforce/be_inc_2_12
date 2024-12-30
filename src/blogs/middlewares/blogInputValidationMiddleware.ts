@@ -1,11 +1,8 @@
 import { ValidationChain } from "express-validator";
 import { basicStringFieldMiddlewareGenerator, ErrorMessages } from "../../middlewares/helper";
 import { AddUpdateBlogRequestRequiredData } from "../types/types";
-import {
-    inputValidationMiddleware,
-    validateUnexpectedFields,
-    validateUrlParamId
-} from "../../middlewares/commonValidationMiddlewares";
+import { inputValidationMiddleware, validateUrlParamId } from "../../middlewares/commonValidationMiddlewares";
+import { authMiddleware } from "../../middlewares/authMiddleware";
 
 const blogNameErrors: ErrorMessages = {
     required: 'name field is required',
@@ -49,12 +46,9 @@ export const blogWebsiteUrlBodyValidationMiddleware = basicStringFieldMiddleware
     extraValidations: additionalWebsiteUrlRules
 });
 
-type PostAllowedKeys = keyof AddUpdateBlogRequestRequiredData
-
-const postUpdateVideoAllowedKeys: PostAllowedKeys[] = ["name", "websiteUrl", "description"]
 
 export const addBlogBodyValidators = [
-    validateUnexpectedFields(postUpdateVideoAllowedKeys),
+    authMiddleware,
     blogNameBodyValidationMiddleware,
     blogDescriptionBodyValidationMiddleware,
     blogWebsiteUrlBodyValidationMiddleware,
