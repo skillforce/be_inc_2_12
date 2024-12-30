@@ -72,7 +72,11 @@ export const addPostBodyValidators = [
     postBlogIdBodyValidationMiddleware,
     inputValidationMiddleware
 ]
-export const updatePostBodyValidators = [
+export const deletePostValidators = [
+    authMiddleware,
     validateUrlParamId,
+]
+export const updatePostBodyValidators = [
+    ...deletePostValidators,
     ...addPostBodyValidators
 ]

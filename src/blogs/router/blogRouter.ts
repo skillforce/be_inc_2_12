@@ -1,8 +1,11 @@
 import { Request, Response, Router } from 'express'
 import { blogRepository } from "../repository/blogRepository";
-import { validateUrlParamId } from "../../middlewares/commonValidationMiddlewares";
 import { AddUpdateBlogRequestRequiredData, BlogDBType } from "../types/types";
-import { addBlogBodyValidators, updateBlogBodyValidators } from "../middlewares/blogInputValidationMiddleware";
+import {
+    addBlogBodyValidators,
+    deleteBlogValidators,
+    updateBlogBodyValidators
+} from "../middlewares/blogInputValidationMiddleware";
 
 export const blogRouter = Router({});
 
@@ -47,7 +50,7 @@ blogRouter.put('/:id',
     })
 
 blogRouter.delete('/:id',
-    validateUrlParamId,
+    deleteBlogValidators,
     async (req: Request<{ id: string }>, res: Response<any>) => {
 
         const queryId = req.params.id

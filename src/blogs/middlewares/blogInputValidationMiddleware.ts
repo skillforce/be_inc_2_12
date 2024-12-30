@@ -54,7 +54,13 @@ export const addBlogBodyValidators = [
     blogWebsiteUrlBodyValidationMiddleware,
     inputValidationMiddleware
 ]
-export const updateBlogBodyValidators = [
+
+export const deleteBlogValidators = [
+    authMiddleware,
     validateUrlParamId,
+]
+
+export const updateBlogBodyValidators = [
+    ...deleteBlogValidators,
     ...addBlogBodyValidators
 ]

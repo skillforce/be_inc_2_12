@@ -2,7 +2,12 @@ import { Request, Response, Router } from 'express'
 import { postRepository } from "../repository/postRepository";
 import { validateUrlParamId } from "../../middlewares/commonValidationMiddlewares";
 import { AddUpdatePostRequestRequiredData, PostDBType } from "../types/types";
-import { addPostBodyValidators, updatePostBodyValidators } from "../middlewares/postInputValidationMiddleware";
+import {
+    addPostBodyValidators,
+    deletePostValidators,
+    updatePostBodyValidators
+} from "../middlewares/postInputValidationMiddleware";
+import { authMiddleware } from "../../middlewares/authMiddleware";
 
 export const postRouter = Router({});
 
@@ -47,7 +52,7 @@ postRouter.put('/:id',
     })
 
 postRouter.delete('/:id',
-    validateUrlParamId,
+    deletePostValidators,
     async (req: Request<{ id: string }>, res: Response<any>) => {
 
         const queryId = req.params.id
