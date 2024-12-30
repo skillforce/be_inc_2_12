@@ -55,55 +55,72 @@ describe('/posts', () => {
 
         expect(res.body).toMatchObject(postData)
     })
-    it('should return error 404 when there are unexpected fields', async () => {
-        const videoData:AddUpdateBlogRequestRequiredData & {unexpectedField: string} = {
-            name: 'Video Name',
-            websiteUrl: 'https://www.youtube.com',
-            description: 'Video Description',
-            unexpectedField: 'Unexpected field',
-        };
-        await req
-            .post(SETTINGS.PATH.BLOGS)
-            .send(videoData)
-            .expect(400)
-    })
-    it('should update video object and return 204 status to client', async () => {
+    it('should return 400 when try to create post with non-existing blogID', async () => {
         setDB(dataset1)
-        const videoData = {
-            name: 'Video Name123',
-            websiteUrl: 'https://www.youtube.com',
-            description: 'Video Description',
-        };
-        await req
-            .put(SETTINGS.PATH.BLOGS+'/1')
-            .send(videoData)
-            .expect(204)
-    })
-    it('should return 404 when there are unexpected fields', async () => {
-        setDB(dataset1)
-        const videoData:AddUpdateBlogRequestRequiredData & {unexpectedField: string} = {
-            name: 'Video Name',
-            websiteUrl: 'https://www.youtube.com',
-            description: 'Video Description',
-            unexpectedField: 'Unexpected field',
+        const postData:AddUpdatePostRequestRequiredData = {
+            title: 'Video Name',
+            shortDescription: 'Video Description',
+            content: 'Video Content',
+            blogId: '2',
         };
         const res = await req
-            .put(SETTINGS.PATH.BLOGS+'/1')
-            .send(videoData)
+            .post(SETTINGS.PATH.POSTS)
+            .send(postData)
             .expect(400)
 
         console.log(res.body)
     })
-    it('should return 400 when body properties is incorrect', async () => {
+    it('should return error 404 when there are unexpected fields', async () => {
+        const postData:AddUpdatePostRequestRequiredData & {unexpectedField: string} = {
+            title: 'Video Name',
+            shortDescription: 'Video Description',
+            content: 'Video Content',
+            blogId: '1',
+            unexpectedField: 'Unexpected field',
+        };
+        await req
+            .post(SETTINGS.PATH.POSTS)
+            .send(postData)
+            .expect(400)
+    })
+    it('should update video object and return 204 status to client', async () => {
         setDB(dataset1)
-        const videoData = {
-            name: '',
-            websiteUrl:true,
-            description: 123,
+        const postData = {
+            title: 'Video Name123',
+            shortDescription: 'Video Description',
+            content: 'Video Content',
+            blogId: '1',
+        };
+        await req
+            .put(SETTINGS.PATH.POSTS +'/1')
+            .send(postData)
+            .expect(204)
+    })
+    it('should return error when try to update post with non-existing blogID', async () => {
+        setDB(dataset1)
+        const postData = {
+            title: 'Video Name123',
+            shortDescription: 'Video Description',
+            content: 'Video Content',
+            blogId: '2',
         };
         const res = await req
-            .put(SETTINGS.PATH.BLOGS+'/1')
-            .send(videoData)
+            .put(SETTINGS.PATH.POSTS +'/1')
+            .send(postData)
+            .expect(400)
+        console.log(res.body)
+    })
+    it('should return 400 when body properties is incorrect', async () => {
+        setDB(dataset1)
+        const postData = {
+            title: 123,
+            shortDescription: true,
+            content: [],
+            blogId: true,
+        };
+        const res = await req
+            .put(SETTINGS.PATH.POSTS+'/1')
+            .send(postData)
             .expect(400)
 
         console.log(res.body)
@@ -111,13 +128,13 @@ describe('/posts', () => {
     it('should remove video by id', async () => {
         setDB(dataset1)
         const res = await req
-            .delete(SETTINGS.PATH.BLOGS+'/1')
+            .delete(SETTINGS.PATH.POSTS+'/1')
             .expect(204)
 
     })
     it('should return 404 status ', async () => {
         await req
-            .delete(SETTINGS.PATH.BLOGS+'/1')
+            .delete(SETTINGS.PATH.POSTS+'/1')
             .expect(404)
 
     })
