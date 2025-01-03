@@ -3,6 +3,7 @@ import { basicStringFieldMiddlewareGenerator, ErrorMessages } from "../../middle
 import { inputValidationMiddleware, validateUrlParamId } from "../../middlewares/commonValidationMiddlewares";
 import { db } from "../../db/db";
 import { authMiddleware } from "../../middlewares/authMiddleware";
+import { blogRepository } from "../../blogs/repository/blogRepository";
 
 
 const postTitleErrors: ErrorMessages = {
@@ -28,8 +29,9 @@ const blogIdErrors: ErrorMessages = {
 };
 
 const additionalWebsiteUrlRules: ((chain: ValidationChain) => ValidationChain)[] = [
-    (chain) => chain.custom((value) => {
-        const blogExists = db.blogs.some(blog => blog.id === value);
+    (chain) => chain.custom(async (value) => {
+        const blogs = await blogRepository.getAllBlogs()
+        const blogExists = blogs.some(blog => blog._id.toString() === value);
         if (!blogExists) {
             throw new Error('Invalid blogId: Blog does not exist');
         }

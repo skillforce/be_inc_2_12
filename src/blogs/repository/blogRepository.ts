@@ -1,45 +1,82 @@
-import { blogService } from "../domain/blogService";
-import { AddUpdateBlogRequestRequiredData, BlogDBType } from "../types/types";
+import {
+    AddBlogRequestRequiredData,
+    AddUpdateBlogRequestRequiredData,
+    BlogDBOutputType,
+    BlogDBType
+} from "../types/types";
+import { blogCollection } from "../../db/mongo-db";
+import { ObjectId, WithId } from "mongodb";
 
 
 export const blogRepository = {
     getAllBlogs: async (): Promise<BlogDBType[]> => {
-        return await blogService.getAllBlogs();
+        return await blogCollection.find().toArray();
     },
 
-    getBlogById: async (id: string): Promise<BlogDBType | null> => {
-        const blogById =await blogService.getBlogById(id);
+    getBlogById: async (_id: ObjectId): Promise< BlogDBType | null> => {
+        const blogById = await blogCollection.findOne({_id})
         return blogById || null;
     },
 
-    addBlog: async ({name,websiteUrl,description }: AddUpdateBlogRequestRequiredData): Promise<BlogDBType> => {
-
-        const newBlogData: BlogDBType = {
-            id: String(Date.now()),
-            name,
-            websiteUrl,
-            description
-        };
-
-        await blogService.addBlog(newBlogData)
-        return newBlogData;
+    addBlog: async (newBlogData: AddBlogRequestRequiredData ): Promise<ObjectId> => {
+       const result = await blogCollection
+           .insertOne(newBlogData as WithId<AddBlogRequestRequiredData>)
+       return result.insertedId;
     },
 
-    updateBlog: async (id: string, videoDataForUpdate: AddUpdateBlogRequestRequiredData): Promise<boolean> => {
-        const blogById = await blogService.getBlogById(id);
-        if (!blogById) {
-            return false;
+    updateBlog: async (_id: ObjectId, videoDataForUpdate: AddUpdateBlogRequestRequiredData): Promise<boolean> => {
+        const result = await blogCollection.updateOne(
+            {_id},
+            {
+                $set:
+                    {
+                        name: videoDataForUpdate.name,
+                        websiteUrl: videoDataForUpdate.websiteUrl,
+                        description: videoDataForUpdate.description
+                    }
+            })
+        return result.matchedCount === 1;
+    },
+
+    deleteBlog: async (_id: ObjectId): Promise<boolean> => {
+        const result = await blogCollection.deleteOne({_id})
+        return result.deletedCount === 1;
+    },
+    async getBlogCollectionForOutput(): Promise<BlogDBOutputType[]> {
+        const allBlogsFromDb = await blogCollection.find().toArray();
+        return blogRepository.mapBlogArrayToOutput(allBlogsFromDb)
+    },
+    async getForOutputById(_id: ObjectId): Promise<BlogDBOutputType | null> {
+        const blogById = await blogCollection.findOne({_id})
+        return blogRepository.mapBlogToOutput(blogById)
+    },
+    mapBlogToOutput(blog: WithId<BlogDBType> | null): BlogDBOutputType | null {
+        if (!blog) {
+            return null
         }
-        await blogService.updateBlog(id,videoDataForUpdate)
-        return true;
-    },
-
-    deleteBlog: async (id: string): Promise<boolean> => {
-        const blogById = await blogRepository.getBlogById(id);
-        if (!blogById) {
-            return false;
+        return {
+            id: blog._id.toString(),
+            name: blog.name,
+            websiteUrl: blog.websiteUrl,
+            description: blog.description,
+            createdAt: blog.createdAt,
+            isMembership: blog.isMembership
         }
-        await blogService.deleteBlog(id)
-        return true;
+
     },
+    mapBlogArrayToOutput(blogArray: Array<WithId<BlogDBType>>): Array<BlogDBOutputType> | [] {
+        if (!blogArray.length) {
+            return []
+        }
+
+        return blogArray.map(blog=>({
+            id: blog._id.toString(),
+            name: blog.name,
+            websiteUrl: blog.websiteUrl,
+            description: blog.description,
+            createdAt: blog.createdAt,
+            isMembership: blog.isMembership
+        }))
+    }
+
 };

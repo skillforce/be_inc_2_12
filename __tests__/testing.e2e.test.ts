@@ -1,18 +1,24 @@
-import {req} from './test-helpers'
-import {SETTINGS} from '../src/settings'
-import { db, setDB } from "../src/db/db";
-import { dataset1 } from "./datasets";
+import { req } from './test-helpers'
+import { SETTINGS } from '../src/settings'
+import { MongoMemoryServer } from "mongodb-memory-server";
+import { blogCollection, connectToDB, postCollection } from "../src/db/mongo-db";
 
 describe('/testing', () => {
-    beforeAll(async () => {
-        setDB()
-    })
+        beforeAll(async () => {
+            const dbServer = await MongoMemoryServer.create()
+            const uri = dbServer.getUri();
+
+            await connectToDB(uri)
+
+        },10000)
     it('should return 204 status ', async () => {
-        setDB(dataset1)
         await req
             .delete(SETTINGS.PATH.TESTING+'/all-data')
             .expect(204)
-        expect(db.videos.length).toBe(0)
+        const postCollectionArray = await postCollection.find().toArray()
+        const blogCollectionArray = await blogCollection.find().toArray()
+        expect(postCollectionArray.length).toBe(0)
+        expect(blogCollectionArray.length).toBe(0)
 
     })
 })

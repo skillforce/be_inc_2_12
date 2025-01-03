@@ -1,57 +1,84 @@
-import { postService } from "../domain/postService";
-import { AddUpdatePostRequestRequiredData, PostDBType } from "../types/types";
-import { db } from "../../db/db";
+import {
+    AddBlogRequestRequiredData,
+    AddUpdatePostRequestRequiredData,
+    PostDBType,
+    PostOutputDBType
+} from "../types/types";
+import { postCollection } from "../../db/mongo-db";
+import { ObjectId, WithId } from "mongodb";
 
 
 export const postRepository = {
     getAllPosts: async (): Promise<PostDBType[]> => {
-        return await postService.getAllPosts();
+        return await postCollection.find().toArray();
     },
 
-    getPostById: async (id: string): Promise<PostDBType | null> => {
-        const postById =await postService.getPostById(id);
+    getPostById: async (_id: ObjectId): Promise<PostDBType | null> => {
+        const postById = await postCollection.findOne({_id})
         return postById || null;
     },
 
-    addPost: async ({blogId,title,content,shortDescription }: AddUpdatePostRequestRequiredData): Promise<PostDBType> => {
-
-        const blogById = await db.blogs.find(blog => blog.id === blogId);
-
-        const newPostData: PostDBType = {
-            id: String(Date.now()),
-            title,
-            shortDescription,
-            content,
-            blogName:blogById?.name??'',
-            blogId,
-        };
-
-        await postService.addPost(newPostData)
-        return newPostData;
+    addPost: async (newPostData:AddBlogRequestRequiredData): Promise<ObjectId> => {
+       const result =  await postCollection
+           .insertOne(newPostData as WithId<AddBlogRequestRequiredData>)
+        return result.insertedId;
     },
 
-    updatePost: async (id: string, videoDataForUpdate: AddUpdatePostRequestRequiredData): Promise<boolean> => {
-        const postById = await postService.getPostById(id);
-
-        if (!postById) {
-            return false;
-        }
-        const blogById = await db.blogs.find(blog => blog.id === postById.blogId);
-
-        if (!blogById) {
-            return false;
-        }
-        const updatePostData = {...videoDataForUpdate, blogName:blogById?.name??''}
-        await postService.updatePost(id,updatePostData)
-        return true;
+    updatePost: async (_id: ObjectId, postDataForUpdates: AddUpdatePostRequestRequiredData): Promise<boolean> => {
+        const result =  await postCollection.updateOne({_id}, {
+            $set:
+                {
+                    title: postDataForUpdates.title,
+                    shortDescription: postDataForUpdates.shortDescription,
+                    content: postDataForUpdates.content
+                }
+        })
+        return result.matchedCount === 1;
     },
 
-    deletePost: async (id: string): Promise<boolean> => {
-        const postById = await postRepository.getPostById(id);
-        if (!postById) {
-            return false;
-        }
-        await postService.deletePost(id)
-        return true;
+    deletePost: async (_id: ObjectId): Promise<boolean> => {
+        const result = await postCollection.deleteOne({_id})
+        return result.deletedCount === 1;
     },
+
+    async getAllPostsForOutput(): Promise<PostOutputDBType[]> {
+        const allPostsFromDb = await postCollection.find().toArray();
+        return postRepository.mapBlogArrayToOutput(allPostsFromDb)
+    },
+    async getPostForOutputById(_id: ObjectId): Promise<PostOutputDBType | null> {
+        const postById = await postCollection.findOne({_id})
+        return postRepository.mapBlogToOutput(postById)
+    },
+    mapBlogToOutput(post: PostDBType | null): PostOutputDBType | null {
+        if (!post) {
+            return null
+        }
+        return {
+            id: post._id.toString(),
+            title: post.title,
+            shortDescription: post.shortDescription,
+            content: post.content,
+            blogId: post.blogId,
+            blogName: post.blogName,
+            createdAt: post.createdAt
+        }
+
+    },
+    mapBlogArrayToOutput(postArray: Array<PostDBType>): Array<PostOutputDBType> | [] {
+        if (!postArray.length) {
+            return []
+        }
+
+        return postArray.map(post=>({
+            id: post._id.toString(),
+            title: post.title,
+            shortDescription: post.shortDescription,
+            content: post.content,
+            blogId: post.blogId,
+            blogName: post.blogName,
+            createdAt: post.createdAt
+        }))
+    }
+
+
 };

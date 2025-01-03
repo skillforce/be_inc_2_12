@@ -1,33 +1,58 @@
-import { db, setDB } from "../../db/db";
-import { AddUpdateBlogRequestRequiredData, BlogDBType } from "../types/types";
+import { AddBlogRequestRequiredData, AddUpdateBlogRequestRequiredData, BlogDBOutputType } from "../types/types";
+import { blogRepository } from "../repository/blogRepository";
+import { ObjectId } from "mongodb";
+import { toObjectId } from "../../helpers/helpers";
 
 
 export const blogService = {
-    getAllBlogs: async (): Promise<BlogDBType[]> => {
-        return db.blogs;
+    getAllBlogs: async (): Promise<BlogDBOutputType[]> => {
+        return await blogRepository.getBlogCollectionForOutput();
     },
 
-    getBlogById: async (id: string): Promise<BlogDBType | null> => {
-        const blogById = db.blogs.find(blog => blog.id === id);
+    getBlogById: async (id: string): Promise<BlogDBOutputType | null> => {
+        const _id = toObjectId(id)
+        if(!_id){
+            return null
+        }
+        const blogById =await blogRepository.getForOutputById(_id);
         return blogById || null;
     },
 
-    addBlog: async (newBlogData: BlogDBType): Promise<BlogDBType> => {
-        setDB({ blogs: [...db.blogs, newBlogData] });
-        return newBlogData;
+    addBlog: async ({name,websiteUrl,description }: AddUpdateBlogRequestRequiredData): Promise<BlogDBOutputType|null> => {
+
+        const newBlogData: AddBlogRequestRequiredData = {
+            name,
+            websiteUrl,
+            description,
+            createdAt: new Date().toISOString(),
+            isMembership: false
+        };
+
+       const createdBlog = await blogRepository.addBlog(newBlogData)
+
+        if(!createdBlog){
+            return null;
+        }
+
+       return await blogRepository.getForOutputById(createdBlog);
     },
 
-    updateBlog: async (id:string, videoDataForUpdate: AddUpdateBlogRequestRequiredData): Promise<boolean> => {
-        const newBlogCollection = db.blogs.map(blog =>
-            blog.id === id ? { ...blog, ...videoDataForUpdate } : blog
-        );
-        setDB({ blogs: newBlogCollection });
-        return true;
+    updateBlog: async (id: string, videoDataForUpdate: AddUpdateBlogRequestRequiredData): Promise<boolean> => {
+        const blogById = await blogService.getBlogById(id);
+        const _id = toObjectId(id)
+        if (!blogById || !_id) {
+            return false;
+        }
+        return await blogRepository.updateBlog(_id,videoDataForUpdate)
     },
 
     deleteBlog: async (id: string): Promise<boolean> => {
-        const newArr = db.blogs.filter(video => video.id !== id);
-        setDB({ blogs: newArr });
-        return true;
+        const blogById = await blogService.getBlogById(id);
+        const _id = toObjectId(id)
+
+        if (!blogById || !_id) {
+            return false;
+        }
+        return await blogRepository.deleteBlog(_id)
     },
 };
