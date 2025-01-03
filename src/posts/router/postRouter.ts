@@ -46,7 +46,7 @@ postRouter.put('/:id',
 
         const isUpdatedBlog = await postService.updatePost(queryIdForUpdate, newDataForPostToUpdate)
         if (!isUpdatedBlog) {
-            res.sendStatus(500)
+            res.sendStatus(404)
             return;
         }
         res.sendStatus(204)
