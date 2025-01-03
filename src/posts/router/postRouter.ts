@@ -33,7 +33,7 @@ postRouter.post('/',
         const {title, shortDescription, content, blogId} = req.body
         const newPost = await postService.addPost({title, shortDescription, content, blogId})
         if(!newPost){
-            res.sendStatus(500)
+            res.sendStatus(404)
         }
         res.status(201).json(newPost as PostOutputDBType)
     })

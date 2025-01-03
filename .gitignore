@@ -1,8 +1,5 @@
+local.env
 dist
 node_modules
 pnpm-lock.yaml
 .idea
-.env
-.env.local
-.env.development
-.env.production
