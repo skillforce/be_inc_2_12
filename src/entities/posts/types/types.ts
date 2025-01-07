@@ -9,6 +9,15 @@ export interface PostOutputDBType {
     blogName: string
     createdAt: string
 }
+
+export interface PostsOutputWithPagination{
+    items: PostOutputDBType[],
+    totalCount: number,
+    pagesCount: number,
+    page: number,
+    pageSize: number
+}
+
 export interface PostDBType {
     _id: ObjectId
     title: string

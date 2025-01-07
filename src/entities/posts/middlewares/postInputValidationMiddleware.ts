@@ -1,9 +1,13 @@
 import { ValidationChain } from "express-validator";
-import { basicStringFieldMiddlewareGenerator, ErrorMessages } from "../../middlewares/helper";
-import { inputValidationMiddleware, validateUrlParamId } from "../../middlewares/commonValidationMiddlewares";
-import { db } from "../../db/db";
-import { authMiddleware } from "../../middlewares/authMiddleware";
+import { basicStringFieldMiddlewareGenerator, ErrorMessages } from "../../../middlewares/helper";
+import {
+    checkIfBlogWithProvidedQueryParamIdExists,
+    inputValidationMiddleware,
+    validateUrlParamId
+} from "../../../middlewares/commonValidationMiddlewares";
+import { authMiddleware } from "../../../middlewares/authMiddleware";
 import { blogRepository } from "../../blogs/repository/blogRepository";
+import { blogService } from "../../blogs/domain/blogService";
 
 
 const postTitleErrors: ErrorMessages = {
@@ -30,8 +34,8 @@ const blogIdErrors: ErrorMessages = {
 
 const additionalWebsiteUrlRules: ((chain: ValidationChain) => ValidationChain)[] = [
     (chain) => chain.custom(async (value) => {
-        const blogs = await blogRepository.getAllBlogs()
-        const blogExists = blogs.some(blog => blog._id.toString() === value);
+        const blogsFromDb = await blogService.getAllBlogs()
+        const blogExists = blogsFromDb.some(blog => blog.id.toString() === value);
         if (!blogExists) {
             throw new Error('Invalid blogId: Blog does not exist');
         }
@@ -66,6 +70,10 @@ export const postBlogIdBodyValidationMiddleware = basicStringFieldMiddlewareGene
 });
 
 
+
+
+
+
 export const addPostBodyValidators = [
     authMiddleware,
     postTitleBodyValidationMiddleware,
@@ -74,6 +82,21 @@ export const addPostBodyValidators = [
     postBlogIdBodyValidationMiddleware,
     inputValidationMiddleware
 ]
+
+export const getPostsByBlogIdValidators = [
+    checkIfBlogWithProvidedQueryParamIdExists,
+    inputValidationMiddleware
+]
+
+export const createPostByBlogIdValidators = [
+    authMiddleware,
+    postTitleBodyValidationMiddleware,
+    postShortDescriptionBodyValidationMiddleware,
+    postContentBodyValidationMiddleware,
+    checkIfBlogWithProvidedQueryParamIdExists,
+    inputValidationMiddleware
+]
+
 export const deletePostValidators = [
     authMiddleware,
     validateUrlParamId,

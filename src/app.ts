@@ -1,9 +1,9 @@
 import express from 'express'
 import cors from 'cors'
 import { SETTINGS } from "./settings";
-import { testingRouter } from "./testing/router/testingRouter";
-import { blogRouter } from "./blogs";
-import { postRouter } from "./posts";
+import { testingRouter } from "./entities/testing/router/testingRouter";
+import { blogRouter } from "./entities/blogs";
+import { postRouter } from "./entities/posts";
 
 export const app = express()
 app.use(express.json())

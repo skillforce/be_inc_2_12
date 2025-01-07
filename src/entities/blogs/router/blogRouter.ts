@@ -1,17 +1,24 @@
 import { Request, Response, Router } from 'express'
-import { AddUpdateBlogRequestRequiredData, BlogDBOutputType, BlogDBType } from "../types/types";
+import { AddUpdateBlogRequestRequiredData, BlogDBOutputType, BlogsOutputWithPagination } from "../types/types";
 import {
     addBlogBodyValidators,
     deleteBlogValidators,
     updateBlogBodyValidators
 } from "../middlewares/blogInputValidationMiddleware";
 import { blogService } from "../domain/blogService";
+import {
+    createPostByBlogIdValidators,
+    getPostsByBlogIdValidators
+} from "../../posts/middlewares/postInputValidationMiddleware";
+import { AddUpdatePostRequestRequiredData, PostOutputDBType, PostsOutputWithPagination } from "../../posts/types/types";
+import { postService } from "../../posts/domain/postService";
 
 export const blogRouter = Router({});
 
 
-blogRouter.get('/', async (req: Request, res: Response<BlogDBOutputType[]>) => {
-    const responseData = await blogService.getAllBlogs()
+blogRouter.get('/', async (req: Request, res: Response<BlogsOutputWithPagination>) => {
+    const queryObj = req.query
+    const responseData = await blogService.getBlogsByQuery(queryObj as Record<string,string|undefined>)
     res.status(200).json(responseData);
 
 })
@@ -19,6 +26,21 @@ blogRouter.get('/', async (req: Request, res: Response<BlogDBOutputType[]>) => {
 blogRouter.get('/:id',
     async (req: Request<{ id: string }>, res: Response<BlogDBOutputType>) => {
         const responseData = await blogService.getBlogById(req.params.id)
+        if (responseData) {
+            res.status(200).json(responseData)
+            return;
+        }
+        res.sendStatus(404)
+
+    })
+
+blogRouter.get('/:id/posts',
+    getPostsByBlogIdValidators,
+    async (req: Request<{ id: string }>, res: Response<PostsOutputWithPagination>) => {
+    const query = req.query
+    const id = req.params.id
+
+        const responseData = await postService.getPostByBlogIdWithQueryAndPagination(query as Record<string,string|undefined>,id,true)
         if (responseData) {
             res.status(200).json(responseData)
             return;
@@ -36,6 +58,19 @@ blogRouter.post('/',
             res.sendStatus(500)
         }
         res.status(201).json(newBlog as BlogDBOutputType)
+    })
+
+blogRouter.post('/:id/posts',
+    createPostByBlogIdValidators,
+    async (req: Request<any, Omit<AddUpdatePostRequestRequiredData,'blogId'>>, res: Response<PostOutputDBType>) => {
+        const {title, shortDescription, content} = req.body;
+        const blogId = req.params.id;
+
+        const newPost = await postService.addPost({title, shortDescription, content, blogId})
+        if(!newPost){
+            res.sendStatus(404)
+        }
+        res.status(201).json(newPost as PostOutputDBType)
     })
 
 blogRouter.put('/:id',

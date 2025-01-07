@@ -1,7 +1,7 @@
 import { Collection, Db, MongoClient } from "mongodb";
 import { SETTINGS } from "../settings";
-import { PostDBType } from "../posts";
-import { BlogDBType } from "../blogs";
+import { PostDBType } from "../entities/posts";
+import { BlogDBType } from "../entities/blogs";
 
 
 let client:MongoClient = {} as MongoClient;

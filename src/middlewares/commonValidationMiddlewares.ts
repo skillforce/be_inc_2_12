@@ -1,5 +1,8 @@
-import { validationResult, ValidationError, body } from "express-validator";
+import { validationResult, ValidationError, body, query, param } from "express-validator";
 import { NextFunction, Request, Response } from "express";
+import { blogRepository } from "../entities/blogs/repository/blogRepository";
+import { toObjectId } from "../helpers/helpers";
+import { blogService } from "../entities/blogs/domain/blogService";
 
 
 export const inputValidationMiddleware = (req:Request, res:Response, next:NextFunction) => {
@@ -25,20 +28,18 @@ export const validateUrlParamId =(req: Request, res: Response, next: NextFunctio
 
   }
 
+export const checkIfBlogWithProvidedQueryParamIdExists =async (req: Request, res: Response, next: NextFunction)=>{
+  const paramId = req.params.id;
+  if(!paramId){
+      res.status(404)
+      return;
+  }
+    const isBlogExist= await blogService.getBlogById(paramId);
 
-export const validateUnexpectedFields = (allowedFields: string[]) => {
-    return body()
-        .custom((value, { req }) => {
-            const bodyKeys = Object.keys(req.body);
-            const unexpectedFields = bodyKeys.filter(
-                (key) => !allowedFields.includes(key)
-            );
+  if(!isBlogExist){
+      res.status(404)
+      return;
+  }
 
-            if (unexpectedFields.length > 0) {
-                throw new Error(
-                    `Unexpected fields: ${unexpectedFields.join(', ')}. Allowed fields: ${allowedFields.join(', ')}`
-                );
-            }
-            return true;
-        });
-};
+    return next();
+  }

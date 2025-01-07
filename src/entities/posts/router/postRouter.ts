@@ -1,5 +1,10 @@
 import { Request, Response, Router } from 'express'
-import { AddUpdatePostRequestRequiredData, PostDBType, PostOutputDBType } from "../types/types";
+import {
+    AddUpdatePostRequestRequiredData,
+    PostDBType,
+    PostOutputDBType,
+    PostsOutputWithPagination
+} from "../types/types";
 import {
     addPostBodyValidators,
     deletePostValidators,
@@ -10,9 +15,10 @@ import { postService } from "../domain/postService";
 export const postRouter = Router({});
 
 
-postRouter.get('/', async (req: Request, res: Response<PostOutputDBType[]>) => {
-    const responseData = await postService.getAllPosts()
-    res.status(200).json(responseData);
+postRouter.get('/', async (req: Request, res: Response<PostsOutputWithPagination>) => {
+    const queryObj = req.query
+    const responseData = await postService.getPostByBlogIdWithQueryAndPagination(queryObj as Record<string,string|undefined>,undefined,false)
+    res.status(200).json(responseData)
 
 })
 

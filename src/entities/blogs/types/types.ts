@@ -8,6 +8,14 @@ export interface BlogDBOutputType {
     createdAt: string
     isMembership: boolean
 }
+
+export interface BlogsOutputWithPagination{
+    items: BlogDBOutputType[],
+    totalCount: number,
+    pagesCount: number,
+    page: number,
+    pageSize: number
+}
 export interface BlogDBType {
     _id: ObjectId
     name:string

@@ -1,7 +1,7 @@
 import { req } from './test-helpers'
 import { SETTINGS } from '../src/settings'
-import { BlogDBType } from "../src/blogs/types/types";
-import { AddUpdatePostRequestRequiredData, PostDBType } from "../src/posts/types/types";
+import { BlogDBType } from "../src/entities/blogs/types/types";
+import { AddUpdatePostRequestRequiredData, PostDBType } from "../src/entities/posts/types/types";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { blogCollection, connectToDB, postCollection } from "../src/db/mongo-db";
 
@@ -19,7 +19,7 @@ describe('/posts', () => {
             .get(SETTINGS.PATH.POSTS)
             .expect(200)
 
-        expect(res.body.length).toBe(0)
+        expect(res.body.items.length).toBe(0)
     })
     it('should get not empty array', async () => {
         const result = await blogCollection.insertOne({
@@ -42,7 +42,7 @@ describe('/posts', () => {
             .expect(200)
 
 
-        expect(res.body.length).toBe(1)
+        expect(res.body.items.length).toBe(1)
     })
     it('should return error when try to get item with id that doesnt exist ', async () => {
 
@@ -125,7 +125,6 @@ describe('/posts', () => {
             .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(postData)
             .expect(400)
-        console.log(res.body)
     })
     it('should return 400 when body properties is incorrect', async () => {
         const postsListCollection = await postCollection.find().toArray()
