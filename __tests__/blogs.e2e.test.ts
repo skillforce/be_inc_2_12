@@ -43,7 +43,7 @@ describe('/blogs', () => {
             .expect(404)
     })
     it('should create blog object and return created one back to the client', async () => {
-        const videoData:AddUpdateBlogRequestRequiredData = {
+        const blogData:AddUpdateBlogRequestRequiredData = {
             name: 'Video Name',
             websiteUrl: 'https://www.youtube.com',
             description: 'Video Description',
@@ -51,8 +51,8 @@ describe('/blogs', () => {
         const res = await req
             .post(SETTINGS.PATH.BLOGS)
             .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
-            .send(videoData)
-        expect(res.body).toMatchObject(videoData)
+            .send(blogData)
+        expect(res.body).toMatchObject(blogData)
     })
     it('should create new post and apply blog id that has been sent', async () => {
 
@@ -90,7 +90,7 @@ describe('/blogs', () => {
     it('should update blog object and return 204 status to client', async () => {
         const blogCollectionArray = await blogCollection.find().toArray() as BlogDBType[]
         const idToUpdate = blogCollectionArray[0]._id
-        const videoData = {
+        const blogData = {
             name: 'Video Name123',
             websiteUrl: 'https://www.youtube.com',
             description: 'Video Description',
@@ -98,13 +98,13 @@ describe('/blogs', () => {
       await req
             .put(`${SETTINGS.PATH.BLOGS}/${idToUpdate}`)
             .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
-            .send(videoData)
+            .send(blogData)
             .expect(204)
     })
     it('should return 400 when body properties is incorrect', async () => {
         const blogCollectionArray = await blogCollection.find().toArray() as BlogDBType[]
         const idToUpdate = blogCollectionArray[0]._id
-        const videoData = {
+        const blogData = {
             name: '',
             websiteUrl:true,
             description: 123,
@@ -112,7 +112,7 @@ describe('/blogs', () => {
       const res = await req
           .put(`${SETTINGS.PATH.BLOGS}/${idToUpdate}`)
             .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
-            .send(videoData)
+            .send(blogData)
             .expect(400)
 
     })

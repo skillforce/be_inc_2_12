@@ -85,7 +85,7 @@ describe('/posts', () => {
             .expect(400)
 
     })
-    it('should update video object and return 204 status to client', async () => {
+    it('should update post object and return 204 status to client', async () => {
         const result = await blogCollection.insertOne({
             name: 'Video Name',
             websiteUrl: 'https://www.youtube.com',
@@ -143,7 +143,7 @@ describe('/posts', () => {
             .expect(400)
 
     })
-    it('should remove video by id', async () => {
+    it('should remove post by id', async () => {
         const postsListCollection = await postCollection.find().toArray()
 
         const postIdToDelete = postsListCollection[0]._id

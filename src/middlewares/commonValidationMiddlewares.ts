@@ -31,15 +31,14 @@ export const validateUrlParamId =(req: Request, res: Response, next: NextFunctio
 export const checkIfBlogWithProvidedQueryParamIdExists =async (req: Request, res: Response, next: NextFunction)=>{
   const paramId = req.params.id;
   if(!paramId){
-      res.status(404)
+      res.sendStatus(404)
       return;
   }
     const isBlogExist= await blogService.getBlogById(paramId);
-
   if(!isBlogExist){
-      res.status(404)
+      res.sendStatus(404)
       return;
   }
 
-    return next();
+   return next();
   }

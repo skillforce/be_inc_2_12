@@ -20,7 +20,7 @@ export const blogService = {
     getBlogsByQuery: async (query?: Record<string, string | undefined>): Promise<BlogsOutputWithPagination> => {
         const sanitizedQuery = queryFilterGenerator(query||{});
         const {pageNumber, pageSize, sortBy, sortDirection, searchNameTerm} = sanitizedQuery;
-        const searchText = searchNameTerm ? {title: {$regex: searchNameTerm, $options: 'i'}} : {}
+        const searchText = searchNameTerm ? {name: {$regex: searchNameTerm, $options: 'i'}} : {}
 
 
         const filter = {...searchText}
@@ -41,6 +41,7 @@ export const blogService = {
     },
     getBlogById: async (id: string): Promise<BlogDBOutputType | null> => {
         const _id = toObjectId(id)
+        console.log(_id)
         if (!_id) {
             return null
         }
