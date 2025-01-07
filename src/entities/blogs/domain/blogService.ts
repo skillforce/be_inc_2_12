@@ -2,13 +2,13 @@ import {
     AddBlogRequestRequiredData,
     AddUpdateBlogRequestRequiredData,
     BlogDBOutputType,
-    BlogDBType, BlogsOutputWithPagination
+    BlogDBType,
+    BlogsOutputWithPagination
 } from "../types/types";
 import { blogRepository } from "../repository/blogRepository";
 import { SortDirection, WithId } from "mongodb";
 import { queryFilterGenerator, toObjectId } from "../../../helpers/helpers";
 import { blogQueryRepository } from "../repository/blogQueryRepository";
-import { blogCollection, postCollection } from "../../../db/mongo-db";
 
 
 export const blogService = {

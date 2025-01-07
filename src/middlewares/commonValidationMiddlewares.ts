@@ -1,7 +1,5 @@
-import { validationResult, ValidationError, body, query, param } from "express-validator";
+import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
-import { blogRepository } from "../entities/blogs/repository/blogRepository";
-import { toObjectId } from "../helpers/helpers";
 import { blogService } from "../entities/blogs/domain/blogService";
 
 

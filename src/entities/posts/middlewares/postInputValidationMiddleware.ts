@@ -6,7 +6,6 @@ import {
     validateUrlParamId
 } from "../../../middlewares/commonValidationMiddlewares";
 import { authMiddleware } from "../../../middlewares/authMiddleware";
-import { blogRepository } from "../../blogs/repository/blogRepository";
 import { blogService } from "../../blogs/domain/blogService";
 
 

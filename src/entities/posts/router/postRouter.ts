@@ -1,10 +1,5 @@
 import { Request, Response, Router } from 'express'
-import {
-    AddUpdatePostRequestRequiredData,
-    PostDBType,
-    PostOutputDBType,
-    PostsOutputWithPagination
-} from "../types/types";
+import { AddUpdatePostRequestRequiredData, PostOutputDBType, PostsOutputWithPagination } from "../types/types";
 import {
     addPostBodyValidators,
     deletePostValidators,
