@@ -7,6 +7,7 @@ import {
 } from "../../../middlewares/commonValidationMiddlewares";
 import { authMiddleware } from "../../../middlewares/authMiddleware";
 import { blogService } from "../../blogs/domain/blogService";
+import { blogQueryRepository } from "../../blogs/repository/blogQueryRepository";
 
 
 const postTitleErrors: ErrorMessages = {
@@ -33,7 +34,7 @@ const blogIdErrors: ErrorMessages = {
 
 const additionalWebsiteUrlRules: ((chain: ValidationChain) => ValidationChain)[] = [
     (chain) => chain.custom(async (value) => {
-        const blogsFromDb = await blogService.getAllBlogs()
+        const blogsFromDb = await blogQueryRepository.getAllBlogs()
         const blogExists = blogsFromDb.some(blog => blog.id.toString() === value);
         if (!blogExists) {
             throw new Error('Invalid blogId: Blog does not exist');

@@ -1,6 +1,7 @@
 import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
-import { blogService } from "../entities/blogs/domain/blogService";
+import { blogQueryRepository } from "../entities/blogs/repository/blogQueryRepository";
+import { toObjectId } from "../helpers/helpers";
 
 
 export const inputValidationMiddleware = (req:Request, res:Response, next:NextFunction) => {
@@ -32,7 +33,11 @@ export const checkIfBlogWithProvidedQueryParamIdExists =async (req: Request, res
       res.sendStatus(404)
       return;
   }
-    const isBlogExist= await blogService.getBlogById(paramId);
+    const _id = toObjectId(paramId)
+    if (!_id) {
+        return false;
+    }
+  const isBlogExist= await blogQueryRepository.getBlogById(_id);
   if(!isBlogExist){
       res.sendStatus(404)
       return;

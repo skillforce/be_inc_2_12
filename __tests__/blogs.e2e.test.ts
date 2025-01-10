@@ -44,9 +44,9 @@ describe('/blogs', () => {
     })
     it('should create blog object and return created one back to the client', async () => {
         const blogData:AddUpdateBlogRequestRequiredData = {
-            name: 'Video Name',
+            name: 'Blog Name',
             websiteUrl: 'https://www.youtube.com',
-            description: 'Video Description',
+            description: 'Blog Description',
         };
         const res = await req
             .post(SETTINGS.PATH.BLOGS)

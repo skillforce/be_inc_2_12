@@ -4,9 +4,14 @@ import { ObjectId, WithId } from "mongodb";
 
 
 export const postRepository = {
-    addPost: async (newPostData:AddBlogRequestRequiredData): Promise<ObjectId> => {
+    addPost: async (newPostData:AddBlogRequestRequiredData): Promise<ObjectId|null> => {
        const result =  await postCollection
            .insertOne(newPostData as WithId<AddBlogRequestRequiredData>)
+
+        if(!result.insertedId){
+            return null;
+        }
+
         return result.insertedId;
     },
 

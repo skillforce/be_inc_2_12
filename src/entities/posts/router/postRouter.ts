@@ -6,20 +6,43 @@ import {
     updatePostBodyValidators
 } from "../middlewares/postInputValidationMiddleware";
 import { postService } from "../domain/postService";
+import { postQueryRepository } from "../repository/postQueryRepository";
+import { queryFilterGenerator, toObjectId } from "../../../helpers/helpers";
+import { ObjectId } from "mongodb";
+import { blogQueryRepository } from "../../blogs/repository/blogQueryRepository";
 
 export const postRouter = Router({});
 
 
 postRouter.get('/', async (req: Request, res: Response<PostsOutputWithPagination>) => {
     const queryObj = req.query
-    const responseData = await postService.getPostByBlogIdWithQueryAndPagination(queryObj as Record<string,string|undefined>,undefined,false)
+
+    const sanitizedQuery = queryFilterGenerator(queryObj as Record<string, string | undefined>);
+
+    const {pageNumber, pageSize, sortBy, sortDirection} = sanitizedQuery;
+    const skip = (pageNumber - 1) * pageSize;
+
+
+    const responseData = await postQueryRepository.getPaginatedPosts({
+        filter: {},
+        sortBy,
+        sortDirection,
+        skip,
+        limit:pageSize,
+        pageNumber
+    })
     res.status(200).json(responseData)
 
 })
 
 postRouter.get('/:id',
     async (req: Request<{ id: string }>, res: Response<PostOutputDBType>) => {
-        const responseData = await postService.getPostById(req.params.id)
+        const _id = toObjectId(req.params.id)
+             if(!_id){
+                 res.sendStatus(404)
+                 return;
+             }
+        const responseData = await postQueryRepository.getPostById(_id as ObjectId)
         if (responseData) {
             res.status(200).json(responseData)
             return;
@@ -31,12 +54,34 @@ postRouter.get('/:id',
 postRouter.post('/',
     addPostBodyValidators,
     async (req: Request<any, AddUpdatePostRequestRequiredData>, res: Response<PostOutputDBType>) => {
-        const {title, shortDescription, content, blogId} = req.body
-        const newPost = await postService.addPost({title, shortDescription, content, blogId})
+        const {blogId} = req.body
+        const _id = toObjectId(blogId)
+        if(!_id){
+            res.sendStatus(404)
+            return;
+        }
+        const blogById = await blogQueryRepository.getBlogById(_id)
+
+        if(!blogById){
+            res.sendStatus(404)
+            return;
+        }
+
+        const newPost = await postService.addPost(req.body,blogById)
+
         if(!newPost){
             res.sendStatus(404)
+            return;
         }
-        res.status(201).json(newPost as PostOutputDBType)
+        const createdPostForOutput = await postQueryRepository.getPostById(newPost);
+
+        if(!createdPostForOutput){
+            res.sendStatus(404)
+            return;
+        }
+
+
+        res.status(201).json(createdPostForOutput)
     })
 
 postRouter.put('/:id',
@@ -44,9 +89,29 @@ postRouter.put('/:id',
     async (req: Request<{ id: string }, AddUpdatePostRequestRequiredData>, res: Response<any>) => {
         const queryIdForUpdate = req.params.id;
         const newDataForPostToUpdate = req.body;
+        const _id = toObjectId(queryIdForUpdate)
 
-        const isUpdatedBlog = await postService.updatePost(queryIdForUpdate, newDataForPostToUpdate)
-        if (!isUpdatedBlog) {
+        if(!_id){
+            res.sendStatus(404)
+            return;
+        }
+
+        const postById = await postQueryRepository.getPostById(_id);
+        const postBlogId = toObjectId(newDataForPostToUpdate.blogId);
+
+        if (!postById || !postBlogId) {
+            res.sendStatus(404)
+            return;
+        }
+        const blogById = await blogQueryRepository.getBlogById(postBlogId);
+
+        if (!blogById) {
+            res.sendStatus(404)
+            return;
+        }
+        const isBlogUpdated = await postService.updatePost(_id, blogById, newDataForPostToUpdate);
+
+        if (!isBlogUpdated) {
             res.sendStatus(404)
             return;
         }
@@ -56,7 +121,6 @@ postRouter.put('/:id',
 postRouter.delete('/:id',
     deletePostValidators,
     async (req: Request<{ id: string }>, res: Response<any>) => {
-
         const queryId = req.params.id
         const post = await postService.deletePost(queryId)
         if (!post) {
