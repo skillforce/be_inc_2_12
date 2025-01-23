@@ -1,32 +1,33 @@
-import { GetPaginatedPostsArgs, PostDBType, PostOutputDBType, PostsOutputWithPagination } from "../types/types";
+import {  PostDBType, PostOutputDBType, PostsOutputWithPagination } from "../types/types";
 import { postCollection } from "../../../db/mongo-db";
 import { ObjectId } from "mongodb";
+import { queryFilterGenerator } from "../../../helpers/helpers";
 
 export const postQueryRepository = {
     async getPaginatedPosts(
-        {
-            filter,
-            sortBy,
-            sortDirection,
-            skip,
-            limit,
-            pageNumber
-        }:GetPaginatedPostsArgs
+       query:Record<string, string | undefined>,
+       filter: Record<string, any>={}
     ): Promise<PostsOutputWithPagination> {
+
+        const sanitizedQuery = queryFilterGenerator(query as Record<string, string | undefined>);
+
+        const {pageNumber, pageSize, sortBy, sortDirection} = sanitizedQuery;
+        const skip = (pageNumber - 1) * pageSize;
+
         const allPostsFromDb = await postCollection
             .find(filter)
             .sort({ [sortBy]: sortDirection })
             .skip(skip)
-            .limit(limit)
+            .limit(pageSize)
             .toArray();
 
         const totalCount = await this.countPosts(filter)
         const itemsForOutput = allPostsFromDb.map(this.mapPostToOutput)
 
         return {
-            pagesCount: Math.ceil(totalCount / limit),
+            pagesCount: Math.ceil(totalCount / pageSize),
             page: pageNumber,
-            pageSize:limit,
+            pageSize,
             totalCount,
             items: itemsForOutput
         }

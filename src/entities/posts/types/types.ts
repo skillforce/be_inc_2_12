@@ -53,13 +53,3 @@ export interface PostsOutputWithPagination{
     pageSize: number
 }
 
-
-export interface GetPaginatedPostsArgs {
-    filter: Record<string, any>,
-    sortBy: string,
-    sortDirection: SortDirection,
-    skip: number,
-    limit: number,
-    pageNumber:number
-}
-

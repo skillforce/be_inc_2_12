@@ -39,11 +39,3 @@ export interface AddBlogRequestRequiredData {
     isMembership: boolean
 }
 
-export interface GetPaginatedBlogsArgs {
-    filter: Record<string, any>,
-    sortBy: string,
-    sortDirection: SortDirection,
-    skip: number,
-    limit: number,
-    pageNumber:number
-}

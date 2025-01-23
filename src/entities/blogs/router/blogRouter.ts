@@ -21,24 +21,9 @@ export const blogRouter = Router({});
 
 
 blogRouter.get('/', async (req: Request, res: Response<BlogsOutputWithPagination>) => {
-    const queryObj = req.query
-    const sanitizedQuery = queryFilterGenerator(queryObj as Record<string, string | undefined>);
+    const queryObj = req.query;
 
-    const {pageNumber, pageSize, sortBy, sortDirection, searchNameTerm} = sanitizedQuery;
-
-    const searchText = searchNameTerm ? {name: {$regex: searchNameTerm, $options: 'i'}} : {}
-    const filter = {...searchText}
-
-    const skip = (pageNumber - 1) * pageSize;
-
-    const responseData = await blogQueryRepository.getPaginatedBlogs({
-        filter,
-        sortBy,
-        sortDirection,
-        skip,
-        pageNumber,
-        limit: pageSize
-    })
+    const responseData = await blogQueryRepository.getPaginatedBlogs(queryObj as Record<string, string | undefined>)
     res.status(200).json(responseData);
 
 })
@@ -68,23 +53,11 @@ blogRouter.get('/:id/posts',
         const queryObj = req.query
         const id = req.params.id
 
-
-        const sanitizedQuery = queryFilterGenerator(queryObj as Record<string, string | undefined>);
-
-        const {pageNumber, pageSize, sortBy, sortDirection} = sanitizedQuery;
-        const skip = (pageNumber - 1) * pageSize;
-
-        const searchBlogId = {blogId: {$regex:id}}
+        const searchBlogId = {blogId: {$regex: id}}
         const filter = {...searchBlogId}
 
-        const responseData = await postQueryRepository.getPaginatedPosts({
-            filter: filter,
-            sortBy,
-            sortDirection,
-            skip,
-            limit:pageSize,
-            pageNumber
-        })
+        const responseData = await postQueryRepository
+            .getPaginatedPosts(queryObj as Record<string, string | undefined>, filter)
 
         res.status(200).json(responseData)
 
@@ -112,49 +85,37 @@ blogRouter.post('/',
 
 blogRouter.post('/:id/posts',
     createPostByBlogIdValidators,
-    async (req: Request<{ id: string }, Omit<AddUpdatePostRequestRequiredData, 'blogId'>>, res: Response<PostOutputDBType>) => {
+    async (req: Request<{
+        id: string
+    }, Omit<AddUpdatePostRequestRequiredData, 'blogId'>>, res: Response<PostOutputDBType>) => {
         const blogId = req.params.id;
         const _id = toObjectId(blogId)
 
-        if(!_id){
+        if (!_id) {
             res.sendStatus(404)
             return;
         }
         const blogById = await blogQueryRepository.getBlogById(_id)
 
-        if(!blogById){
+        if (!blogById) {
             res.sendStatus(404)
             return;
         }
 
-        const newPost = await postService.addPost(req.body,blogById)
+        const newPost = await postService.addPost(req.body, blogById)
 
-        if(!newPost){
+        if (!newPost) {
             res.sendStatus(404)
             return;
         }
         const createdPostForOutput = await postQueryRepository.getPostById(newPost);
 
-        if(!createdPostForOutput){
+        if (!createdPostForOutput) {
             res.sendStatus(404)
             return;
         }
 
         res.status(201).json(createdPostForOutput)
-
-
-
-
-
-
-    // const {title, shortDescription, content} = req.body;
-    //     const blogId = req.params.id;
-    //
-    //     const newPost = await postService.addPost({title, shortDescription, content, blogId})
-    //     if (!newPost) {
-    //         res.sendStatus(404)
-    //     }
-    //     res.status(201).json(newPost as PostOutputDBType)
     })
 
 blogRouter.put('/:id',

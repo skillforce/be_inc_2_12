@@ -10,27 +10,14 @@ import { postQueryRepository } from "../repository/postQueryRepository";
 import { queryFilterGenerator, toObjectId } from "../../../helpers/helpers";
 import { ObjectId } from "mongodb";
 import { blogQueryRepository } from "../../blogs/repository/blogQueryRepository";
+import { query } from "express-validator";
 
 export const postRouter = Router({});
 
 
 postRouter.get('/', async (req: Request, res: Response<PostsOutputWithPagination>) => {
     const queryObj = req.query
-
-    const sanitizedQuery = queryFilterGenerator(queryObj as Record<string, string | undefined>);
-
-    const {pageNumber, pageSize, sortBy, sortDirection} = sanitizedQuery;
-    const skip = (pageNumber - 1) * pageSize;
-
-
-    const responseData = await postQueryRepository.getPaginatedPosts({
-        filter: {},
-        sortBy,
-        sortDirection,
-        skip,
-        limit:pageSize,
-        pageNumber
-    })
+    const responseData = await postQueryRepository.getPaginatedPosts(queryObj as Record<string, string | undefined>)
     res.status(200).json(responseData)
 
 })
@@ -42,7 +29,7 @@ postRouter.get('/:id',
                  res.sendStatus(404)
                  return;
              }
-        const responseData = await postQueryRepository.getPostById(_id as ObjectId)
+        const responseData = await postQueryRepository.getPostById(_id)
         if (responseData) {
             res.status(200).json(responseData)
             return;
