@@ -1,13 +1,7 @@
-import { query, ValidationChain } from "express-validator";
+import { ValidationChain } from "express-validator";
 import { basicStringFieldMiddlewareGenerator, ErrorMessages } from "../../../middlewares/helper";
-import { AddUpdateBlogRequestRequiredData } from "../types/types";
-import {
-    checkIfBlogWithProvidedQueryParamIdExists,
-    inputValidationMiddleware,
-    validateUrlParamId
-} from "../../../middlewares/commonValidationMiddlewares";
+import { inputValidationMiddleware, validateUrlParamId } from "../../../middlewares/commonValidationMiddlewares";
 import { authMiddleware } from "../../../middlewares/authMiddleware";
-import { blogRepository } from "../repository/blogRepository";
 
 const blogNameErrors: ErrorMessages = {
     required: 'name field is required',
@@ -50,12 +44,6 @@ export const blogWebsiteUrlBodyValidationMiddleware = basicStringFieldMiddleware
     errorMessages: blogWebsiteUrlErrors,
     extraValidations: additionalWebsiteUrlRules
 });
-
-
-export const getBlogByIdValidators = [
-    checkIfBlogWithProvidedQueryParamIdExists,
-    inputValidationMiddleware
-]
 
 
 export const addBlogBodyValidators = [

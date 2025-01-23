@@ -14,6 +14,8 @@ interface QueryFilterGenerator{
     sortBy: string;
     sortDirection: SortDirection;
     searchNameTerm: string | null;
+    searchEmailTerm: string | null;
+    searchLoginTerm: string | null;
 }
 
 export const queryFilterGenerator=(query:Record<string,string|undefined>):QueryFilterGenerator=>{
@@ -23,5 +25,7 @@ export const queryFilterGenerator=(query:Record<string,string|undefined>):QueryF
         sortBy:query.sortBy ?? 'createdAt',
         sortDirection:query.sortDirection==='asc'? query.sortDirection : 'desc',
         searchNameTerm: query.searchNameTerm ??  null,
+        searchEmailTerm: query.searchEmailTerm ??  null,
+        searchLoginTerm: query.searchLoginTerm ??  null,
     }
 }
