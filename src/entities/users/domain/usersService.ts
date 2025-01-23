@@ -1,8 +1,20 @@
 import { ObjectId } from "mongodb";
-import { toObjectId } from "../../../helpers/helpers";
+import { ErrorResponseObject, generateErrorResponseObject, toObjectId } from "../../../helpers/helpers";
 import { usersRepository } from "../repository/usersRepository";
 import { AddUserInputQueryRequiredData, AddUserRequestRequiredData } from "../types/types";
 import { hashPasswordWithSalt } from "../../../helpers/authHelper";
+
+export enum ADD_USER_ERROR_CODES {
+    CREATED = 1,
+    LOGIN_OR_EMAIL_NOT_UNIQUE = 2,
+    NOT_CREATED = 3
+}
+
+
+export type AddUserReturnValueType =
+    | { code: ADD_USER_ERROR_CODES.CREATED; data: { id: ObjectId } }
+    | { code: ADD_USER_ERROR_CODES.LOGIN_OR_EMAIL_NOT_UNIQUE; data: ErrorResponseObject }
+    | { code: ADD_USER_ERROR_CODES.NOT_CREATED };
 
 
 export const usersService = {
@@ -10,26 +22,44 @@ export const usersService = {
                         login,
                         password,
                         email
-                    }: AddUserInputQueryRequiredData): Promise<ObjectId | null> => {
+                    }: AddUserInputQueryRequiredData): Promise<AddUserReturnValueType> => {
+
+
+        const isLoginUnique = await usersRepository.isFieldValueUnique('login', login) //search by both fields login and email
+        const isEmailUnique = await usersRepository.isFieldValueUnique('email', email)
+
+        if (!isLoginUnique) {
+            return {
+                code: ADD_USER_ERROR_CODES.LOGIN_OR_EMAIL_NOT_UNIQUE,
+                data: generateErrorResponseObject('login', 'login must be unique')
+            }
+        }
+
+        if (!isEmailUnique) {
+            return {
+                code: ADD_USER_ERROR_CODES.LOGIN_OR_EMAIL_NOT_UNIQUE,
+                data: generateErrorResponseObject('email', 'email must be unique')
+            }
+        }
+
 
         const hashedPassword = await hashPasswordWithSalt(password)
-
-
 
         const newBlogData: AddUserRequestRequiredData = {
             login,
             email,
-            password:hashedPassword,
-            createdAt: new Date().toISOString(), // check that email and login are unique
+            password: hashedPassword,
+            createdAt: new Date().toISOString(),
         };
 
         const createdBlogId = await usersRepository.addUser(newBlogData)
 
+
         if (!createdBlogId) {
-            return null;
+            return {code: ADD_USER_ERROR_CODES.NOT_CREATED}
         }
 
-        return createdBlogId;
+        return {code: ADD_USER_ERROR_CODES.CREATED, data: {id: createdBlogId}};
     },
 
     deleteUser: async (id: string): Promise<boolean> => {

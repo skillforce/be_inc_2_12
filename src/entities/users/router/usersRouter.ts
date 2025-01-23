@@ -3,7 +3,9 @@ import { ObjectId } from "mongodb";
 import { AddUserInputQueryRequiredData, UserDBOutputType, UsersOutputWithPagination } from "../types/types";
 import { usersQueryRepository } from "../repository/usersQueryRepository";
 import { addUserBodyValidators, deleteUserValidators } from "../middlewares/usersInputDataValidationMiddleware";
-import { usersService } from "../domain/usersService";
+import { ADD_USER_ERROR_CODES, usersService } from "../domain/usersService";
+import { ErrorResponseObject } from "../../../helpers/helpers";
+import { usersRepository } from "../repository/usersRepository";
 
 export const usersRouter = Router({});
 
@@ -18,22 +20,33 @@ usersRouter.get('/', async (req: Request, res: Response<UsersOutputWithPaginatio
 
 usersRouter.post('/',
     addUserBodyValidators,
-    async (req: Request<any,any, AddUserInputQueryRequiredData>, res: Response<UserDBOutputType>) => {
-        const {login,password,email} = req.body
-        const newUserId = await usersService.addUser({login,password,email})
+    async (req: Request<any, any, AddUserInputQueryRequiredData>, res: Response<UserDBOutputType | ErrorResponseObject>) => {
+        const {login, password, email} = req.body
 
-        if (!newUserId) {
-            res.sendStatus(500)
-            return;
-        }
-        const userById = await usersQueryRepository.getUserById(newUserId as ObjectId);
 
-        if (!userById) {
+        const newUserData = await usersService.addUser({login, password, email})
+
+        if (newUserData.code === ADD_USER_ERROR_CODES.NOT_CREATED) {
             res.sendStatus(500)
             return;
         }
 
-        res.status(201).json(userById as UserDBOutputType)
+        if (newUserData.code === ADD_USER_ERROR_CODES.LOGIN_OR_EMAIL_NOT_UNIQUE) {
+            res.status(400).json(newUserData.data)
+            return;
+        }
+
+        if (newUserData.code === ADD_USER_ERROR_CODES.CREATED) {
+            const userById = await usersQueryRepository.getUserById(newUserData.data.id);
+
+            if (!userById) {
+                res.sendStatus(500)
+                return;
+            }
+            res.status(201).json(userById as UserDBOutputType)
+            return;
+        }
+        res.sendStatus(500)
     })
 
 

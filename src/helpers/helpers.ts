@@ -29,3 +29,12 @@ export const queryFilterGenerator=(query:Record<string,string|undefined>):QueryF
         searchLoginTerm: query.searchLoginTerm ??  null,
     }
 }
+
+export interface ErrorResponseObject{
+    errorsMessages: {field: string, message: string}[]
+}
+
+
+export const generateErrorResponseObject = (field: string, message: string):ErrorResponseObject => ({
+    errorsMessages: [{field, message}]
+})
