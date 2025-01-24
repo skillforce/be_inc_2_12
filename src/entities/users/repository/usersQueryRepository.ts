@@ -34,6 +34,7 @@ export const usersQueryRepository = {
             ],
         } : {}
 
+
        const itemsFromDb = await usersCollection
             .find(filter)
             .sort({[sortBy]: sortDirection})
