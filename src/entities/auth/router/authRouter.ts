@@ -5,7 +5,7 @@ import { authService } from "../domain/authService";
 
 export const authRouter = Router({});
 
-authRouter.post('/',
+authRouter.post('/login',
     loginBodyValidators,
     async (req: Request<any, LoginBodyRequiredData>, res: Response<any>) => {
        const {loginOrEmail, password} = req.body
