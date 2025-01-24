@@ -12,6 +12,7 @@ app.use(express.json())
 app.use(cors())
 
 app.use(SETTINGS.PATH.AUTH, authRouter)
+
 app.use(SETTINGS.PATH.BLOGS, blogRouter)
 app.use(SETTINGS.PATH.POSTS, postRouter)
 app.use(SETTINGS.PATH.USERS, usersRouter)
