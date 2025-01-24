@@ -15,5 +15,6 @@ export const SETTINGS = {
         POSTS: '/posts',
         USERS: '/users',
         TESTING: '/testing',
+        AUTH: '/login',
     },
 }

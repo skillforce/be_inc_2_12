@@ -19,9 +19,6 @@ const userPasswordErrors: ErrorMessages = {
     isString: 'password should be provided as a string'
 };
 
-
-
-
 const additionalLoginRules: ((chain: ValidationChain) => ValidationChain)[] = [
     (chain) => chain.matches(/^[a-zA-Z0-9_-]*$/).withMessage('wrong login format')
 ];
@@ -29,15 +26,6 @@ const additionalLoginRules: ((chain: ValidationChain) => ValidationChain)[] = [
 const additionalEmailRules: ((chain: ValidationChain) => ValidationChain)[] = [
     (chain) => chain.matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('wrong email format')
 ];
-
-
-
-
-
-export const deleteUserValidators = [
-    authMiddleware,
-    validateUrlParamId,
-]
 
 export const userLoginBodyValidationMiddleware = basicStringFieldMiddlewareGenerator({
     fieldName: 'login',
@@ -60,6 +48,10 @@ export const userEmailBodyValidationMiddleware = basicStringFieldMiddlewareGener
     extraValidations: additionalEmailRules
 });
 
+export const getUsersValidators = [
+    authMiddleware,
+]
+
 
 export const addUserBodyValidators = [
     authMiddleware,
@@ -67,4 +59,9 @@ export const addUserBodyValidators = [
     userEmailBodyValidationMiddleware,
     userPasswordBodyValidationMiddleware,
     inputValidationMiddleware
+]
+
+export const deleteUserValidators = [
+    authMiddleware,
+    validateUrlParamId,
 ]

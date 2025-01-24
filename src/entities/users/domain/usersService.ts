@@ -14,7 +14,7 @@ export enum ADD_USER_ERROR_CODES {
 export type AddUserReturnValueType =
     | { code: ADD_USER_ERROR_CODES.CREATED; data: { id: ObjectId } }
     | { code: ADD_USER_ERROR_CODES.LOGIN_OR_EMAIL_NOT_UNIQUE; data: ErrorResponseObject }
-    | { code: ADD_USER_ERROR_CODES.NOT_CREATED };
+    | { code: ADD_USER_ERROR_CODES.NOT_CREATED; data: null };
 
 
 export const usersService = {
@@ -42,7 +42,6 @@ export const usersService = {
             }
         }
 
-
         const hashedPassword = await hashPasswordWithSalt(password)
 
         const newBlogData: AddUserRequestRequiredData = {
@@ -56,7 +55,7 @@ export const usersService = {
 
 
         if (!createdBlogId) {
-            return {code: ADD_USER_ERROR_CODES.NOT_CREATED}
+            return {code: ADD_USER_ERROR_CODES.NOT_CREATED, data: null}
         }
 
         return {code: ADD_USER_ERROR_CODES.CREATED, data: {id: createdBlogId}};

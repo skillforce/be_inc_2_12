@@ -7,10 +7,8 @@ import {
 } from "../middlewares/postInputValidationMiddleware";
 import { postService } from "../domain/postService";
 import { postQueryRepository } from "../repository/postQueryRepository";
-import { queryFilterGenerator, toObjectId } from "../../../helpers/helpers";
-import { ObjectId } from "mongodb";
+import { toObjectId } from "../../../helpers/helpers";
 import { blogQueryRepository } from "../../blogs/repository/blogQueryRepository";
-import { query } from "express-validator";
 
 export const postRouter = Router({});
 

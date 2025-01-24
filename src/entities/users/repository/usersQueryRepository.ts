@@ -15,19 +15,26 @@ export const usersQueryRepository = {
     },
 
     async getPaginatedUsers(
-        query: Record<string, string | undefined>,
-        additionalFilters: Record<string, any> = {}
+        query: Record<string, string | undefined>
     ): Promise<UsersOutputWithPagination> {
 
         const sanitizedQuery = queryFilterGenerator(query as Record<string, string | undefined>);
 
-        const {pageNumber, pageSize, sortBy, sortDirection,searchEmailTerm, searchLoginTerm} = sanitizedQuery;
+        const {pageNumber, pageSize, sortBy, sortDirection, searchEmailTerm, searchLoginTerm} = sanitizedQuery;
         const skip = (pageNumber - 1) * pageSize;
-        const searchEmailText = searchEmailTerm ? {email: {$regex: searchEmailTerm, $options: 'i'}} : {}
-        const searchLoginText = searchLoginTerm ? {login: {$regex: searchLoginTerm, $options: 'i'}} : {}
-        const filter = {...searchEmailText, ...searchLoginText, ...additionalFilters}
 
-        const itemsFromDb = await usersCollection
+        const searchByEmailQuery = searchEmailTerm ? {email: {$regex: searchEmailTerm, $options: 'i'}} : null
+        const searchByLoginQuery = searchLoginTerm ? {login: {$regex: searchLoginTerm, $options: 'i'}} : null
+
+
+        const filter =searchByEmailQuery|| searchByLoginQuery? {
+            $or: [
+                ...( searchByEmailQuery ? [searchByEmailQuery] : [] ),
+                ...( searchByLoginQuery ? [searchByLoginQuery] : [] )
+            ],
+        } : {}
+
+       const itemsFromDb = await usersCollection
             .find(filter)
             .sort({[sortBy]: sortDirection})
             .skip(skip)

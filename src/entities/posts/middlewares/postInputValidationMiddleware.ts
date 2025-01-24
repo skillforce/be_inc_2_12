@@ -6,7 +6,6 @@ import {
     validateUrlParamId
 } from "../../../middlewares/commonValidationMiddlewares";
 import { authMiddleware } from "../../../middlewares/authMiddleware";
-import { blogService } from "../../blogs/domain/blogService";
 import { blogQueryRepository } from "../../blogs/repository/blogQueryRepository";
 
 
@@ -68,10 +67,6 @@ export const postBlogIdBodyValidationMiddleware = basicStringFieldMiddlewareGene
     errorMessages: blogIdErrors,
     extraValidations:additionalWebsiteUrlRules
 });
-
-
-
-
 
 
 export const addPostBodyValidators = [
