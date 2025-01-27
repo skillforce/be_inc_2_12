@@ -3,7 +3,7 @@ import { APP_CONFIG } from "./settings";
 import { db } from "./db/mongo-db";
 
 
-export const app = initApp()
+const app = initApp()
 
 
 const startServer = async () => {
