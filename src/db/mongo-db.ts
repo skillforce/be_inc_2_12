@@ -1,32 +1,57 @@
-import { Collection, Db, MongoClient } from "mongodb";
-import { SETTINGS } from "../settings";
+import { Db, MongoClient } from "mongodb";
 import { PostDBType } from "../entities/posts";
 import { BlogDBType } from "../entities/blogs";
 import { UserDBType } from "../entities/users";
+import { APP_CONFIG } from "../settings";
 
 
-let client:MongoClient = {} as MongoClient;
+export const db = {
+    client: {} as MongoClient,
+    getDbName(): Db {
+        return this.client.db(APP_CONFIG.DB_NAME);
+    },
+    async run(url: string) {
+        try {
+            this.client = new MongoClient(url)
+            await this.client.connect();
+            await this.getDbName().command({ping: 1});
+            console.log("Connected successfully to mongo server");
+        } catch (e: unknown) {
+            console.error("Can't connect to mongo server", e);
+            await this.client.close();
+        }
 
-export let db:Db = {} as Db
+    },
+    async stop() {
+        await this.client.close();
+        console.log("Connection successful closed");
+    },
+    async drop() {
+        try {
+            //await this.getDbName().dropDatabase()
+            const collections = await this.getDbName().listCollections().toArray();
 
-export let blogCollection = {} as Collection<BlogDBType>
-export let postCollection = {} as Collection<PostDBType>
-export let usersCollection = {} as Collection<UserDBType>
+            for (const collection of collections) {
+                const collectionName = collection.name;
+                await this.getDbName().collection(collectionName).deleteMany({});
+            }
+        } catch (e: unknown) {
+            console.error('Error in drop db:', e);
+            await this.stop();
+        }
+    },
+    getCollections() {
+        return {
+            usersCollection: this.getDbName().collection<UserDBType>(APP_CONFIG.USERS_COLLECTION_NAME),
+            postCollection: this.getDbName().collection<PostDBType>(APP_CONFIG.POST_COLLECTION_NAME),
+            blogCollection: this.getDbName().collection<BlogDBType>(APP_CONFIG.BLOG_COLLECTION_NAME)
+        }
+    }
 
-export const connectToDB = async (MONGO_URL:string) => {
-   try{
-      client = new MongoClient(MONGO_URL);
-      db= client.db(SETTINGS.DB_NAME)
-      blogCollection = db.collection<BlogDBType>(SETTINGS.BLOG_COLLECTION_NAME)
-      postCollection = db.collection<PostDBType>(SETTINGS.POST_COLLECTION_NAME)
-      usersCollection = db.collection<UserDBType>(SETTINGS.USERS_COLLECTION_NAME)
-
-       await client.connect()
-       return true
-
-   }catch (e) {
-       console.log(e)
-       await client.close();
-       return false
-   }
 }
+
+// export const usersCollection = db.client?.? db.getDbName().collection<UserDBType>(APP_CONFIG.USERS_COLLECTION_NAME):{};
+// export const postCollection = db.client?.db? db.getDbName().collection<PostDBType>(APP_CONFIG.POST_COLLECTION_NAME):{};
+// export const blogCollection = db.client?.db? db.getDbName().collection<BlogDBType>(APP_CONFIG.BLOG_COLLECTION_NAME):{};
+
+

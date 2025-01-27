@@ -14,7 +14,7 @@ import { AddUpdatePostRequestRequiredData, PostOutputDBType, PostsOutputWithPagi
 import { postService } from "../../posts/domain/postService";
 import { blogQueryRepository } from "../repository/blogQueryRepository";
 import { ObjectId } from "mongodb";
-import { queryFilterGenerator, toObjectId } from "../../../helpers/helpers";
+import { queryFilterGenerator, toObjectId } from "../../../common/helpers";
 import { postQueryRepository } from "../../posts/repository/postQueryRepository";
 
 export const blogRouter = Router({});

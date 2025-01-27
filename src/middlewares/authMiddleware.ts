@@ -3,9 +3,10 @@ import {
     Request,
     Response
 } from "express";
-import { SETTINGS } from "../settings";
+import { APP_CONFIG } from "../settings";
 
-export const ADMIN_AUTH = SETTINGS.ADMIN_AUTH;
+
+export const ADMIN_AUTH = APP_CONFIG.ADMIN_AUTH;
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const auth = req.headers['authorization'] as string

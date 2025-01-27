@@ -1,23 +1,24 @@
 import { req } from './test-helpers'
-import { SETTINGS } from '../src/settings'
 import { AddUpdateBlogRequestRequiredData, BlogDBType } from "../src/entities/blogs/types/types";
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import { blogCollection, connectToDB } from "../src/db/mongo-db";
 import { blogService } from "../src/entities/blogs/domain/blogService";
+import { PATHS } from "../src/common/paths/paths";
+import { db } from "../src/db/mongo-db";
+
+
 
 describe('/blogs', () => {
     beforeAll(async () => {
         const dbServer = await MongoMemoryServer.create()
         const uri = dbServer.getUri();
-
-        await connectToDB(uri)
+        await db.run(uri);
+        await db.drop();
 
     },10000)
 
     it('should get empty array', async () => {
-        await blogCollection.deleteMany({})
         const res = await req
-            .get(SETTINGS.PATH.BLOGS)
+            .get(PATHS.BLOGS)
             .expect(200)
 
         expect(res.body.items.length).toBe(0)
@@ -32,14 +33,14 @@ describe('/blogs', () => {
     await blogService.addBlog(insertData as BlogDBType)
 
     const res = await req
-            .get(SETTINGS.PATH.BLOGS)
+            .get(PATHS.BLOGS)
             .expect(200)
 
         expect(res.body.items.length).toBe(1)
     })
     it('should return error when try to get item with id that doesnt exist ', async () => {
             await req
-            .get(SETTINGS.PATH.BLOGS+'/3')
+            .get(PATHS.BLOGS+'/3')
             .expect(404)
     })
     it('should create blog object and return created one back to the client', async () => {
@@ -49,14 +50,14 @@ describe('/blogs', () => {
             description: 'Blog Description',
         };
         const res = await req
-            .post(SETTINGS.PATH.BLOGS)
+            .post(PATHS.BLOGS)
             .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(blogData)
         expect(res.body).toMatchObject(blogData)
     })
     it('should create new post and apply blog id that has been sent', async () => {
 
-        const blogFromDb = await blogCollection.find().toArray()
+        const blogFromDb = await db.getCollections().blogCollection.find().toArray()
         const blogId = blogFromDb[0]._id
 
         const postData = {
@@ -66,14 +67,14 @@ describe('/blogs', () => {
         };
 
         const res = await req
-            .post(SETTINGS.PATH.BLOGS+'/'+blogId+'/posts')
+            .post(PATHS.BLOGS+'/'+blogId+'/posts')
             .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(postData)
         expect(res.body).toMatchObject(postData)
     })
     it('should return post items with appropriate blog id', async () => {
 
-        const blogFromDb = await blogCollection.find().toArray()
+        const blogFromDb = await db.getCollections().blogCollection.find().toArray()
         const blogId = blogFromDb[0]._id
 
         const postData = {
@@ -83,12 +84,12 @@ describe('/blogs', () => {
         };
 
         const res = await req
-            .get(SETTINGS.PATH.BLOGS+'/'+blogId+'/posts')
+            .get(PATHS.BLOGS+'/'+blogId+'/posts')
 
         expect(res.body.items[0]).toMatchObject(postData)
     })
     it('should update blog object and return 204 status to client', async () => {
-        const blogCollectionArray = await blogCollection.find().toArray() as BlogDBType[]
+        const blogCollectionArray = await db.getCollections().blogCollection.find().toArray() as BlogDBType[]
         const idToUpdate = blogCollectionArray[0]._id
         const blogData = {
             name: 'Video Name123',
@@ -96,13 +97,13 @@ describe('/blogs', () => {
             description: 'Video Description',
         };
       await req
-            .put(`${SETTINGS.PATH.BLOGS}/${idToUpdate}`)
+            .put(`${PATHS.BLOGS}/${idToUpdate}`)
             .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(blogData)
             .expect(204)
     })
     it('should return 400 when body properties is incorrect', async () => {
-        const blogCollectionArray = await blogCollection.find().toArray() as BlogDBType[]
+        const blogCollectionArray = await db.getCollections().blogCollection.find().toArray() as BlogDBType[]
         const idToUpdate = blogCollectionArray[0]._id
         const blogData = {
             name: '',
@@ -110,24 +111,24 @@ describe('/blogs', () => {
             description: 123,
         };
       const res = await req
-          .put(`${SETTINGS.PATH.BLOGS}/${idToUpdate}`)
+          .put(`${PATHS.BLOGS}/${idToUpdate}`)
             .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .send(blogData)
             .expect(400)
 
     })
     it('should remove video by id', async () => {
-        const blogCollectionArray = await blogCollection.find().toArray() as BlogDBType[]
+        const blogCollectionArray = await db.getCollections().blogCollection.find().toArray() as BlogDBType[]
         const idToUpdate = blogCollectionArray[0]._id
       const res = await req
-            .delete(`${SETTINGS.PATH.BLOGS}/${idToUpdate}`)
+            .delete(`${PATHS.BLOGS}/${idToUpdate}`)
             .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .expect(204)
 
     })
     it('should return 404 status ', async () => {
        await req
-            .delete(SETTINGS.PATH.BLOGS+'/1')
+            .delete(PATHS.BLOGS+'/1')
             .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
             .expect(404)
 

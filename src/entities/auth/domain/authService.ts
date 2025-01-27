@@ -1,6 +1,6 @@
 import { LoginBodyRequiredData } from "../types/types";
-import { comparePasswords, hashPasswordWithSalt } from "../../../helpers/authHelper";
 import { authRepository } from "../repository/authRepository";
+import { bcryptService } from "../../../common/adapters/bcrypt.service";
 
 export const authService = {
     isUserExists: async ({loginOrEmail, password}: LoginBodyRequiredData): Promise<boolean> => {
@@ -18,7 +18,7 @@ export const authService = {
         const user = await authRepository.getUserByFilter(filter)
 
         if (user) {
-            return comparePasswords(password, user.password)
+            return bcryptService.checkPassword(password, user.password)
         }
 
         return false

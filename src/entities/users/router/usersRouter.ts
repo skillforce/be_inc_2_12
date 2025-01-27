@@ -7,7 +7,7 @@ import {
     getUsersValidators
 } from "../middlewares/usersInputDataValidationMiddleware";
 import { ADD_USER_ERROR_CODES, usersService } from "../domain/usersService";
-import { ErrorResponseObject } from "../../../helpers/helpers";
+import { ErrorResponseObject } from "../../../common/helpers";
 
 export const usersRouter = Router({});
 

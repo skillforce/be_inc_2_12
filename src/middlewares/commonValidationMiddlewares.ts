@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
 import { blogQueryRepository } from "../entities/blogs/repository/blogQueryRepository";
-import { toObjectId } from "../helpers/helpers";
+import { toObjectId } from "../common/helpers";
 
 
 export const inputValidationMiddleware = (req:Request, res:Response, next:NextFunction) => {

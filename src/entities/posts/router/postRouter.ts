@@ -7,7 +7,7 @@ import {
 } from "../middlewares/postInputValidationMiddleware";
 import { postService } from "../domain/postService";
 import { postQueryRepository } from "../repository/postQueryRepository";
-import { toObjectId } from "../../../helpers/helpers";
+import { toObjectId } from "../../../common/helpers";
 import { blogQueryRepository } from "../../blogs/repository/blogQueryRepository";
 
 export const postRouter = Router({});

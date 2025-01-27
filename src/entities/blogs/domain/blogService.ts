@@ -1,7 +1,7 @@
 import { AddBlogRequestRequiredData, AddUpdateBlogRequestRequiredData } from "../types/types";
 import { blogRepository } from "../repository/blogRepository";
 import { ObjectId } from "mongodb";
-import { toObjectId } from "../../../helpers/helpers";
+import { toObjectId } from "../../../common/helpers";
 
 
 export const blogService = {

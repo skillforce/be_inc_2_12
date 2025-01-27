@@ -1,8 +1,9 @@
 import { ObjectId } from "mongodb";
-import { ErrorResponseObject, generateErrorResponseObject, toObjectId } from "../../../helpers/helpers";
+import { ErrorResponseObject, generateErrorResponseObject, toObjectId } from "../../../common/helpers";
 import { usersRepository } from "../repository/usersRepository";
 import { AddUserInputQueryRequiredData, AddUserRequestRequiredData } from "../types/types";
-import { hashPasswordWithSalt } from "../../../helpers/authHelper";
+
+import { bcryptService } from "../../../common/adapters/bcrypt.service";
 
 export enum ADD_USER_ERROR_CODES {
     CREATED = 1,
@@ -42,7 +43,7 @@ export const usersService = {
             }
         }
 
-        const hashedPassword = await hashPasswordWithSalt(password)
+        const hashedPassword = await bcryptService.generateHash(password)
 
         const newBlogData: AddUserRequestRequiredData = {
             login,

@@ -2,7 +2,7 @@ import { config } from 'dotenv'
 
 config();
 
-export const SETTINGS = {
+export const APP_CONFIG = {
     PORT: process.env.PORT || 3003,
     ADMIN_AUTH: 'admin:qwerty',
     MONGO_URL: process.env.MONGO_URL || 'mongodb://localhost:27017',
@@ -10,11 +10,4 @@ export const SETTINGS = {
     BLOG_COLLECTION_NAME: process.env.BLOG_COLLECTION_NAME || 'blogs',
     POST_COLLECTION_NAME: process.env.POST_COLLECTION_NAME || 'posts',
     USERS_COLLECTION_NAME: process.env.USERS_COLLECTION_NAME || 'users',
-      PATH: {
-        BLOGS: '/blogs',
-        POSTS: '/posts',
-        USERS: '/users',
-        TESTING: '/testing',
-        AUTH: '/auth',
-    },
 }

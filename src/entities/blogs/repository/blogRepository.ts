@@ -1,18 +1,17 @@
-import { AddBlogRequestRequiredData, AddUpdateBlogRequestRequiredData, BlogDBType } from "../types/types";
-import { blogCollection } from "../../../db/mongo-db";
+import { AddBlogRequestRequiredData, AddUpdateBlogRequestRequiredData } from "../types/types";
 import { ObjectId, WithId } from "mongodb";
-
+import { db } from "../../../db/mongo-db";
 
 export const blogRepository = {
 
     async addBlog (newBlogData: AddBlogRequestRequiredData ): Promise<ObjectId> {
-       const result = await blogCollection
+       const result = await db.getCollections().blogCollection
            .insertOne(newBlogData as WithId<AddBlogRequestRequiredData>)
        return result.insertedId;
     },
 
     async updateBlog (_id: ObjectId, videoDataForUpdate: AddUpdateBlogRequestRequiredData): Promise<boolean> {
-        const result = await blogCollection.updateOne(
+        const result = await db.getCollections().blogCollection.updateOne(
             {_id},
             {
                 $set:
@@ -26,7 +25,7 @@ export const blogRepository = {
     },
 
     async deleteBlog(_id: ObjectId): Promise<boolean> {
-        const result = await blogCollection.deleteOne({_id})
+        const result = await db.getCollections().blogCollection.deleteOne({_id})
         return result.deletedCount === 1;
     }
 

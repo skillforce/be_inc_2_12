@@ -1,12 +1,12 @@
 import { ObjectId, WithId } from "mongodb";
-import { queryFilterGenerator } from "../../../helpers/helpers";
+import { queryFilterGenerator } from "../../../common/helpers";
 import { UserDBOutputType, UserDBType, UsersOutputWithPagination } from "../types/types";
-import { usersCollection } from "../../../db/mongo-db";
+import { db } from "../../../db/mongo-db";
 
 export const usersQueryRepository = {
 
     async getUserById(_id: ObjectId): Promise<UserDBOutputType | null> {
-        const userById = await usersCollection.findOne({_id})
+        const userById = await db.getCollections().usersCollection.findOne({_id})
 
         if (!userById) {
             return null
@@ -35,7 +35,7 @@ export const usersQueryRepository = {
         } : {}
 
 
-       const itemsFromDb = await usersCollection
+       const itemsFromDb = await db.getCollections().usersCollection
             .find(filter)
             .sort({[sortBy]: sortDirection})
             .skip(skip)
@@ -56,7 +56,7 @@ export const usersQueryRepository = {
     },
 
     async countUsers(filter: Record<string, any>): Promise<number> {
-        return usersCollection.countDocuments(filter);
+        return db.getCollections().usersCollection.countDocuments(filter);
     },
 
     mapUsersToOutput(user: WithId<UserDBType>): UserDBOutputType {

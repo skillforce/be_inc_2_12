@@ -1,11 +1,11 @@
 import { AddBlogRequestRequiredData, AddUpdatePostRequestRequiredData } from "../types/types";
-import { postCollection } from "../../../db/mongo-db";
 import { ObjectId, WithId } from "mongodb";
+import { db } from "../../../db/mongo-db";
 
 
 export const postRepository = {
     addPost: async (newPostData:AddBlogRequestRequiredData): Promise<ObjectId|null> => {
-       const result =  await postCollection
+       const result =  await db.getCollections().postCollection
            .insertOne(newPostData as WithId<AddBlogRequestRequiredData>)
 
         if(!result.insertedId){
@@ -16,7 +16,7 @@ export const postRepository = {
     },
 
     updatePost: async (_id: ObjectId, postDataForUpdates: AddUpdatePostRequestRequiredData): Promise<boolean> => {
-        const result =  await postCollection.updateOne({_id}, {
+        const result =  await db.getCollections().postCollection.updateOne({_id}, {
             $set:
                 {
                     title: postDataForUpdates.title,
@@ -28,7 +28,7 @@ export const postRepository = {
     },
 
     deletePost: async (_id: ObjectId): Promise<boolean> => {
-        const result = await postCollection.deleteOne({_id})
+        const result = await db.getCollections().postCollection.deleteOne({_id})
         return result.deletedCount === 1;
     },
 

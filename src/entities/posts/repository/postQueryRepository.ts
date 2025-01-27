@@ -1,7 +1,8 @@
-import {  PostDBType, PostOutputDBType, PostsOutputWithPagination } from "../types/types";
-import { postCollection } from "../../../db/mongo-db";
+import { PostDBType, PostOutputDBType, PostsOutputWithPagination } from "../types/types";
 import { ObjectId } from "mongodb";
-import { queryFilterGenerator } from "../../../helpers/helpers";
+import { queryFilterGenerator } from "../../../common/helpers";
+import { db } from "../../../db/mongo-db";
+
 
 export const postQueryRepository = {
     async getPaginatedPosts(
@@ -14,7 +15,7 @@ export const postQueryRepository = {
         const {pageNumber, pageSize, sortBy, sortDirection} = sanitizedQuery;
         const skip = (pageNumber - 1) * pageSize;
 
-        const allPostsFromDb = await postCollection
+        const allPostsFromDb = await db.getCollections().postCollection
             .find(filter)
             .sort({ [sortBy]: sortDirection })
             .skip(skip)
@@ -33,14 +34,14 @@ export const postQueryRepository = {
         }
     },
     async getPostById(_id: ObjectId): Promise<PostOutputDBType | null> {
-        const postById = await postCollection.findOne({_id})
+        const postById = await db.getCollections().postCollection.findOne({_id})
         if(!postById){
             return null
         }
         return this.mapPostToOutput(postById);
     },
     async countPosts(filter: Record<string, any>): Promise<number> {
-        return postCollection.countDocuments(filter);
+        return db.getCollections().postCollection.countDocuments(filter);
     },
 
     mapPostToOutput(post: PostDBType): PostOutputDBType {
