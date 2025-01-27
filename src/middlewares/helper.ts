@@ -1,9 +1,14 @@
-import { body, ValidationChain } from 'express-validator';
+import { body, param, ValidationChain } from 'express-validator';
 
 export interface ErrorMessages {
     required: string;
     length?: string;
     isString: string;
+}
+
+export interface ObjectIdCheckingErrorMessages {
+    required: string;
+    isMongoId: string;
 }
 
 export interface BasicStringFieldMiddlewareGeneratorOptions {
@@ -37,4 +42,22 @@ export const basicStringFieldMiddlewareGenerator = ({
     });
 
     return validationChain;
+};
+
+
+export interface ObjectIdParamMiddlewareOptions {
+    paramName: string;
+    errorMessages: ObjectIdCheckingErrorMessages;
+}
+
+
+export const objectIdParamMiddlewareGenerator = ({
+                                                     paramName,
+                                                     errorMessages,
+                                                 }: ObjectIdParamMiddlewareOptions): ValidationChain => {
+    return param(paramName)
+        .exists({ checkFalsy: true })
+        .withMessage(errorMessages.required)
+        .isMongoId()
+        .withMessage(errorMessages.isMongoId);
 };

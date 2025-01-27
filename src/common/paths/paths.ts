@@ -1,5 +1,6 @@
 export const PATHS = {
     COMMON: '/',
+    COMMENTS: '/comments',
     BLOGS: '/blogs',
     POSTS: '/posts',
     USERS: '/users',

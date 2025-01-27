@@ -9,5 +9,6 @@ export const APP_CONFIG = {
     DB_NAME: process.env.DB_NAME || 'mydb',
     BLOG_COLLECTION_NAME: process.env.BLOG_COLLECTION_NAME || 'blogs',
     POST_COLLECTION_NAME: process.env.POST_COLLECTION_NAME || 'posts',
-    USERS_COLLECTION_NAME: process.env.USERS_COLLECTION_NAME || 'users',
+    USERS_COLLECTION_NAME: process.env.USERS_COLLECTION_NAME || 'comments',
+    COMMENTS_COLLECTION_NAME: process.env.COMMENTS_COLLECTION_NAME || 'users',
 }

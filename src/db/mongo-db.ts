@@ -3,6 +3,7 @@ import { PostDBType } from "../entities/posts";
 import { BlogDBType } from "../entities/blogs";
 import { UserDBType } from "../entities/users";
 import { APP_CONFIG } from "../settings";
+import { CommentDBType } from "../entities/comments";
 
 
 export const db = {
@@ -44,7 +45,8 @@ export const db = {
         return {
             usersCollection: this.getDbName().collection<UserDBType>(APP_CONFIG.USERS_COLLECTION_NAME),
             postCollection: this.getDbName().collection<PostDBType>(APP_CONFIG.POST_COLLECTION_NAME),
-            blogCollection: this.getDbName().collection<BlogDBType>(APP_CONFIG.BLOG_COLLECTION_NAME)
+            blogCollection: this.getDbName().collection<BlogDBType>(APP_CONFIG.BLOG_COLLECTION_NAME),
+            commentsCollection: this.getDbName().collection<CommentDBType>(APP_CONFIG.COMMENTS_COLLECTION_NAME)
         }
     }
 

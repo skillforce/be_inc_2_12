@@ -1,6 +1,6 @@
 import { Filter } from "mongodb";
 import { db } from "../../../db/mongo-db";
-import { UserDBType } from "../../users";
+import { UserDBType } from "../../../entities/users";
 import { LoginFilterSchema } from "../types/types";
 
 

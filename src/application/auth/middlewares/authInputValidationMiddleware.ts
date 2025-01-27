@@ -4,7 +4,7 @@ import { inputValidationMiddleware } from "../../../middlewares/commonValidation
 import {
     postShortDescriptionBodyValidationMiddleware,
     postTitleBodyValidationMiddleware
-} from "../../posts/middlewares/postInputValidationMiddleware";
+} from "../../../entities/posts/middlewares/postInputValidationMiddleware";
 
 
 const loginOrEmailErrors: ErrorMessages = {
