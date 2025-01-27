@@ -9,7 +9,6 @@ import { PATHS } from "./common/paths/paths";
 
 
 
-
 export const initApp = ()=>{
     const app = express()
 
@@ -21,6 +20,11 @@ export const initApp = ()=>{
     app.use(PATHS.POSTS, postRouter)
     app.use(PATHS.USERS, usersRouter)
     app.use(PATHS.TESTING, testingRouter)
+
+    app.get('/', (req, res) => {
+        res.status(200).json({version: '1.1'})
+    })
+
 
     return app
 }

@@ -4,9 +4,6 @@ import { db } from "./db/mongo-db";
 
 
 export const app = initApp()
-app.get('/', (req, res) => {
-    res.status(200).json({version: '1.0'})
-})
 
 
 const startServer = async () => {
