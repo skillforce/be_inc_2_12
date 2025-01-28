@@ -1,7 +1,7 @@
-import { authMiddleware } from "../../../middlewares/authMiddleware";
 import { inputValidationMiddleware, validateUrlParamId } from "../../../middlewares/commonValidationMiddlewares";
 import { basicStringFieldMiddlewareGenerator, ErrorMessages } from "../../../middlewares/helper";
 import { ValidationChain } from "express-validator";
+import { authMiddleware } from "../../../application/auth/guards/base.auth.guard";
 
 const userLoginErrors: ErrorMessages = {
     required: 'login field is required',

@@ -7,6 +7,12 @@ export interface UserDBOutputType {
     createdAt: string
 }
 
+export interface UserAuthOutputType {
+    email: string
+    login: string
+    userId: string
+}
+
 export interface UserDBType {
     _id: ObjectId
     login: string
@@ -16,21 +22,28 @@ export interface UserDBType {
 }
 
 export interface AddUserRequestRequiredData {
-    login:string
+    login: string
     email: string
-    password:string
+    password: string
     createdAt: string
 }
 
-export interface UsersOutputWithPagination{
+export interface UsersOutputWithPagination {
     items: UserDBOutputType[],
     totalCount: number,
     pagesCount: number,
     page: number,
     pageSize: number
 }
+
 export interface AddUserInputQueryRequiredData {
-    login:string
+    login: string
     email: string
-    password:string
+    password: string
+}
+
+
+export enum UsersOutputMapEnum {
+    VIEW = 'VIEW',
+    AUTH = 'AUTH'
 }

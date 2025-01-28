@@ -1,14 +1,14 @@
-import { UpdateCommentRequestRequiredData } from "../types/types";
+import { CommentDBType, UpdateCommentRequestRequiredData } from "../types/types";
 import { ObjectId } from "mongodb";
 import { db } from "../../../db/mongo-db";
 
 export const commentsRepository = {
 
-    // async addBlog (newBlogData: AddBlogRequestRequiredData ): Promise<ObjectId> {
-    //    const result = await db.getCollections().blogCollection
-    //        .insertOne(newBlogData as WithId<AddBlogRequestRequiredData>)
-    //    return result.insertedId;
-    // },
+    async addComment (newCommentData: Omit<CommentDBType,'_id'> ): Promise<ObjectId> {
+       const result = await db.getCollections().commentsCollection
+           .insertOne(newCommentData as CommentDBType)
+       return result.insertedId;
+    },
 
     async updateComment (_id: ObjectId, dataForUpdate: UpdateCommentRequestRequiredData): Promise<boolean> {
         const result = await db.getCollections().commentsCollection.updateOne(

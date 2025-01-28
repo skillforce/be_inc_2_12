@@ -1,17 +1,31 @@
 import { ObjectId, WithId } from "mongodb";
 import { queryFilterGenerator } from "../../../common/helpers";
-import { UserDBOutputType, UserDBType, UsersOutputWithPagination } from "../types/types";
+import {
+    UserAuthOutputType,
+    UserDBOutputType,
+    UserDBType,
+    UsersOutputMapEnum,
+    UsersOutputWithPagination
+} from "../types/types";
 import { db } from "../../../db/mongo-db";
 
-export const usersQueryRepository = {
 
-    async getUserById(_id: ObjectId): Promise<UserDBOutputType | null> {
+export const usersQueryRepository = {
+    async getUserById(_id: ObjectId,
+                      mapType: UsersOutputMapEnum = UsersOutputMapEnum.VIEW): Promise<UserDBOutputType | UserAuthOutputType | null> {
         const userById = await db.getCollections().usersCollection.findOne({_id})
 
         if (!userById) {
             return null
         }
-        return this.mapUsersToOutput(userById);
+
+        switch (mapType) {
+            case UsersOutputMapEnum.VIEW:
+                return this.mapUsersToOutput(userById);
+            case UsersOutputMapEnum.AUTH:
+                return this.mapUsersToAuthOutput(userById);
+        }
+
     },
 
     async getPaginatedUsers(
@@ -27,15 +41,15 @@ export const usersQueryRepository = {
         const searchByLoginQuery = searchLoginTerm ? {login: {$regex: searchLoginTerm, $options: 'i'}} : null
 
 
-        const filter =searchByEmailQuery|| searchByLoginQuery? {
+        const filter = searchByEmailQuery || searchByLoginQuery ? {
             $or: [
-                ...( searchByEmailQuery ? [searchByEmailQuery] : [] ),
-                ...( searchByLoginQuery ? [searchByLoginQuery] : [] )
+                ...(searchByEmailQuery ? [searchByEmailQuery] : []),
+                ...(searchByLoginQuery ? [searchByLoginQuery] : [])
             ],
         } : {}
 
 
-       const itemsFromDb = await db.getCollections().usersCollection
+        const itemsFromDb = await db.getCollections().usersCollection
             .find(filter)
             .sort({[sortBy]: sortDirection})
             .skip(skip)
@@ -66,6 +80,12 @@ export const usersQueryRepository = {
             email: user.email,
             createdAt: user.createdAt,
         }
-
+    },
+    mapUsersToAuthOutput(user: WithId<UserDBType>): UserAuthOutputType {
+        return {
+            userId: user._id.toString(),
+            login: user.login,
+            email: user.email
+        }
     }
 }

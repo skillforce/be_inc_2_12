@@ -1,32 +1,46 @@
-import { UpdateCommentRequestRequiredData } from "../types/types";
+import {
+    AddCommentRequiredData,
+    CommentatorInfo,
+    CommentDBType,
+    UpdateCommentRequestRequiredData
+} from "../types/types";
 import { commentsRepository } from "../repository/commentsRepository";
 import { toObjectId } from "../../../common/helpers";
+import { ObjectId } from "mongodb";
+import { usersService } from "../../users/domain/usersService";
 
 
 export const commentsService = {
-    // addBlog: async ({
-    //                     name,
-    //                     websiteUrl,
-    //                     description
-    //                 }: AddUpdateBlogRequestRequiredData): Promise<ObjectId | null> => {
-    //
-    //     const newBlogData: AddBlogRequestRequiredData = {
-    //         name,
-    //         websiteUrl,
-    //         description,
-    //         createdAt: new Date().toISOString(),
-    //         isMembership: false
-    //     };
-    //
-    //     const createdBlogId = await commentsRepository.addBlog(newBlogData)
-    //
-    //     if (!createdBlogId) {
-    //         return null;
-    //     }
-    //
-    //
-    //     return createdBlogId;
-    // },
+    addComment: async ({
+                        userId,
+                        content,
+                    }: AddCommentRequiredData): Promise<ObjectId | null> => {
+
+        const creator = await usersService.getUserById(userId)
+
+        if(!creator){
+            return null
+        }
+
+        const commentatorInfo: CommentatorInfo = {
+            userId: creator._id.toString(),
+            userLogin: creator.login
+        }
+
+        const newCommentData: Omit<CommentDBType,'_id'> = {
+            content,
+            commentatorInfo,
+            createdAt: new Date().toISOString(),
+        };
+
+        const createdCommentId = await commentsRepository.addComment(newCommentData)
+
+        if (!createdCommentId) {
+            return null;
+        }
+
+        return createdCommentId;
+    },
 
     updateComment: async (id: string, videoDataForUpdate: UpdateCommentRequestRequiredData): Promise<boolean> => {
         const _id = toObjectId(id)

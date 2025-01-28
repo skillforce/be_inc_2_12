@@ -5,8 +5,8 @@ import {
     inputValidationMiddleware,
     validateUrlParamId
 } from "../../../middlewares/commonValidationMiddlewares";
-import { authMiddleware } from "../../../middlewares/authMiddleware";
 import { blogQueryRepository } from "../../blogs/repository/blogQueryRepository";
+import { authMiddleware } from "../../../application/auth/guards/base.auth.guard";
 
 
 const postTitleErrors: ErrorMessages = {

@@ -9,6 +9,7 @@ import { commentsQueryRepository } from "../repository/commentsQueryRepository";
 import { ObjectId } from "mongodb";
 import { toObjectId } from "../../../common/helpers";
 import { CommentDBOutputType, UpdateCommentRequestRequiredData } from "../types/types";
+import { RequestWithParamsAndQuery } from "../../../common/types/request";
 
 export const commentsRouter = Router({});
 
@@ -50,7 +51,7 @@ commentsRouter.put('/:id',
 
 commentsRouter.delete('/:id',
     deleteCommentValidators,
-    async (req: Request<{ id: string }>, res: Response<any>) => {
+    async (req: RequestWithParamsAndQuery<{ id: string },{ id: string }>, res: Response<any>) => {
 
         const queryId = req.params.id
         const isCommentDeleted = await commentsService.deleteComment(queryId)

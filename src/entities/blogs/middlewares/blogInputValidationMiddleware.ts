@@ -1,7 +1,7 @@
 import { ValidationChain } from "express-validator";
 import { basicStringFieldMiddlewareGenerator, ErrorMessages } from "../../../middlewares/helper";
 import { inputValidationMiddleware, validateUrlParamId } from "../../../middlewares/commonValidationMiddlewares";
-import { authMiddleware } from "../../../middlewares/authMiddleware";
+import { authMiddleware } from "../../../application/auth/guards/base.auth.guard";
 
 const blogNameErrors: ErrorMessages = {
     required: 'name field is required',

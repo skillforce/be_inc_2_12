@@ -1,10 +1,6 @@
 import { basicStringFieldMiddlewareGenerator, ErrorMessages } from "../../../middlewares/helper";
-import { authMiddleware } from "../../../middlewares/authMiddleware";
 import { inputValidationMiddleware } from "../../../middlewares/commonValidationMiddlewares";
-import {
-    postShortDescriptionBodyValidationMiddleware,
-    postTitleBodyValidationMiddleware
-} from "../../../entities/posts/middlewares/postInputValidationMiddleware";
+import { accessTokenGuard } from "../guards/access.token.guard";
 
 
 const loginOrEmailErrors: ErrorMessages = {
@@ -32,4 +28,8 @@ export const loginBodyValidators = [
     loginOrEmailBodyValidationMiddleware,
     passwordBodyValidationMiddleware,
     inputValidationMiddleware
+]
+
+export const meRequestValidators = [
+    accessTokenGuard
 ]

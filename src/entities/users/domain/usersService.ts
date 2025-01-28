@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import { ErrorResponseObject, generateErrorResponseObject, toObjectId } from "../../../common/helpers";
 import { usersRepository } from "../repository/usersRepository";
-import { AddUserInputQueryRequiredData, AddUserRequestRequiredData } from "../types/types";
+import { AddUserInputQueryRequiredData, AddUserRequestRequiredData, UserDBType } from "../types/types";
 
 import { bcryptService } from "../../../common/adapters/bcrypt.service";
 
@@ -70,4 +70,13 @@ export const usersService = {
         }
         return await usersRepository.deleteUser(_id)
     },
+
+    getUserById: async (id: string): Promise<UserDBType | null> => {
+        const _id = toObjectId(id)
+
+        if (!_id) {
+            return null;
+        }
+
+        return await usersRepository.getUserById(_id)}
 };
