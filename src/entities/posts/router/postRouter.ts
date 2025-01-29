@@ -9,6 +9,8 @@ import { postService } from "../domain/postService";
 import { postQueryRepository } from "../repository/postQueryRepository";
 import { toObjectId } from "../../../common/helpers";
 import { blogQueryRepository } from "../../blogs/repository/blogQueryRepository";
+import { RequestWithParams } from "../../../common/types/request";
+import { HttpStatuses } from "../../../common/types/httpStatuses";
 
 export const postRouter = Router({});
 
@@ -16,7 +18,7 @@ export const postRouter = Router({});
 postRouter.get('/', async (req: Request, res: Response<PostsOutputWithPagination>) => {
     const queryObj = req.query
     const responseData = await postQueryRepository.getPaginatedPosts(queryObj as Record<string, string | undefined>)
-    res.status(200).json(responseData)
+    res.status(HttpStatuses.Success).json(responseData)
 
 })
 
@@ -24,15 +26,33 @@ postRouter.get('/:id',
     async (req: Request<{ id: string }>, res: Response<PostOutputDBType>) => {
         const _id = toObjectId(req.params.id)
              if(!_id){
-                 res.sendStatus(404)
+                 res.sendStatus(HttpStatuses.NotFound)
                  return;
              }
         const responseData = await postQueryRepository.getPostById(_id)
         if (responseData) {
-            res.status(200).json(responseData)
+            res.status(HttpStatuses.Success).json(responseData)
             return;
         }
-        res.sendStatus(404)
+        res.sendStatus(HttpStatuses.NotFound)
+
+    })
+
+postRouter.get('/:id/comments',
+    async (req: RequestWithParams<{ id: string }>, res: Response<PostOutputDBType>) => {
+        const postId = toObjectId(req.params.id)
+        
+        if(!postId){
+                 res.sendStatus(HttpStatuses.NotFound)
+                 return;
+         }
+
+        // const responseData = await postQueryRepository.getPostById(_id)
+        // if (responseData) {
+        //     res.status(HttpStatuses.Success).json(responseData)
+        //     return;
+        // }
+        // res.sendStatus(HttpStatuses.NotFound)
 
     })
 
@@ -42,31 +62,31 @@ postRouter.post('/',
         const {blogId} = req.body
         const _id = toObjectId(blogId)
         if(!_id){
-            res.sendStatus(404)
+            res.sendStatus(HttpStatuses.NotFound)
             return;
         }
         const blogById = await blogQueryRepository.getBlogById(_id)
 
         if(!blogById){
-            res.sendStatus(404)
+            res.sendStatus(HttpStatuses.NotFound)
             return;
         }
 
         const newPost = await postService.addPost(req.body,blogById)
 
         if(!newPost){
-            res.sendStatus(404)
+            res.sendStatus(HttpStatuses.NotFound)
             return;
         }
         const createdPostForOutput = await postQueryRepository.getPostById(newPost);
 
         if(!createdPostForOutput){
-            res.sendStatus(404)
+            res.sendStatus(HttpStatuses.NotFound)
             return;
         }
 
 
-        res.status(201).json(createdPostForOutput)
+        res.status(HttpStatuses.Created).json(createdPostForOutput)
     })
 
 postRouter.put('/:id',
@@ -77,7 +97,7 @@ postRouter.put('/:id',
         const _id = toObjectId(queryIdForUpdate)
 
         if(!_id){
-            res.sendStatus(404)
+            res.sendStatus(HttpStatuses.NotFound)
             return;
         }
 
@@ -85,22 +105,22 @@ postRouter.put('/:id',
         const postBlogId = toObjectId(newDataForPostToUpdate.blogId);
 
         if (!postById || !postBlogId) {
-            res.sendStatus(404)
+            res.sendStatus(HttpStatuses.NotFound)
             return;
         }
         const blogById = await blogQueryRepository.getBlogById(postBlogId);
 
         if (!blogById) {
-            res.sendStatus(404)
+            res.sendStatus(HttpStatuses.NotFound)
             return;
         }
         const isBlogUpdated = await postService.updatePost(_id, blogById, newDataForPostToUpdate);
 
         if (!isBlogUpdated) {
-            res.sendStatus(404)
+            res.sendStatus(HttpStatuses.NotFound)
             return;
         }
-        res.sendStatus(204)
+        res.sendStatus(HttpStatuses.NoContent)
     })
 
 postRouter.delete('/:id',
@@ -109,8 +129,8 @@ postRouter.delete('/:id',
         const queryId = req.params.id
         const post = await postService.deletePost(queryId)
         if (!post) {
-            res.sendStatus(404)
+            res.sendStatus(HttpStatuses.NotFound)
             return;
         }
-        res.sendStatus(204)
+        res.sendStatus(HttpStatuses.NoContent)
     })

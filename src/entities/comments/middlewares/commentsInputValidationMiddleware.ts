@@ -6,6 +6,7 @@ import {
 } from "../../../middlewares/helper";
 import { inputValidationMiddleware } from "../../../middlewares/commonValidationMiddlewares";
 import { authMiddleware } from "../../../application/auth/guards/base.auth.guard";
+import { accessTokenGuard } from "../../../application/auth/guards/access.token.guard";
 
 
 const commentByIdErrors:ObjectIdCheckingErrorMessages = {
@@ -35,13 +36,13 @@ export const getCommentByIdValidators = [
 ]
 
 export const deleteCommentValidators = [
-    authMiddleware,
+    accessTokenGuard,
     commentByIdUrlParamCheckMiddleware,
     inputValidationMiddleware
 ]
 
 export const updateCommentValidators = [
-    authMiddleware,
+    accessTokenGuard,
     commentByIdUrlParamCheckMiddleware,
     commentBodyContentValidationMiddleware,
     inputValidationMiddleware

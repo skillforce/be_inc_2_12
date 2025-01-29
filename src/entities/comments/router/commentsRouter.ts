@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express'
+import { Response, Router } from 'express'
 import {
     deleteCommentValidators,
     getCommentByIdValidators,
@@ -9,56 +9,80 @@ import { commentsQueryRepository } from "../repository/commentsQueryRepository";
 import { ObjectId } from "mongodb";
 import { toObjectId } from "../../../common/helpers";
 import { CommentDBOutputType, UpdateCommentRequestRequiredData } from "../types/types";
-import { RequestWithParamsAndQuery } from "../../../common/types/request";
+import {
+    RequestWithParams,
+    RequestWithParamsAndBodyAndUserId,
+    RequestWithParamsAndUserId
+} from "../../../common/types/request";
+import { IdType } from "../../../common/types/id";
+import { HttpStatuses } from "../../../common/types/httpStatuses";
+import { ResultStatus } from "../../../common/result/resultCode";
 
 export const commentsRouter = Router({});
 
 
 commentsRouter.get('/:id',
     getCommentByIdValidators,
-    async (req: Request<{ id: string }>, res: Response<CommentDBOutputType>) => {
+    async (req: RequestWithParams<{ id: string }>, res: Response<CommentDBOutputType>) => {
         const _id = toObjectId(req.params.id)
 
         if (!_id) {
-            res.sendStatus(404)
+            res.sendStatus(HttpStatuses.NotFound)
             return;
         }
 
         const responseData = await commentsQueryRepository.getCommentById(_id as ObjectId);
 
-        if (responseData) {
-            res.status(200).json(responseData)
+        if (!responseData) {
+            res.sendStatus(HttpStatuses.NotFound)
             return;
         }
-        res.sendStatus(404)
+
+        res.status(HttpStatuses.Success).json(responseData)
 
     })
 
 commentsRouter.put('/:id',
     updateCommentValidators,
-    async (req: Request<{ id: string }, UpdateCommentRequestRequiredData>, res: Response<any>) => {
-        const queryIdForUpdate = req.params.id;
+    async (req: RequestWithParamsAndBodyAndUserId<{ id: string },UpdateCommentRequestRequiredData,IdType>, res: Response<{}>) => {
+        const commentId = req.params.id;
         const newDataForBlogToUpdate = req.body;
+        const userId = req.user?.id as string
 
-        const isUpdatedBlog = await commentsService.updateComment(queryIdForUpdate, newDataForBlogToUpdate)
-        if (!isUpdatedBlog) {
-            res.sendStatus(404)
+        const updateBlogResult = await commentsService.updateComment(commentId, newDataForBlogToUpdate, userId);
+
+        if (updateBlogResult.status === ResultStatus.Forbidden) {
+            res.sendStatus(HttpStatuses.Forbidden)
             return;
         }
-        res.sendStatus(204)
+
+        if(updateBlogResult.status !== ResultStatus.Success) {
+            res.sendStatus(HttpStatuses.NotFound)
+            return;
+        }
+
+        res.sendStatus(HttpStatuses.NoContent)
     })
 
 
 commentsRouter.delete('/:id',
     deleteCommentValidators,
-    async (req: RequestWithParamsAndQuery<{ id: string },{ id: string }>, res: Response<any>) => {
+    async (req: RequestWithParamsAndUserId<{ id: string }, IdType>, res: Response<boolean>) => {
 
         const queryId = req.params.id
-        const isCommentDeleted = await commentsService.deleteComment(queryId)
+        const userId = req.user?.id
 
-        if (!isCommentDeleted) {
-            res.sendStatus(404)
+
+        const deleteCommentResult = await commentsService.deleteComment(queryId, userId as string)
+
+        if (deleteCommentResult.status === ResultStatus.Forbidden) {
+            res.sendStatus(HttpStatuses.Forbidden)
             return;
         }
-        res.sendStatus(204)
+        if (deleteCommentResult.status !== ResultStatus.Success) {
+            res.sendStatus(HttpStatuses.NotFound)
+            return;
+        }
+
+        res.sendStatus(HttpStatuses.NoContent)
     })

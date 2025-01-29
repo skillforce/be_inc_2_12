@@ -69,14 +69,5 @@ export const usersService = {
             return false;
         }
         return await usersRepository.deleteUser(_id)
-    },
-
-    getUserById: async (id: string): Promise<UserDBType | null> => {
-        const _id = toObjectId(id)
-
-        if (!_id) {
-            return null;
-        }
-
-        return await usersRepository.getUserById(_id)}
+    }
 };

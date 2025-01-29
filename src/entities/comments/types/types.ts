@@ -1,5 +1,4 @@
 import { ObjectId } from "mongodb";
-import { PostOutputDBType } from "../../posts/types/types";
 
 export interface CommentatorInfo {
     userId: string
@@ -19,17 +18,18 @@ export interface CommentDBType {
     content:string
     commentatorInfo: CommentatorInfo
     createdAt: string
+    postId:string
 }
 
 
 export interface UpdateCommentRequestRequiredData {
     content:string,
-    commentId: string
 }
 
 export interface AddCommentRequiredData {
     userId:string,
     content:string
+    postId:string
 }
 
 

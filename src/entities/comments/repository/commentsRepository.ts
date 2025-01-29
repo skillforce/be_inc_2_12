@@ -25,6 +25,15 @@ export const commentsRepository = {
     async deleteComment(_id: ObjectId): Promise<boolean> {
         const result = await db.getCollections().commentsCollection.deleteOne({_id})
         return result.deletedCount === 1;
+    },
+
+    async getCommentById(_id: ObjectId): Promise<CommentDBType | null> {
+        const commentById = await db.getCollections().commentsCollection.findOne({_id})
+
+        if (!commentById) {
+            return null
+        }
+        return commentById
     }
 
 };

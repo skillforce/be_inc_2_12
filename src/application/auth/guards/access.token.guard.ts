@@ -3,20 +3,21 @@ import { jwtService } from "../../../common/adapters/jwt.service";
 import { usersRepository } from "../../../entities/users/repository/usersRepository";
 import { toObjectId } from "../../../common/helpers";
 import { IdType } from "../../../common/types/id";
+import { HttpStatuses } from "../../../common/types/httpStatuses";
 
 
 export const accessTokenGuard = async (req: Request,
                                        res: Response,
                                        next: NextFunction) => {
     if (!req.headers.authorization) {
-        res.sendStatus(401);
+        res.sendStatus(HttpStatuses.Unauthorized);
         return;
     }
 
     const [authType, token] = req.headers.authorization.split(" ")[1];
 
     if (authType !== 'Bearer') {
-        res.sendStatus(401);
+        res.sendStatus(HttpStatuses.Unauthorized);
         return
     }
 
@@ -27,14 +28,14 @@ export const accessTokenGuard = async (req: Request,
         const userObjectId = toObjectId(userId)
 
         if(!userObjectId) {
-            res.sendStatus(401);
+            res.sendStatus(HttpStatuses.Unauthorized);
             return
         }
 
         const doesUserExist = await usersRepository.doesExistById(userObjectId);
 
         if (!doesUserExist) {
-            res.sendStatus(401);
+            res.sendStatus(HttpStatuses.Unauthorized);
             return
         }
 
@@ -42,6 +43,6 @@ export const accessTokenGuard = async (req: Request,
         next();
         return
     }
-      res.sendStatus(401);
+      res.sendStatus(HttpStatuses.Unauthorized);
 
 }
