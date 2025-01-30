@@ -1,7 +1,8 @@
-import { BlogDBOutputType, BlogDBType, BlogsOutputWithPagination } from "../types/types";
+import { BlogDBOutputType, BlogDBType} from "../types/types";
 import { ObjectId, WithId } from "mongodb";
 import { queryFilterGenerator } from "../../../common/helpers";
 import { db } from "../../../db/mongo-db";
+import { PaginatedData } from "../../../common/types/pagination";
 
 
 export const blogQueryRepository = {
@@ -12,7 +13,7 @@ export const blogQueryRepository = {
     async getPaginatedBlogs(
         query: Record<string, string | undefined>,
         additionalFilters: Record<string, any> = {}
-    ): Promise<BlogsOutputWithPagination> {
+    ): Promise<PaginatedData<BlogDBOutputType[]>> {
 
         const sanitizedQuery = queryFilterGenerator(query as Record<string, string | undefined>);
 

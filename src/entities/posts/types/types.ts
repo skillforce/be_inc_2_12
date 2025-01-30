@@ -11,14 +11,6 @@ export interface PostOutputDBType {
     createdAt: string
 }
 
-export interface PostsOutputWithPagination{
-    items: PostOutputDBType[],
-    totalCount: number,
-    pagesCount: number,
-    page: number,
-    pageSize: number
-}
-
 export interface PostDBType {
     _id: ObjectId
     title: string
@@ -44,12 +36,3 @@ export interface AddBlogRequestRequiredData{
     createdAt: string,
     blogName: string
 }
-
-export interface PostsOutputWithPagination{
-    items: PostOutputDBType[],
-    totalCount: number,
-    pagesCount: number,
-    page: number,
-    pageSize: number
-}
-

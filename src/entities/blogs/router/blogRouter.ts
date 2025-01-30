@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express'
-import { AddUpdateBlogRequestRequiredData, BlogDBOutputType, BlogsOutputWithPagination } from "../types/types";
+import { AddUpdateBlogRequestRequiredData, BlogDBOutputType } from "../types/types";
 import {
     addBlogBodyValidators,
     deleteBlogValidators,
@@ -10,17 +10,18 @@ import {
     createPostByBlogIdValidators,
     getPostsByBlogIdValidators
 } from "../../posts/middlewares/postInputValidationMiddleware";
-import { AddUpdatePostRequestRequiredData, PostOutputDBType, PostsOutputWithPagination } from "../../posts/types/types";
+import { AddUpdatePostRequestRequiredData, PostOutputDBType } from "../../posts/types/types";
 import { postService } from "../../posts/domain/postService";
 import { blogQueryRepository } from "../repository/blogQueryRepository";
 import { ObjectId } from "mongodb";
-import { queryFilterGenerator, toObjectId } from "../../../common/helpers";
+import { toObjectId } from "../../../common/helpers";
 import { postQueryRepository } from "../../posts/repository/postQueryRepository";
+import { PaginatedData } from "../../../common/types/pagination";
 
 export const blogRouter = Router({});
 
 
-blogRouter.get('/', async (req: Request, res: Response<BlogsOutputWithPagination>) => {
+blogRouter.get('/', async (req: Request, res: Response<PaginatedData<BlogDBOutputType[]>>) => {
     const queryObj = req.query;
 
     const responseData = await blogQueryRepository.getPaginatedBlogs(queryObj as Record<string, string | undefined>)
@@ -49,7 +50,7 @@ blogRouter.get('/:id',
 
 blogRouter.get('/:id/posts',
     getPostsByBlogIdValidators,
-    async (req: Request<{ id: string }>, res: Response<PostsOutputWithPagination>) => {
+    async (req: Request<{ id: string }>, res: Response<PaginatedData<PostOutputDBType[]>>) => {
         const queryObj = req.query
         const id = req.params.id
 

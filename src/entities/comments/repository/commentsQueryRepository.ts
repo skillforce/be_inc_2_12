@@ -1,7 +1,9 @@
 import { ObjectId, WithId } from "mongodb";
 import { db } from "../../../db/mongo-db";
-import { CommentDBOutputType, CommentDBType, CommentsOutputWithPagination } from "../types/types";
+import { CommentDBOutputType, CommentDBType } from "../types/types";
 import { queryFilterGenerator } from "../../../common/helpers";
+import { PaginatedData } from "../../../common/types/pagination";
+import { SortQueryFieldsType } from "../../../common/types/sortQueryFieldsType";
 
 
 export const commentsQueryRepository = {
@@ -13,15 +15,17 @@ export const commentsQueryRepository = {
         }
         return this.mapCommentToOutput(commentById);
     },
-    async getPaginatedComments(
-        query:Record<string, string | undefined>,
-        filter: Record<string, any>={}
-    ): Promise<CommentsOutputWithPagination> {
+    async getPaginatedCommentsByPostId(
+        query:SortQueryFieldsType,
+        postId: ObjectId
+    ): Promise<PaginatedData<CommentDBOutputType[]>> {
 
         const sanitizedQuery = queryFilterGenerator(query as Record<string, string | undefined>);
 
         const {pageNumber, pageSize, sortBy, sortDirection} = sanitizedQuery;
         const skip = (pageNumber - 1) * pageSize;
+
+        const filter = {postId}
 
         const allCommentsFromDb = await db.getCollections().commentsCollection
             .find(filter)

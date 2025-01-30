@@ -1,13 +1,14 @@
 import { ObjectId, WithId } from "mongodb";
 import { queryFilterGenerator } from "../../../common/helpers";
 import {
+    GetPaginatedUsersQueryInterface,
     UserAuthOutputType,
     UserDBOutputType,
     UserDBType,
-    UsersOutputMapEnum,
-    UsersOutputWithPagination
+    UsersOutputMapEnum
 } from "../types/types";
 import { db } from "../../../db/mongo-db";
+import { PaginatedData } from "../../../common/types/pagination";
 
 
 export const usersQueryRepository = {
@@ -29,8 +30,8 @@ export const usersQueryRepository = {
     },
 
     async getPaginatedUsers(
-        query: Record<string, string | undefined>
-    ): Promise<UsersOutputWithPagination> {
+        query:GetPaginatedUsersQueryInterface
+    ): Promise<PaginatedData<UserDBOutputType[]>> {
 
         const sanitizedQuery = queryFilterGenerator(query as Record<string, string | undefined>);
 

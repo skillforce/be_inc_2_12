@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 
 export interface CommentatorInfo {
-    userId: string
+    userId: ObjectId
     userLogin: string
 
 }
@@ -18,26 +18,17 @@ export interface CommentDBType {
     content:string
     commentatorInfo: CommentatorInfo
     createdAt: string
-    postId:string
+    postId:ObjectId
 }
 
 
-export interface UpdateCommentRequestRequiredData {
+export interface AddAndUpdateCommentRequestRequiredData {
     content:string,
 }
 
 export interface AddCommentRequiredData {
-    userId:string,
+    userId:ObjectId,
     content:string
-    postId:string
-}
-
-
-export interface CommentsOutputWithPagination{
-    items: CommentDBOutputType[],
-    totalCount: number,
-    pagesCount: number,
-    page: number,
-    pageSize: number
+    postId:ObjectId
 }
 

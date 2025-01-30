@@ -28,7 +28,7 @@ authRouter.post('/login',
         }
 
         res
-            .status(HttpStatuses.Success)
+            .status(HttpStatuses.NoContent)
             .send(result.data?.accessToken!)
 
     })

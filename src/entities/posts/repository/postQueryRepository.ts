@@ -1,14 +1,15 @@
-import { PostDBType, PostOutputDBType, PostsOutputWithPagination } from "../types/types";
+import { PostDBType, PostOutputDBType } from "../types/types";
 import { ObjectId } from "mongodb";
 import { queryFilterGenerator } from "../../../common/helpers";
 import { db } from "../../../db/mongo-db";
+import { PaginatedData } from "../../../common/types/pagination";
 
 
 export const postQueryRepository = {
     async getPaginatedPosts(
        query:Record<string, string | undefined>,
        filter: Record<string, any>={}
-    ): Promise<PostsOutputWithPagination> {
+    ): Promise<PaginatedData<PostOutputDBType[]>> {
 
         const sanitizedQuery = queryFilterGenerator(query as Record<string, string | undefined>);
 

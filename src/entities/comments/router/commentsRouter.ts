@@ -8,7 +8,7 @@ import { commentsService } from "../domain/commentsService";
 import { commentsQueryRepository } from "../repository/commentsQueryRepository";
 import { ObjectId } from "mongodb";
 import { toObjectId } from "../../../common/helpers";
-import { CommentDBOutputType, UpdateCommentRequestRequiredData } from "../types/types";
+import { CommentDBOutputType, AddAndUpdateCommentRequestRequiredData } from "../types/types";
 import {
     RequestWithParams,
     RequestWithParamsAndBodyAndUserId,
@@ -44,7 +44,7 @@ commentsRouter.get('/:id',
 
 commentsRouter.put('/:id',
     updateCommentValidators,
-    async (req: RequestWithParamsAndBodyAndUserId<{ id: string },UpdateCommentRequestRequiredData,IdType>, res: Response<{}>) => {
+    async (req: RequestWithParamsAndBodyAndUserId<{ id: string },AddAndUpdateCommentRequestRequiredData,IdType>, res: Response<{}>) => {
         const commentId = req.params.id;
         const newDataForBlogToUpdate = req.body;
         const userId = req.user?.id as string

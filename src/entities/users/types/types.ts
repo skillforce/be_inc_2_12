@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import { SortQueryFieldsType } from "../../../common/types/sortQueryFieldsType";
 
 export interface UserDBOutputType {
     id: string
@@ -28,13 +29,6 @@ export interface AddUserRequestRequiredData {
     createdAt: string
 }
 
-export interface UsersOutputWithPagination {
-    items: UserDBOutputType[],
-    totalCount: number,
-    pagesCount: number,
-    page: number,
-    pageSize: number
-}
 
 export interface AddUserInputQueryRequiredData {
     login: string
@@ -46,4 +40,9 @@ export interface AddUserInputQueryRequiredData {
 export enum UsersOutputMapEnum {
     VIEW = 'VIEW',
     AUTH = 'AUTH'
+}
+
+export interface GetPaginatedUsersQueryInterface extends SortQueryFieldsType {
+    searchLoginTerm?: string
+    searchEmailTerm?: string
 }

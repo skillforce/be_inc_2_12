@@ -7,6 +7,7 @@ import {
 } from "../../../middlewares/commonValidationMiddlewares";
 import { blogQueryRepository } from "../../blogs/repository/blogQueryRepository";
 import { authMiddleware } from "../../../application/auth/guards/base.auth.guard";
+import { accessTokenGuard } from "../../../application/auth/guards/access.token.guard";
 
 
 const postTitleErrors: ErrorMessages = {
@@ -30,6 +31,12 @@ const blogIdErrors: ErrorMessages = {
     required: 'blogId field is required',
     isString: 'blogId should be provided as a string'
 };
+
+const createCommentBodyContentErrors : ErrorMessages = {
+    required: 'content field is required',
+    length: 'content should be between 20 and 300 symbols',
+    isString: 'content should be provided as a string'
+}
 
 const additionalWebsiteUrlRules: ((chain: ValidationChain) => ValidationChain)[] = [
     (chain) => chain.custom(async (value) => {
@@ -68,6 +75,13 @@ export const postBlogIdBodyValidationMiddleware = basicStringFieldMiddlewareGene
     extraValidations:additionalWebsiteUrlRules
 });
 
+export const createCommentByPostIdBodyContentValidationMiddleware = basicStringFieldMiddlewareGenerator({
+    fieldName: 'content',
+    maxLength:300,
+    minLength:20,
+    errorMessages: createCommentBodyContentErrors,
+});
+
 
 export const addPostBodyValidators = [
     authMiddleware,
@@ -99,4 +113,13 @@ export const deletePostValidators = [
 export const updatePostBodyValidators = [
     ...deletePostValidators,
     ...addPostBodyValidators
+]
+
+export const getCommentByPostIdValidators  = [
+    accessTokenGuard
+]
+export const createCommentByPostIdValidators  = [
+    accessTokenGuard,
+    createCommentByPostIdBodyContentValidationMiddleware,
+    inputValidationMiddleware
 ]

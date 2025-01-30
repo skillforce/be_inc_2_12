@@ -1,4 +1,6 @@
 import { ObjectId, SortDirection } from "mongodb";
+import { PaginatedData } from "../../../common/types/pagination";
+import { CommentDBOutputType } from "../../comments/types/types";
 
 export interface BlogDBOutputType {
     id: string
@@ -9,13 +11,6 @@ export interface BlogDBOutputType {
     isMembership: boolean
 }
 
-export interface BlogsOutputWithPagination{
-    items: BlogDBOutputType[],
-    totalCount: number,
-    pagesCount: number,
-    page: number,
-    pageSize: number
-}
 export interface BlogDBType {
     _id: ObjectId
     name:string

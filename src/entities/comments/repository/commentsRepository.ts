@@ -1,4 +1,4 @@
-import { CommentDBType, UpdateCommentRequestRequiredData } from "../types/types";
+import { CommentDBType, AddAndUpdateCommentRequestRequiredData } from "../types/types";
 import { ObjectId } from "mongodb";
 import { db } from "../../../db/mongo-db";
 
@@ -10,7 +10,7 @@ export const commentsRepository = {
        return result.insertedId;
     },
 
-    async updateComment (_id: ObjectId, dataForUpdate: UpdateCommentRequestRequiredData): Promise<boolean> {
+    async updateComment (_id: ObjectId, dataForUpdate: AddAndUpdateCommentRequestRequiredData): Promise<boolean> {
         const result = await db.getCollections().commentsCollection.updateOne(
             {_id},
             {

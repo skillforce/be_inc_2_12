@@ -2,7 +2,7 @@ import {
     AddCommentRequiredData,
     CommentatorInfo,
     CommentDBType,
-    UpdateCommentRequestRequiredData
+    AddAndUpdateCommentRequestRequiredData
 } from "../types/types";
 import { commentsRepository } from "../repository/commentsRepository";
 import { toObjectId } from "../../../common/helpers";
@@ -10,24 +10,21 @@ import { ObjectId } from "mongodb";
 import { usersRepository } from "../../users/repository/usersRepository";
 import { Result } from "../../../common/result/result.type";
 import { ResultStatus } from "../../../common/result/resultCode";
+import { UserDBType } from "../../users";
 
 
 export const commentsService = {
-    addComment: async ({
+    createComment: async ({
                            userId,
                            postId,
                            content,
-                       }: AddCommentRequiredData): Promise<ObjectId | null> => {
-        const userObjectId = toObjectId(userId)
+                       }: AddCommentRequiredData): Promise<Result<ObjectId | null>> => {
 
-        const creator = await usersRepository.getUserById(userObjectId as ObjectId)
+        const creator = await usersRepository.getUserById(userId) as UserDBType
 
-        if (!creator) {
-            return null
-        }
 
         const commentatorInfo: CommentatorInfo = {
-            userId: creator._id.toString(),
+            userId: creator._id,
             userLogin: creator.login
         }
 
@@ -41,15 +38,25 @@ export const commentsService = {
         const createdCommentId = await commentsRepository.addComment(newCommentData)
 
         if (!createdCommentId) {
-            return null;
+            return {
+                status:ResultStatus.ServerError,
+                data: null,
+                errorMessage: 'Internal server error occurred',
+                extensions: []
+            };
         }
 
-        return createdCommentId;
+        return {
+            status:ResultStatus.Success,
+            data: createdCommentId,
+            errorMessage: '',
+            extensions: []
+        };
     },
 
     updateComment: async (
         commentId: string,
-        videoDataForUpdate: UpdateCommentRequestRequiredData,
+        videoDataForUpdate: AddAndUpdateCommentRequestRequiredData,
         userId: string
     ): Promise<Result<boolean>> => {
         const commentObjectId = toObjectId(commentId)
@@ -119,7 +126,7 @@ export const commentsService = {
             };
         }
 
-        if (comment.commentatorInfo.userId !== user._id.toString()) {
+        if (comment.commentatorInfo.userId.toString() !== user._id.toString()) {
             return {
                 status:ResultStatus.Forbidden,
                 data: false,
