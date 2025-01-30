@@ -1,4 +1,4 @@
-import supertest from 'supertest'
-import { initApp } from "../src/app";
+import supertest from 'supertest';
+import { initApp } from '../src/app';
 
-export const req = supertest(initApp())
+export const req = supertest(initApp());

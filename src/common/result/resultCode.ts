@@ -1,9 +1,8 @@
 export enum ResultStatus {
-    Success = 'Success',
-    NotFound = 'NotFound',
-    Forbidden = 'Forbidden',
-    Unauthorized = 'Unauthorized',
-    BadRequest = 'BadRequest',
-    ServerError = 'ServerError',
-
+  Success = 'Success',
+  NotFound = 'NotFound',
+  Forbidden = 'Forbidden',
+  Unauthorized = 'Unauthorized',
+  BadRequest = 'BadRequest',
+  ServerError = 'ServerError',
 }

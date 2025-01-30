@@ -1,13 +1,13 @@
-import { ResultStatus } from "./resultCode";
+import { ResultStatus } from './resultCode';
 
 type ExtensionType = {
-    field: string | null;
-    message: string;
+  field: string | null;
+  message: string;
 };
 
 export type Result<T = null> = {
-    status: ResultStatus;
-    errorMessage?: string;
-    extensions: ExtensionType[];
-    data: T;
+  status: ResultStatus;
+  errorMessage?: string;
+  extensions: ExtensionType[];
+  data: T;
 };

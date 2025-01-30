@@ -1,7 +1,5 @@
-import {Request} from "express";
-import { IdType } from "./id";
-
-
+import { Request } from 'express';
+import { IdType } from './id';
 
 export type RequestWithBody<B> = Request<{}, {}, B>;
 export type RequestWithQuery<Q> = Request<{}, {}, {}, Q>;
