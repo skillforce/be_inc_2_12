@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from 'express';
 
 export const ADMIN_AUTH = APP_CONFIG.ADMIN_AUTH;
 
+export const ADMIN_AUTH_HEADER = 'Basic ' + Buffer.from(ADMIN_AUTH, 'utf8').toString('base64');
+
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const auth = req.headers['authorization'] as string;
 
