@@ -103,7 +103,15 @@ postRouter.post(
     const postId = toObjectId(req.params.id);
     const newCommentContent = req.body.content;
     const userObjectId = toObjectId(req.user?.id!);
+
     if (!postId) {
+      res.sendStatus(HttpStatuses.NotFound);
+      return;
+    }
+
+    const postById = await postQueryRepository.getPostById(postId);
+
+    if (!postById) {
       res.sendStatus(HttpStatuses.NotFound);
       return;
     }
