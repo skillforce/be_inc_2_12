@@ -70,10 +70,16 @@ export const commentsService = {
     const user = await usersRepository.getUserById(userObjectId);
     const comment = await commentsRepository.getCommentById(commentObjectId);
 
-    console.log(user);
-    console.log(comment);
+    if (!user || !comment) {
+      return {
+        status: ResultStatus.NotFound,
+        data: false,
+        errorMessage: 'Comment not found',
+        extensions: [],
+      };
+    }
 
-    if (user?._id.toString() !== comment?.commentatorInfo.userId.toString()) {
+    if (user._id.toString() !== comment.commentatorInfo.userId.toString()) {
       return {
         status: ResultStatus.Forbidden,
         data: false,

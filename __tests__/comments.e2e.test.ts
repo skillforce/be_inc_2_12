@@ -100,7 +100,7 @@ describe('/comments', () => {
   it('should update comment', async () => {
     const newCommentContent = 'new content for checking update';
     await req
-      .put(`${PATHS.COMMENTS}/${createdComment.id}`)
+      .put(`${PATHS.COMMENTS}/${createdComment.id}1`)
       .send({
         content: newCommentContent,
       })
