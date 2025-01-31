@@ -2,10 +2,11 @@ import {
   basicStringFieldMiddlewareGenerator,
   ErrorMessages,
   ObjectIdCheckingErrorMessages,
-  objectIdParamMiddlewareGenerator,
 } from '../../../common/middlewares/helper';
-import { inputValidationMiddleware } from '../../../common/middlewares/commonValidationMiddlewares';
-import { authMiddleware } from '../../../application/auth/guards/base.auth.guard';
+import {
+  inputValidationMiddleware,
+  validateUrlParamId,
+} from '../../../common/middlewares/commonValidationMiddlewares';
 import { accessTokenGuard } from '../../../application/auth/guards/access.token.guard';
 
 const commentByIdErrors: ObjectIdCheckingErrorMessages = {
@@ -26,26 +27,17 @@ export const commentBodyContentValidationMiddleware = basicStringFieldMiddleware
   errorMessages: commentBodyContentErrors,
 });
 
-const commentByIdUrlParamCheckMiddleware = objectIdParamMiddlewareGenerator({
-  paramName: 'id',
-  errorMessages: commentByIdErrors,
-});
-
-export const getCommentByIdValidators = [
-  authMiddleware,
-  commentByIdUrlParamCheckMiddleware,
-  inputValidationMiddleware,
-];
+export const getCommentByIdValidators = [validateUrlParamId, inputValidationMiddleware];
 
 export const deleteCommentValidators = [
   accessTokenGuard,
-  commentByIdUrlParamCheckMiddleware,
+  validateUrlParamId,
   inputValidationMiddleware,
 ];
 
 export const updateCommentValidators = [
   accessTokenGuard,
-  commentByIdUrlParamCheckMiddleware,
+  validateUrlParamId,
   commentBodyContentValidationMiddleware,
   inputValidationMiddleware,
 ];

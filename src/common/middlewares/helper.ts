@@ -54,17 +54,6 @@ export interface ObjectIdParamMiddlewareOptions {
   errorMessages: ObjectIdCheckingErrorMessages;
 }
 
-export const objectIdParamMiddlewareGenerator = ({
-  paramName,
-  errorMessages,
-}: ObjectIdParamMiddlewareOptions): ValidationChain => {
-  return param(paramName)
-    .exists({ checkFalsy: true })
-    .withMessage(errorMessages.required)
-    .isMongoId()
-    .withMessage(errorMessages.isMongoId);
-};
-
 export interface ErrorResponseObject {
   errorsMessages: { field: string; message: string }[];
 }

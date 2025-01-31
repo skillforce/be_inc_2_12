@@ -73,16 +73,10 @@ describe('/comments', () => {
   });
 
   it("should return comment by it's id", async () => {
-    await req
-      .get(`${PATHS.COMMENTS}/${createdComment.id}`)
-      .set('Authorization', ADMIN_AUTH_HEADER)
-      .expect(200);
+    await req.get(`${PATHS.COMMENTS}/${createdComment.id}`).expect(200);
   });
   it('should return paginated data with comments by appropriate post id', async () => {
-    const res = await req
-      .get(`${PATHS.POSTS}/${createdPost.id}/comments`)
-      .set('Authorization', ADMIN_AUTH_HEADER)
-      .expect(200);
+    const res = await req.get(`${PATHS.POSTS}/${createdPost.id}/comments`).expect(200);
 
     expect(res.body.items.length).toBe(1);
   });
@@ -113,10 +107,7 @@ describe('/comments', () => {
       .auth(createdFirstUserAccessToken, { type: 'bearer' })
       .expect(204);
 
-    const updatedComment = await req
-      .get(`${PATHS.COMMENTS}/${createdComment.id}`)
-      .set('Authorization', ADMIN_AUTH_HEADER)
-      .expect(200);
+    const updatedComment = await req.get(`${PATHS.COMMENTS}/${createdComment.id}`).expect(200);
 
     expect(updatedComment.body.content).toBe(newCommentContent);
   });
@@ -126,10 +117,7 @@ describe('/comments', () => {
       .auth(createdSecondUserAccessToken, { type: 'bearer' })
       .expect(403);
 
-    const comments = await req
-      .get(`${PATHS.POSTS}/${createdPost.id}/comments`)
-      .set('Authorization', ADMIN_AUTH_HEADER)
-      .expect(200);
+    const comments = await req.get(`${PATHS.POSTS}/${createdPost.id}/comments`).expect(200);
 
     expect(comments.body.items.length).toBe(1);
   });
@@ -140,10 +128,7 @@ describe('/comments', () => {
       .auth(createdFirstUserAccessToken, { type: 'bearer' })
       .expect(204);
 
-    const comments = await req
-      .get(`${PATHS.POSTS}/${createdPost.id}/comments`)
-      .set('Authorization', ADMIN_AUTH_HEADER)
-      .expect(200);
+    const comments = await req.get(`${PATHS.POSTS}/${createdPost.id}/comments`).expect(200);
 
     expect(comments.body.items.length).toBe(0);
   });
