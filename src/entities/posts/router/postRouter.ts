@@ -74,6 +74,13 @@ postRouter.get(
       return;
     }
 
+    const postById = await postQueryRepository.getPostById(postId);
+
+    if (!postById) {
+      res.sendStatus(HttpStatuses.NotFound);
+      return;
+    }
+
     const commentsList = await commentsQueryRepository.getPaginatedCommentsByPostId(query, postId);
 
     res.status(HttpStatuses.Success).send(commentsList);
