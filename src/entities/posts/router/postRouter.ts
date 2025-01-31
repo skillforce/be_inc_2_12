@@ -9,7 +9,6 @@ import {
 } from '../middlewares/postInputValidationMiddleware';
 import { postService } from '../domain/postService';
 import { postQueryRepository } from '../repository/postQueryRepository';
-import { toObjectId } from '../../../common/helpers';
 import { blogQueryRepository } from '../../blogs/repository/blogQueryRepository';
 import {
   RequestWithParamsAndBodyAndUserId,
@@ -28,6 +27,7 @@ import { ObjectId } from 'mongodb';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
 import { IdType } from '../../../common/types/id';
+import { toObjectId } from '../../../common/middlewares/helper';
 
 export const postRouter = Router({});
 
@@ -76,7 +76,7 @@ postRouter.get(
 
     const commentsList = await commentsQueryRepository.getPaginatedCommentsByPostId(query, postId);
 
-    res.sendStatus(HttpStatuses.Success).send(commentsList);
+    res.status(HttpStatuses.Success).send(commentsList);
   },
 );
 
@@ -96,7 +96,6 @@ postRouter.post(
     const postId = toObjectId(req.params.id);
     const newCommentContent = req.body.content;
     const userObjectId = toObjectId(req.user?.id!);
-
     if (!postId) {
       res.sendStatus(HttpStatuses.NotFound);
       return;
@@ -122,7 +121,7 @@ postRouter.post(
       return;
     }
 
-    res.sendStatus(HttpStatuses.Success).send(createdComment);
+    res.status(HttpStatuses.Created).send(createdComment);
   },
 );
 

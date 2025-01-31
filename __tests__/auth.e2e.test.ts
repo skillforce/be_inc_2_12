@@ -1,14 +1,16 @@
-import { req } from './test-helpers';
+import { req } from './utils/test-helpers';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { AddUserInputQueryRequiredData } from '../src/entities/users/types/types';
 import { PATHS } from '../src/common/paths/paths';
 import { db } from '../src/db/mongo-db';
+import { createUser } from './utils/createUser';
+import { UserDto } from './utils/testingDtosCreator';
 
 const newUser = {
   email: 'testo@gmail.com',
   login: 'test123',
-  password: 'Password1!',
-} as AddUserInputQueryRequiredData;
+  pass: 'Password1!',
+} as UserDto;
 
 describe('/login', () => {
   beforeAll(async () => {
@@ -27,20 +29,18 @@ describe('/login', () => {
       })
       .expect(400);
   });
-  it('should return 204 status code when there are correct loginOrEmail and password', async () => {
-    await req
-      .post(PATHS.USERS)
-      .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
-      .send(newUser)
-      .expect(201);
+  it('should return 200 status code when there are correct loginOrEmail and password', async () => {
+    await createUser(newUser);
 
-    await req
+    const res = await req
       .post(PATHS.AUTH.LOGIN)
       .send({
         loginOrEmail: newUser.login,
-        password: newUser.password,
+        password: newUser.pass,
       })
-      .expect(204);
+      .expect(200);
+
+    expect(res.body.accessToken).toBeDefined();
   });
   it('should return 401 status code when there are incorrect loginOrEmail or password', async () => {
     await req

@@ -1,8 +1,8 @@
 import { PostDBType, PostOutputDBType } from '../types/types';
 import { ObjectId } from 'mongodb';
-import { queryFilterGenerator } from '../../../common/helpers';
 import { db } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
+import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
 export const postQueryRepository = {
   async getPaginatedPosts(

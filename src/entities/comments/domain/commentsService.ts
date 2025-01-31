@@ -5,12 +5,12 @@ import {
   AddAndUpdateCommentRequestRequiredData,
 } from '../types/types';
 import { commentsRepository } from '../repository/commentsRepository';
-import { toObjectId } from '../../../common/helpers';
 import { ObjectId } from 'mongodb';
 import { usersRepository } from '../../users/repository/usersRepository';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { UserDBType } from '../../users';
+import { toObjectId } from '../../../common/middlewares/helper';
 
 export const commentsService = {
   createComment: async ({
@@ -68,9 +68,12 @@ export const commentsService = {
       };
     }
     const user = await usersRepository.getUserById(userObjectId);
-    const comment = await commentsRepository.getCommentById(userObjectId);
+    const comment = await commentsRepository.getCommentById(commentObjectId);
 
-    if (user?._id !== comment?.commentatorInfo.userId) {
+    console.log(user);
+    console.log(comment);
+
+    if (user?._id.toString() !== comment?.commentatorInfo.userId.toString()) {
       return {
         status: ResultStatus.Forbidden,
         data: false,

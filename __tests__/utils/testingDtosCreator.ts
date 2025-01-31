@@ -1,4 +1,4 @@
-type RequireOnlyOne<T, K extends keyof T> = Partial<T> & Required<Pick<T, K>>;
+import { RequireOnlyOne } from '../../src/common/types/types';
 
 export type UserDto = {
   login: string;
@@ -11,18 +11,23 @@ export type BlogDto = {
   websiteUrl: string;
   description: string;
 };
-export type PostDtoDto = {
+
+export type PostDto = {
   title: string;
   shortDescription: string;
   content: string;
   blogId: string;
 };
 
+export type CommentDto = {
+  content: string;
+};
+
 export const testingDtosCreator = {
   createUserDto({ login, email, pass }: Partial<UserDto>): UserDto {
     return {
-      login: login ?? 'test',
-      email: email ?? 'test@gmail.com',
+      login: login ?? 'test' + Date.now().toString().slice(-3),
+      email: email ?? 'test' + Date.now().toString().slice(-3) + '@gmail.com',
       pass: pass ?? '123456789',
     };
   },
@@ -45,24 +50,17 @@ export const testingDtosCreator = {
       websiteUrl: websiteUrl ?? 'https://test.com',
     };
   },
-  createBlogDtos(count: number): BlogDto[] {
-    const blogs = [];
-
-    for (let i = 0; i <= count; i++) {
-      blogs.push({
-        name: 'test' + i,
-        websiteUrl: `test${i}@gmail.com`,
-        description: '12345678',
-      });
-    }
-    return blogs;
+  createCommentDto(newCommentDto?: CommentDto): CommentDto {
+    return {
+      content: newCommentDto?.content ?? 'contentContentContentContent',
+    };
   },
   createPostDto({
     title,
     content,
     shortDescription,
     blogId,
-  }: RequireOnlyOne<PostDtoDto, 'blogId'>): PostDtoDto {
+  }: RequireOnlyOne<PostDto, 'blogId'>): PostDto {
     return {
       title: title ?? 'testPost',
       content: content ?? 'content',

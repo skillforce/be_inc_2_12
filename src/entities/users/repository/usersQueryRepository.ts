@@ -1,5 +1,4 @@
 import { ObjectId, WithId } from 'mongodb';
-import { queryFilterGenerator } from '../../../common/helpers';
 import {
   GetPaginatedUsersQueryInterface,
   UserAuthOutputType,
@@ -9,6 +8,7 @@ import {
 } from '../types/types';
 import { db } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
+import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
 export const usersQueryRepository = {
   async getUserById(

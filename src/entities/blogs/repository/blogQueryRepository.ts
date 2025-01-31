@@ -1,8 +1,8 @@
 import { BlogDBOutputType, BlogDBType } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
-import { queryFilterGenerator } from '../../../common/helpers';
 import { db } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
+import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
 export const blogQueryRepository = {
   async getAllBlogs(): Promise<BlogDBOutputType[]> {

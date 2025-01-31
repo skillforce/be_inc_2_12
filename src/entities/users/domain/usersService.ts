@@ -1,13 +1,13 @@
 import { ObjectId } from 'mongodb';
-import {
-  ErrorResponseObject,
-  generateErrorResponseObject,
-  toObjectId,
-} from '../../../common/helpers';
 import { usersRepository } from '../repository/usersRepository';
 import { AddUserInputQueryRequiredData, AddUserRequestRequiredData } from '../types/types';
 
 import { bcryptService } from '../../../common/adapters/bcrypt.service';
+import {
+  ErrorResponseObject,
+  generateErrorResponseObject,
+  toObjectId,
+} from '../../../common/middlewares/helper';
 
 export enum ADD_USER_ERROR_CODES {
   CREATED = 1,

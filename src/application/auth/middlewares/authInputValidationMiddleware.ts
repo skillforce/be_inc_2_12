@@ -1,5 +1,8 @@
-import { basicStringFieldMiddlewareGenerator, ErrorMessages } from '../../../middlewares/helper';
-import { inputValidationMiddleware } from '../../../middlewares/commonValidationMiddlewares';
+import {
+  basicStringFieldMiddlewareGenerator,
+  ErrorMessages,
+} from '../../../common/middlewares/helper';
+import { inputValidationMiddleware } from '../../../common/middlewares/commonValidationMiddlewares';
 import { accessTokenGuard } from '../guards/access.token.guard';
 
 const loginOrEmailErrors: ErrorMessages = {

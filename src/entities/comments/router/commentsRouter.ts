@@ -7,7 +7,6 @@ import {
 import { commentsService } from '../domain/commentsService';
 import { commentsQueryRepository } from '../repository/commentsQueryRepository';
 import { ObjectId } from 'mongodb';
-import { toObjectId } from '../../../common/helpers';
 import { CommentDBOutputType, AddAndUpdateCommentRequestRequiredData } from '../types/types';
 import {
   RequestWithParams,
@@ -17,6 +16,7 @@ import {
 import { IdType } from '../../../common/types/id';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { ResultStatus } from '../../../common/result/resultCode';
+import { toObjectId } from '../../../common/middlewares/helper';
 
 export const commentsRouter = Router({});
 
@@ -37,7 +37,6 @@ commentsRouter.get(
       res.sendStatus(HttpStatuses.NotFound);
       return;
     }
-
     res.status(HttpStatuses.Success).json(responseData);
   },
 );

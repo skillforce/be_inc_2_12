@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { jwtService } from '../../../common/adapters/jwt.service';
 import { usersRepository } from '../../../entities/users/repository/usersRepository';
-import { toObjectId } from '../../../common/helpers';
 import { IdType } from '../../../common/types/id';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
+import { toObjectId } from '../../../common/middlewares/helper';
 
 export const accessTokenGuard = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.headers.authorization) {
@@ -11,7 +11,7 @@ export const accessTokenGuard = async (req: Request, res: Response, next: NextFu
     return;
   }
 
-  const [authType, token] = req.headers.authorization.split(' ')[1];
+  const [authType, token] = req.headers.authorization.split(' ');
 
   if (authType !== 'Bearer') {
     res.sendStatus(HttpStatuses.Unauthorized);

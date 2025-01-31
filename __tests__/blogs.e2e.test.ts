@@ -1,4 +1,4 @@
-import { req } from './test-helpers';
+import { cleanDB, req } from './utils/test-helpers';
 import { AddUpdateBlogRequestRequiredData, BlogDBType } from '../src/entities/blogs/types/types';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { blogService } from '../src/entities/blogs/domain/blogService';
@@ -10,7 +10,7 @@ describe('/blogs', () => {
     const dbServer = await MongoMemoryServer.create();
     const uri = dbServer.getUri();
     await db.run(uri);
-    await db.drop();
+    await cleanDB();
   }, 10000);
 
   it('should get empty array', async () => {

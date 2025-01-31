@@ -1,8 +1,8 @@
 import { AddBlogRequestRequiredData, AddUpdatePostRequestRequiredData } from '../types/types';
 import { postRepository } from '../repository/postRepository';
-import { toObjectId } from '../../../common/helpers';
 import { ObjectId } from 'mongodb';
 import { BlogDBOutputType } from '../../blogs/types/types';
+import { toObjectId } from '../../../common/middlewares/helper';
 
 export const postService = {
   addPost: async (

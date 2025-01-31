@@ -1,9 +1,12 @@
 import { ValidationChain } from 'express-validator';
-import { basicStringFieldMiddlewareGenerator, ErrorMessages } from '../../../middlewares/helper';
+import {
+  basicStringFieldMiddlewareGenerator,
+  ErrorMessages,
+} from '../../../common/middlewares/helper';
 import {
   inputValidationMiddleware,
   validateUrlParamId,
-} from '../../../middlewares/commonValidationMiddlewares';
+} from '../../../common/middlewares/commonValidationMiddlewares';
 import { authMiddleware } from '../../../application/auth/guards/base.auth.guard';
 
 const blogNameErrors: ErrorMessages = {

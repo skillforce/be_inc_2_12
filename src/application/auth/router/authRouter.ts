@@ -11,8 +11,8 @@ import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { RequestWithUserId } from '../../../common/types/request';
 import { IdType } from '../../../common/types/id';
 import { usersQueryRepository } from '../../../entities/users/repository/usersQueryRepository';
-import { toObjectId } from '../../../common/helpers';
 import { UsersOutputMapEnum } from '../../../entities/users';
+import { toObjectId } from '../../../common/middlewares/helper';
 
 export const authRouter = Router({});
 
@@ -28,8 +28,7 @@ authRouter.post(
       res.status(resultCodeToHttpException(result.status)).send(result.extensions);
       return;
     }
-
-    res.status(HttpStatuses.NoContent).send(result.data?.accessToken!);
+    res.status(HttpStatuses.Success).send({ accessToken: result.data!.accessToken });
   },
 );
 

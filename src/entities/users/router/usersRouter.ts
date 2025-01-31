@@ -11,10 +11,10 @@ import {
   getUsersValidators,
 } from '../middlewares/usersInputDataValidationMiddleware';
 import { ADD_USER_ERROR_CODES, usersService } from '../domain/usersService';
-import { ErrorResponseObject } from '../../../common/helpers';
 import { RequestWithBody, RequestWithParams } from '../../../common/types/request';
 import { PaginatedData } from '../../../common/types/pagination';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
+import { ErrorResponseObject } from '../../../common/middlewares/helper';
 
 export const usersRouter = Router({});
 

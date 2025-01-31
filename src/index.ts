@@ -1,5 +1,5 @@
 import { initApp } from './app';
-import { APP_CONFIG } from './settings';
+import { APP_CONFIG } from './app_config';
 import { db } from './db/mongo-db';
 
 const app = initApp();

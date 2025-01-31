@@ -3,8 +3,8 @@ import {
   ErrorMessages,
   ObjectIdCheckingErrorMessages,
   objectIdParamMiddlewareGenerator,
-} from '../../../middlewares/helper';
-import { inputValidationMiddleware } from '../../../middlewares/commonValidationMiddlewares';
+} from '../../../common/middlewares/helper';
+import { inputValidationMiddleware } from '../../../common/middlewares/commonValidationMiddlewares';
 import { authMiddleware } from '../../../application/auth/guards/base.auth.guard';
 import { accessTokenGuard } from '../../../application/auth/guards/access.token.guard';
 

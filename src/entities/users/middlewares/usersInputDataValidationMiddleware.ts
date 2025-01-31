@@ -1,8 +1,11 @@
 import {
   inputValidationMiddleware,
   validateUrlParamId,
-} from '../../../middlewares/commonValidationMiddlewares';
-import { basicStringFieldMiddlewareGenerator, ErrorMessages } from '../../../middlewares/helper';
+} from '../../../common/middlewares/commonValidationMiddlewares';
+import {
+  basicStringFieldMiddlewareGenerator,
+  ErrorMessages,
+} from '../../../common/middlewares/helper';
 import { ValidationChain } from 'express-validator';
 import { authMiddleware } from '../../../application/auth/guards/base.auth.guard';
 

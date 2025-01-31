@@ -1,11 +1,4 @@
-import { ObjectId, SortDirection } from 'mongodb';
-
-export const toObjectId = (id: string): ObjectId | null => {
-  if (ObjectId.isValid(id) && id.length === 24) {
-    return new ObjectId(id);
-  }
-  return null;
-};
+import { SortDirection } from 'mongodb';
 
 interface QueryFilterGenerator {
   pageNumber: number;
@@ -30,14 +23,3 @@ export const queryFilterGenerator = (
     searchLoginTerm: query.searchLoginTerm ?? null,
   };
 };
-
-export interface ErrorResponseObject {
-  errorsMessages: { field: string; message: string }[];
-}
-
-export const generateErrorResponseObject = (
-  field: string,
-  message: string,
-): ErrorResponseObject => ({
-  errorsMessages: [{ field, message }],
-});

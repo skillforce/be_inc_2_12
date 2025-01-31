@@ -14,9 +14,9 @@ import { AddUpdatePostRequestRequiredData, PostOutputDBType } from '../../posts/
 import { postService } from '../../posts/domain/postService';
 import { blogQueryRepository } from '../repository/blogQueryRepository';
 import { ObjectId } from 'mongodb';
-import { toObjectId } from '../../../common/helpers';
 import { postQueryRepository } from '../../posts/repository/postQueryRepository';
 import { PaginatedData } from '../../../common/types/pagination';
+import { toObjectId } from '../../../common/middlewares/helper';
 
 export const blogRouter = Router({});
 

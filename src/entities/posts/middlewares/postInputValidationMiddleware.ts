@@ -1,10 +1,13 @@
 import { ValidationChain } from 'express-validator';
-import { basicStringFieldMiddlewareGenerator, ErrorMessages } from '../../../middlewares/helper';
+import {
+  basicStringFieldMiddlewareGenerator,
+  ErrorMessages,
+} from '../../../common/middlewares/helper';
 import {
   checkIfBlogWithProvidedQueryParamIdExists,
   inputValidationMiddleware,
   validateUrlParamId,
-} from '../../../middlewares/commonValidationMiddlewares';
+} from '../../../common/middlewares/commonValidationMiddlewares';
 import { blogQueryRepository } from '../../blogs/repository/blogQueryRepository';
 import { authMiddleware } from '../../../application/auth/guards/base.auth.guard';
 import { accessTokenGuard } from '../../../application/auth/guards/access.token.guard';
@@ -109,7 +112,7 @@ export const createPostByBlogIdValidators = [
 export const deletePostValidators = [authMiddleware, validateUrlParamId];
 export const updatePostBodyValidators = [...deletePostValidators, ...addPostBodyValidators];
 
-export const getCommentByPostIdValidators = [accessTokenGuard];
+export const getCommentByPostIdValidators = [authMiddleware, validateUrlParamId];
 export const createCommentByPostIdValidators = [
   accessTokenGuard,
   createCommentByPostIdBodyContentValidationMiddleware,

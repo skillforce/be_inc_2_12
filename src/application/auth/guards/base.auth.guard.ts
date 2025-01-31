@@ -1,4 +1,4 @@
-import { APP_CONFIG } from '../../../settings';
+import { APP_CONFIG } from '../../../app_config';
 import { NextFunction, Request, Response } from 'express';
 
 export const ADMIN_AUTH = APP_CONFIG.ADMIN_AUTH;

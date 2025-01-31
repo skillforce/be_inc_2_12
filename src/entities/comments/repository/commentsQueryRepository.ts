@@ -1,9 +1,9 @@
 import { ObjectId, WithId } from 'mongodb';
 import { db } from '../../../db/mongo-db';
 import { CommentDBOutputType, CommentDBType } from '../types/types';
-import { queryFilterGenerator } from '../../../common/helpers';
 import { PaginatedData } from '../../../common/types/pagination';
 import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
+import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
 export const commentsQueryRepository = {
   async getCommentById(_id: ObjectId): Promise<CommentDBOutputType | null> {

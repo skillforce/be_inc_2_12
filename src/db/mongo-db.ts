@@ -2,7 +2,7 @@ import { Db, MongoClient } from 'mongodb';
 import { PostDBType } from '../entities/posts';
 import { BlogDBType } from '../entities/blogs';
 import { UserDBType } from '../entities/users';
-import { APP_CONFIG } from '../settings';
+import { APP_CONFIG } from '../app_config';
 import { CommentDBType } from '../entities/comments';
 
 export const db = {
