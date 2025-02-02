@@ -10,11 +10,14 @@ import {
   deleteUserValidators,
   getUsersValidators,
 } from '../middlewares/usersInputDataValidationMiddleware';
-import { ADD_USER_ERROR_CODES, usersService } from '../domain/usersService';
+import { usersService } from '../domain/usersService';
 import { RequestWithBody, RequestWithParams } from '../../../common/types/request';
 import { PaginatedData } from '../../../common/types/pagination';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { ErrorResponseObject } from '../../../common/middlewares/helper';
+import { ResultStatus } from '../../../common/result/resultCode';
+import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
+import { ObjectId } from 'mongodb';
 
 export const usersRouter = Router({});
 
@@ -41,32 +44,27 @@ usersRouter.post(
   ) => {
     const { login, password, email } = req.body;
 
-    const { code, data } = await usersService.addUser({ login, password, email });
+    const result = await usersService.addUser({ login, password, email });
 
-    switch (code) {
-      case ADD_USER_ERROR_CODES.NOT_CREATED:
-        res.sendStatus(HttpStatuses.ServerError);
-        break;
-
-      case ADD_USER_ERROR_CODES.LOGIN_OR_EMAIL_NOT_UNIQUE:
-        res.status(HttpStatuses.BadRequest).json(data);
-        break;
-
-      case ADD_USER_ERROR_CODES.CREATED:
-        const userById = await usersQueryRepository.getUserById(data.id);
-
-        if (!userById) {
-          res.sendStatus(HttpStatuses.ServerError);
-          break;
-        }
-
-        res.status(HttpStatuses.Created).json(userById as UserViewModel);
-        break;
-
-      default:
-        res.sendStatus(HttpStatuses.ServerError);
-        break;
+    if (result.status === ResultStatus.BadRequest) {
+      res
+        .status(resultCodeToHttpException(result.status))
+        .json({ errorsMessages: result.extensions as ErrorResponseObject['errorsMessages'] });
+      return;
     }
+    if (result.status !== ResultStatus.Success) {
+      res.sendStatus(HttpStatuses.ServerError);
+      return;
+    }
+
+    const userById = await usersQueryRepository.getUserById(result.data as ObjectId);
+
+    if (!userById) {
+      res.sendStatus(HttpStatuses.ServerError);
+      return;
+    }
+
+    res.status(HttpStatuses.Created).json(userById as UserViewModel);
   },
 );
 
@@ -75,8 +73,8 @@ usersRouter.delete(
   deleteUserValidators,
   async (req: Request<{ id: string }>, res: Response<void>) => {
     const queryId = req.params.id;
-    const user = await usersService.deleteUser(queryId);
-    if (!user) {
+    const result = await usersService.deleteUser(queryId);
+    if (result.status !== ResultStatus.Success) {
       res.sendStatus(HttpStatuses.NotFound);
       return;
     }

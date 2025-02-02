@@ -17,6 +17,8 @@ import { ObjectId } from 'mongodb';
 import { postQueryRepository } from '../../posts/repository/postQueryRepository';
 import { PaginatedData } from '../../../common/types/pagination';
 import { toObjectId } from '../../../common/middlewares/helper';
+import { ResultStatus } from '../../../common/result/resultCode';
+import { HttpStatuses } from '../../../common/types/httpStatuses';
 
 export const blogRouter = Router({});
 
@@ -26,24 +28,24 @@ blogRouter.get('/', async (req: Request, res: Response<PaginatedData<BlogViewMod
   const responseData = await blogQueryRepository.getPaginatedBlogs(
     queryObj as Record<string, string | undefined>,
   );
-  res.status(200).json(responseData);
+  res.status(HttpStatuses.Success).json(responseData);
 });
 
 blogRouter.get('/:id', async (req: Request<{ id: string }>, res: Response<BlogViewModel>) => {
   const _id = toObjectId(req.params.id);
 
   if (!_id) {
-    res.sendStatus(404);
+    res.sendStatus(HttpStatuses.NotFound);
     return;
   }
 
   const responseData = await blogQueryRepository.getBlogById(_id as ObjectId);
 
   if (responseData) {
-    res.status(200).json(responseData);
+    res.status(HttpStatuses.Success).json(responseData);
     return;
   }
-  res.sendStatus(404);
+  res.sendStatus(HttpStatuses.NotFound);
 });
 
 blogRouter.get(
@@ -61,7 +63,7 @@ blogRouter.get(
       filter,
     );
 
-    res.status(200).json(responseData);
+    res.status(HttpStatuses.Success).json(responseData);
   },
 );
 
@@ -70,20 +72,21 @@ blogRouter.post(
   addBlogBodyValidators,
   async (req: Request<any, AddUpdateBlogRequiredInputData>, res: Response<BlogViewModel>) => {
     const { name, websiteUrl, description } = req.body;
-    const newBlogId = await blogService.addBlog({ name, websiteUrl, description });
+    const newBlogResult = await blogService.addBlog({ name, websiteUrl, description });
 
-    if (!newBlogId) {
-      res.sendStatus(500);
+    if (newBlogResult.status !== ResultStatus.Success) {
+      res.sendStatus(HttpStatuses.ServerError);
       return;
     }
-    const blogById = await blogQueryRepository.getBlogById(newBlogId as ObjectId);
+
+    const blogById = await blogQueryRepository.getBlogById(newBlogResult.data as ObjectId);
 
     if (!blogById) {
-      res.sendStatus(500);
+      res.sendStatus(HttpStatuses.ServerError);
       return;
     }
 
-    res.status(201).json(blogById as BlogViewModel);
+    res.status(HttpStatuses.Created).json(blogById as BlogViewModel);
   },
 );
 
@@ -103,30 +106,32 @@ blogRouter.post(
     const _id = toObjectId(blogId);
 
     if (!_id) {
-      res.sendStatus(404);
+      res.sendStatus(HttpStatuses.NotFound);
       return;
     }
     const blogById = await blogQueryRepository.getBlogById(_id);
 
     if (!blogById) {
-      res.sendStatus(404);
+      res.sendStatus(HttpStatuses.NotFound);
       return;
     }
 
-    const newPost = await postService.addPost(req.body, blogById);
+    const newPostResult = await postService.addPost(req.body, blogById);
 
-    if (!newPost) {
-      res.sendStatus(404);
+    if (newPostResult.status !== ResultStatus.Success) {
+      res.sendStatus(HttpStatuses.ServerError);
       return;
     }
-    const createdPostForOutput = await postQueryRepository.getPostById(newPost);
+    const createdPostForOutput = await postQueryRepository.getPostById(
+      newPostResult.data as ObjectId,
+    );
 
     if (!createdPostForOutput) {
-      res.sendStatus(404);
+      res.sendStatus(HttpStatuses.NotFound);
       return;
     }
 
-    res.status(201).json(createdPostForOutput);
+    res.status(HttpStatuses.Created).json(createdPostForOutput);
   },
 );
 
@@ -137,12 +142,12 @@ blogRouter.put(
     const queryIdForUpdate = req.params.id;
     const newDataForBlogToUpdate = req.body;
 
-    const isUpdatedBlog = await blogService.updateBlog(queryIdForUpdate, newDataForBlogToUpdate);
-    if (!isUpdatedBlog) {
-      res.sendStatus(404);
+    const result = await blogService.updateBlog(queryIdForUpdate, newDataForBlogToUpdate);
+    if (result.status !== ResultStatus.Success) {
+      res.sendStatus(HttpStatuses.NotFound);
       return;
     }
-    res.sendStatus(204);
+    res.sendStatus(HttpStatuses.NoContent);
   },
 );
 
@@ -151,11 +156,11 @@ blogRouter.delete(
   deleteBlogValidators,
   async (req: Request<{ id: string }>, res: Response<any>) => {
     const queryId = req.params.id;
-    const blog = await blogService.deleteBlog(queryId);
-    if (!blog) {
-      res.sendStatus(404);
+    const result = await blogService.deleteBlog(queryId);
+    if (result.status !== ResultStatus.Success) {
+      res.sendStatus(HttpStatuses.NotFound);
       return;
     }
-    res.sendStatus(204);
+    res.sendStatus(HttpStatuses.NoContent);
   },
 );

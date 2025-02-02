@@ -1,4 +1,4 @@
-import { body, param, ValidationChain } from 'express-validator';
+import { body, ValidationChain } from 'express-validator';
 import { ObjectId } from 'mongodb';
 
 export interface ErrorMessages {
@@ -49,21 +49,9 @@ export const basicStringFieldMiddlewareGenerator = ({
   return validationChain;
 };
 
-export interface ObjectIdParamMiddlewareOptions {
-  paramName: string;
-  errorMessages: ObjectIdCheckingErrorMessages;
-}
-
 export interface ErrorResponseObject {
   errorsMessages: { field: string; message: string }[];
 }
-
-export const generateErrorResponseObject = (
-  field: string,
-  message: string,
-): ErrorResponseObject => ({
-  errorsMessages: [{ field, message }],
-});
 
 export const toObjectId = (id: string): ObjectId | null => {
   if (ObjectId.isValid(id) && id.length === 24) {

@@ -154,13 +154,15 @@ postRouter.post(
       return;
     }
 
-    const newPost = await postService.addPost(req.body, blogById);
+    const newPostResult = await postService.addPost(req.body, blogById);
 
-    if (!newPost) {
-      res.sendStatus(HttpStatuses.NotFound);
+    if (newPostResult.status !== ResultStatus.Success) {
+      res.sendStatus(resultCodeToHttpException(newPostResult.status));
       return;
     }
-    const createdPostForOutput = await postQueryRepository.getPostById(newPost);
+    const createdPostForOutput = await postQueryRepository.getPostById(
+      newPostResult.data as ObjectId,
+    );
 
     if (!createdPostForOutput) {
       res.sendStatus(HttpStatuses.NotFound);
@@ -197,9 +199,9 @@ postRouter.put(
       res.sendStatus(HttpStatuses.NotFound);
       return;
     }
-    const isBlogUpdated = await postService.updatePost(_id, blogById, newDataForPostToUpdate);
+    const isBlogUpdatedResult = await postService.updatePost(_id, blogById, newDataForPostToUpdate);
 
-    if (!isBlogUpdated) {
+    if (isBlogUpdatedResult.status !== ResultStatus.Success) {
       res.sendStatus(HttpStatuses.NotFound);
       return;
     }
@@ -212,9 +214,9 @@ postRouter.delete(
   deletePostValidators,
   async (req: Request<{ id: string }>, res: Response<any>) => {
     const queryId = req.params.id;
-    const post = await postService.deletePost(queryId);
-    if (!post) {
-      res.sendStatus(HttpStatuses.NotFound);
+    const result = await postService.deletePost(queryId);
+    if (result.status !== ResultStatus.Success) {
+      res.sendStatus(resultCodeToHttpException(result.status));
       return;
     }
     res.sendStatus(HttpStatuses.NoContent);

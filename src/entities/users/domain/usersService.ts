@@ -1,45 +1,46 @@
 import { ObjectId } from 'mongodb';
 import { usersRepository } from '../repository/usersRepository';
-import { AddUserRequiredInputData, AddUserDto } from '../types/types';
+import { AddUserDto, AddUserRequiredInputData } from '../types/types';
 
 import { bcryptService } from '../../../common/adapters/bcrypt.service';
-import {
-  ErrorResponseObject,
-  generateErrorResponseObject,
-  toObjectId,
-} from '../../../common/middlewares/helper';
-
-export enum ADD_USER_ERROR_CODES {
-  CREATED = 1,
-  LOGIN_OR_EMAIL_NOT_UNIQUE = 2,
-  NOT_CREATED = 3,
-}
-
-export type AddUserReturnValueType =
-  | { code: ADD_USER_ERROR_CODES.CREATED; data: { id: ObjectId } }
-  | { code: ADD_USER_ERROR_CODES.LOGIN_OR_EMAIL_NOT_UNIQUE; data: ErrorResponseObject }
-  | { code: ADD_USER_ERROR_CODES.NOT_CREATED; data: null };
+import { toObjectId } from '../../../common/middlewares/helper';
+import { Result } from '../../../common/result/result.type';
+import { ResultStatus } from '../../../common/result/resultCode';
 
 export const usersService = {
   addUser: async ({
     login,
     password,
     email,
-  }: AddUserRequiredInputData): Promise<AddUserReturnValueType> => {
+  }: AddUserRequiredInputData): Promise<Result<ObjectId | null>> => {
     const isLoginUnique = await usersRepository.isFieldValueUnique('login', login); //search by both fields login and email
     const isEmailUnique = await usersRepository.isFieldValueUnique('email', email);
 
     if (!isLoginUnique) {
       return {
-        code: ADD_USER_ERROR_CODES.LOGIN_OR_EMAIL_NOT_UNIQUE,
-        data: generateErrorResponseObject('login', 'login must be unique'),
+        status: ResultStatus.BadRequest,
+        data: null,
+        errorMessage: 'Login must be unique',
+        extensions: [
+          {
+            field: 'login',
+            message: 'Login must be unique',
+          },
+        ],
       };
     }
 
     if (!isEmailUnique) {
       return {
-        code: ADD_USER_ERROR_CODES.LOGIN_OR_EMAIL_NOT_UNIQUE,
-        data: generateErrorResponseObject('email', 'email must be unique'),
+        status: ResultStatus.BadRequest,
+        data: null,
+        errorMessage: 'Email must be unique',
+        extensions: [
+          {
+            field: 'email',
+            message: 'Email must be unique',
+          },
+        ],
       };
     }
 
@@ -55,18 +56,47 @@ export const usersService = {
     const createdBlogId = await usersRepository.addUser(newBlogData);
 
     if (!createdBlogId) {
-      return { code: ADD_USER_ERROR_CODES.NOT_CREATED, data: null };
+      return {
+        status: ResultStatus.ServerError,
+        errorMessage: 'Internal server error occurred',
+        data: null,
+        extensions: [],
+      };
     }
 
-    return { code: ADD_USER_ERROR_CODES.CREATED, data: { id: createdBlogId } };
+    return {
+      status: ResultStatus.Success,
+      data: createdBlogId,
+      extensions: [],
+    };
   },
 
-  deleteUser: async (id: string): Promise<boolean> => {
+  deleteUser: async (id: string): Promise<Result<boolean>> => {
     const _id = toObjectId(id);
 
     if (!_id) {
-      return false;
+      return {
+        status: ResultStatus.NotFound,
+        data: false,
+        errorMessage: 'User not found',
+        extensions: [],
+      };
     }
-    return await usersRepository.deleteUser(_id);
+
+    const isUserDeleted = await usersRepository.deleteUser(_id);
+    if (!isUserDeleted) {
+      return {
+        status: ResultStatus.NotFound,
+        data: false,
+        errorMessage: 'User not found',
+        extensions: [],
+      };
+    }
+
+    return {
+      status: ResultStatus.Success,
+      data: isUserDeleted,
+      extensions: [],
+    };
   },
 };
