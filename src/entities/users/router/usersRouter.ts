@@ -1,8 +1,8 @@
 import { Request, Response, Router } from 'express';
 import {
-  AddUserInputQueryRequiredData,
+  AddUserRequiredInputData,
   GetPaginatedUsersQueryInterface,
-  UserDBOutputType,
+  UserViewModel,
 } from '../types/types';
 import { usersQueryRepository } from '../repository/usersQueryRepository';
 import {
@@ -23,7 +23,7 @@ usersRouter.get(
   getUsersValidators,
   async (
     req: RequestWithParams<GetPaginatedUsersQueryInterface>,
-    res: Response<PaginatedData<UserDBOutputType[]>>,
+    res: Response<PaginatedData<UserViewModel[]>>,
   ) => {
     const queryObj = req.query;
 
@@ -36,8 +36,8 @@ usersRouter.post(
   '/',
   addUserBodyValidators,
   async (
-    req: RequestWithBody<AddUserInputQueryRequiredData>,
-    res: Response<UserDBOutputType | ErrorResponseObject>,
+    req: RequestWithBody<AddUserRequiredInputData>,
+    res: Response<UserViewModel | ErrorResponseObject>,
   ) => {
     const { login, password, email } = req.body;
 
@@ -60,7 +60,7 @@ usersRouter.post(
           break;
         }
 
-        res.status(HttpStatuses.Created).json(userById as UserDBOutputType);
+        res.status(HttpStatuses.Created).json(userById as UserViewModel);
         break;
 
       default:

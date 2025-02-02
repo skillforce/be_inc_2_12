@@ -2,19 +2,23 @@ import { PATHS } from '../../src/common/paths/paths';
 import { req } from './test-helpers';
 import { HttpStatuses } from '../../src/common/types/httpStatuses';
 
+type LoginUser = {
+  loginData: {
+    loginOrEmail: string;
+    password: string;
+  };
+  expectedHttpStatus?: HttpStatuses;
+};
+
 export const loginUser = async ({
-  loginOrEmail,
-  password,
-}: {
-  loginOrEmail: string;
-  password: string;
-}) => {
+  loginData,
+  expectedHttpStatus = HttpStatuses.Success,
+}: LoginUser) => {
   const resp = await req
     .post(PATHS.AUTH.LOGIN)
     .send({
-      loginOrEmail,
-      password,
+      ...loginData,
     })
-    .expect(HttpStatuses.Success);
+    .expect(expectedHttpStatus);
   return resp.body;
 };

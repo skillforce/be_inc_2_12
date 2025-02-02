@@ -1,7 +1,7 @@
 import { ObjectId, SortDirection } from 'mongodb';
-import { BlogDBOutputType } from '../../blogs/types/types';
+import { BlogViewModel } from '../../blogs/types/types';
 
-export interface PostOutputDBType {
+export interface PostViewModel {
   id: string;
   title: string;
   shortDescription: string;
@@ -11,7 +11,7 @@ export interface PostOutputDBType {
   createdAt: string;
 }
 
-export interface PostDBType {
+export interface PostDBModel {
   _id: ObjectId;
   title: string;
   shortDescription: string;
@@ -21,14 +21,14 @@ export interface PostDBType {
   createdAt: string;
 }
 
-export interface AddUpdatePostRequestRequiredData {
+export interface AddUpdatePostRequiredInputData {
   title: string;
   shortDescription: string;
   content: string;
   blogId: string;
 }
 
-export interface AddBlogRequestRequiredData {
+export interface AddBlogDto {
   title: string;
   shortDescription: string;
   content: string;

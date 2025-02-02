@@ -1,15 +1,15 @@
-import { AddBlogRequestRequiredData, AddUpdatePostRequestRequiredData } from '../types/types';
+import { AddBlogDto, AddUpdatePostRequiredInputData } from '../types/types';
 import { postRepository } from '../repository/postRepository';
 import { ObjectId } from 'mongodb';
-import { BlogDBOutputType } from '../../blogs/types/types';
+import { BlogViewModel } from '../../blogs/types/types';
 import { toObjectId } from '../../../common/middlewares/helper';
 
 export const postService = {
   addPost: async (
-    { title, content, shortDescription }: Omit<AddUpdatePostRequestRequiredData, 'blogId'>,
-    blog: BlogDBOutputType,
+    { title, content, shortDescription }: Omit<AddUpdatePostRequiredInputData, 'blogId'>,
+    blog: BlogViewModel,
   ): Promise<ObjectId | null> => {
-    const newPostData: AddBlogRequestRequiredData = {
+    const newPostData: AddBlogDto = {
       title,
       shortDescription,
       content,
@@ -23,8 +23,8 @@ export const postService = {
 
   updatePost: async (
     id: ObjectId,
-    blog: BlogDBOutputType,
-    videoDataForUpdate: AddUpdatePostRequestRequiredData,
+    blog: BlogViewModel,
+    videoDataForUpdate: AddUpdatePostRequiredInputData,
   ): Promise<boolean> => {
     const updatePostData = { ...videoDataForUpdate, blogId: blog.id, blogName: blog.name };
 

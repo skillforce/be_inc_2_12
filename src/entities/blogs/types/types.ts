@@ -1,8 +1,6 @@
-import { ObjectId, SortDirection } from 'mongodb';
-import { PaginatedData } from '../../../common/types/pagination';
-import { CommentDBOutputType } from '../../comments/types/types';
+import { ObjectId } from 'mongodb';
 
-export interface BlogDBOutputType {
+export interface BlogViewModel {
   id: string;
   name: string;
   description: string;
@@ -11,7 +9,7 @@ export interface BlogDBOutputType {
   isMembership: boolean;
 }
 
-export interface BlogDBType {
+export interface BlogDbModel {
   _id: ObjectId;
   name: string;
   description: string;
@@ -20,13 +18,13 @@ export interface BlogDBType {
   isMembership: boolean;
 }
 
-export interface AddUpdateBlogRequestRequiredData {
+export interface AddUpdateBlogRequiredInputData {
   name: string;
   description: string;
   websiteUrl: string;
 }
 
-export interface AddBlogRequestRequiredData {
+export interface AddBlogDto {
   name: string;
   description: string;
   websiteUrl: string;

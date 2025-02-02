@@ -1,15 +1,15 @@
 import {
-  AddCommentRequiredData,
+  AddCommentDto,
   CommentatorInfo,
-  CommentDBType,
-  AddAndUpdateCommentRequestRequiredData,
+  CommentDBModel,
+  AddUpdateCommentInputData,
 } from '../types/types';
 import { commentsRepository } from '../repository/commentsRepository';
 import { ObjectId } from 'mongodb';
 import { usersRepository } from '../../users/repository/usersRepository';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
-import { UserDBType } from '../../users';
+import { UserDBModel } from '../../users';
 import { toObjectId } from '../../../common/middlewares/helper';
 
 export const commentsService = {
@@ -17,15 +17,15 @@ export const commentsService = {
     userId,
     postId,
     content,
-  }: AddCommentRequiredData): Promise<Result<ObjectId | null>> => {
-    const creator = (await usersRepository.getUserById(userId)) as UserDBType;
+  }: AddCommentDto): Promise<Result<ObjectId | null>> => {
+    const creator = (await usersRepository.getUserById(userId)) as UserDBModel;
 
     const commentatorInfo: CommentatorInfo = {
       userId: creator._id,
       userLogin: creator.login,
     };
 
-    const newCommentData: Omit<CommentDBType, '_id'> = {
+    const newCommentData: Omit<CommentDBModel, '_id'> = {
       content,
       commentatorInfo,
       postId,
@@ -53,7 +53,7 @@ export const commentsService = {
 
   updateComment: async (
     commentId: string,
-    videoDataForUpdate: AddAndUpdateCommentRequestRequiredData,
+    videoDataForUpdate: AddUpdateCommentInputData,
     userId: string,
   ): Promise<Result<boolean>> => {
     const commentObjectId = toObjectId(commentId);

@@ -1,18 +1,18 @@
-import { AddBlogRequestRequiredData, AddUpdateBlogRequestRequiredData } from '../types/types';
+import { AddBlogDto, AddUpdateBlogRequiredInputData } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
 import { db } from '../../../db/mongo-db';
 
 export const blogRepository = {
-  async addBlog(newBlogData: AddBlogRequestRequiredData): Promise<ObjectId> {
+  async addBlog(newBlogData: AddBlogDto): Promise<ObjectId> {
     const result = await db
       .getCollections()
-      .blogCollection.insertOne(newBlogData as WithId<AddBlogRequestRequiredData>);
+      .blogCollection.insertOne(newBlogData as WithId<AddBlogDto>);
     return result.insertedId;
   },
 
   async updateBlog(
     _id: ObjectId,
-    videoDataForUpdate: AddUpdateBlogRequestRequiredData,
+    videoDataForUpdate: AddUpdateBlogRequiredInputData,
   ): Promise<boolean> {
     const result = await db.getCollections().blogCollection.updateOne(
       { _id },

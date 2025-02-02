@@ -5,14 +5,14 @@ export interface CommentatorInfo {
   userLogin: string;
 }
 
-export interface CommentDBOutputType {
+export interface CommentViewModel {
   id: string;
   content: string;
   commentatorInfo: CommentatorInfo;
   createdAt: string;
 }
 
-export interface CommentDBType {
+export interface CommentDBModel {
   _id: ObjectId;
   content: string;
   commentatorInfo: CommentatorInfo;
@@ -20,11 +20,11 @@ export interface CommentDBType {
   postId: ObjectId;
 }
 
-export interface AddAndUpdateCommentRequestRequiredData {
+export interface AddUpdateCommentInputData {
   content: string;
 }
 
-export interface AddCommentRequiredData {
+export interface AddCommentDto {
   userId: ObjectId;
   content: string;
   postId: ObjectId;

@@ -22,10 +22,10 @@ describe('/posts', () => {
     expect(res.body.items.length).toBe(0);
   });
   it('should get not empty array', async () => {
-    const newBlog = await createBlog();
+    const newBlog = await createBlog({});
     const blogId = newBlog.id;
 
-    await createPost({ blogId });
+    await createPost({ postDto: { blogId } });
 
     const res = await req.get(PATHS.POSTS).expect(200);
 
@@ -35,7 +35,7 @@ describe('/posts', () => {
     await req.get(PATHS.POSTS + '/3').expect(404);
   });
   it('should create post object and return created one back to client', async () => {
-    const newBlog = await createBlog();
+    const newBlog = await createBlog({});
     const blogId = newBlog.id;
 
     const postDto: PostDto = {
@@ -45,7 +45,7 @@ describe('/posts', () => {
       blogId: blogId,
     };
 
-    const newPost = await createPost(postDto);
+    const newPost = await createPost({ postDto });
 
     expect(newPost).toMatchObject(postDto);
   });
@@ -59,7 +59,7 @@ describe('/posts', () => {
     await req.post(PATHS.POSTS).set('Authorization', ADMIN_AUTH_HEADER).send(postData).expect(400);
   });
   it('should update post object and return 204 status to client', async () => {
-    const newBlog = await createBlog();
+    const newBlog = await createBlog({});
     const blogId = newBlog.id;
 
     const postDto: PostDto = {
@@ -68,7 +68,7 @@ describe('/posts', () => {
       content: 'Post Content',
       blogId: blogId,
     };
-    const newPost = await createPost(postDto);
+    const newPost = await createPost({ postDto });
     const newPostId = newPost.id;
 
     const updatedPostTitle = 'Updated Post Title';

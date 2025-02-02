@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { AddUpdateBlogRequestRequiredData, BlogDBOutputType } from '../types/types';
+import { AddUpdateBlogRequiredInputData, BlogViewModel } from '../types/types';
 import {
   addBlogBodyValidators,
   deleteBlogValidators,
@@ -10,7 +10,7 @@ import {
   createPostByBlogIdValidators,
   getPostsByBlogIdValidators,
 } from '../../posts/middlewares/postInputValidationMiddleware';
-import { AddUpdatePostRequestRequiredData, PostOutputDBType } from '../../posts/types/types';
+import { AddUpdatePostRequiredInputData, PostViewModel } from '../../posts/types/types';
 import { postService } from '../../posts/domain/postService';
 import { blogQueryRepository } from '../repository/blogQueryRepository';
 import { ObjectId } from 'mongodb';
@@ -20,7 +20,7 @@ import { toObjectId } from '../../../common/middlewares/helper';
 
 export const blogRouter = Router({});
 
-blogRouter.get('/', async (req: Request, res: Response<PaginatedData<BlogDBOutputType[]>>) => {
+blogRouter.get('/', async (req: Request, res: Response<PaginatedData<BlogViewModel[]>>) => {
   const queryObj = req.query;
 
   const responseData = await blogQueryRepository.getPaginatedBlogs(
@@ -29,7 +29,7 @@ blogRouter.get('/', async (req: Request, res: Response<PaginatedData<BlogDBOutpu
   res.status(200).json(responseData);
 });
 
-blogRouter.get('/:id', async (req: Request<{ id: string }>, res: Response<BlogDBOutputType>) => {
+blogRouter.get('/:id', async (req: Request<{ id: string }>, res: Response<BlogViewModel>) => {
   const _id = toObjectId(req.params.id);
 
   if (!_id) {
@@ -49,7 +49,7 @@ blogRouter.get('/:id', async (req: Request<{ id: string }>, res: Response<BlogDB
 blogRouter.get(
   '/:id/posts',
   getPostsByBlogIdValidators,
-  async (req: Request<{ id: string }>, res: Response<PaginatedData<PostOutputDBType[]>>) => {
+  async (req: Request<{ id: string }>, res: Response<PaginatedData<PostViewModel[]>>) => {
     const queryObj = req.query;
     const id = req.params.id;
 
@@ -68,7 +68,7 @@ blogRouter.get(
 blogRouter.post(
   '/',
   addBlogBodyValidators,
-  async (req: Request<any, AddUpdateBlogRequestRequiredData>, res: Response<BlogDBOutputType>) => {
+  async (req: Request<any, AddUpdateBlogRequiredInputData>, res: Response<BlogViewModel>) => {
     const { name, websiteUrl, description } = req.body;
     const newBlogId = await blogService.addBlog({ name, websiteUrl, description });
 
@@ -83,7 +83,7 @@ blogRouter.post(
       return;
     }
 
-    res.status(201).json(blogById as BlogDBOutputType);
+    res.status(201).json(blogById as BlogViewModel);
   },
 );
 
@@ -95,9 +95,9 @@ blogRouter.post(
       {
         id: string;
       },
-      Omit<AddUpdatePostRequestRequiredData, 'blogId'>
+      Omit<AddUpdatePostRequiredInputData, 'blogId'>
     >,
-    res: Response<PostOutputDBType>,
+    res: Response<PostViewModel>,
   ) => {
     const blogId = req.params.id;
     const _id = toObjectId(blogId);
@@ -133,7 +133,7 @@ blogRouter.post(
 blogRouter.put(
   '/:id',
   updateBlogBodyValidators,
-  async (req: Request<{ id: string }, AddUpdateBlogRequestRequiredData>, res: Response<any>) => {
+  async (req: Request<{ id: string }, AddUpdateBlogRequiredInputData>, res: Response<any>) => {
     const queryIdForUpdate = req.params.id;
     const newDataForBlogToUpdate = req.body;
 

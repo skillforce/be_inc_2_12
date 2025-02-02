@@ -1,18 +1,18 @@
-import { BlogDBOutputType, BlogDBType } from '../types/types';
+import { BlogViewModel, BlogDbModel } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
 import { db } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
 export const blogQueryRepository = {
-  async getAllBlogs(): Promise<BlogDBOutputType[]> {
+  async getAllBlogs(): Promise<BlogViewModel[]> {
     const allBlogsFromDb = await db.getCollections().blogCollection.find().toArray();
     return allBlogsFromDb.map(this.mapBlogToOutput);
   },
   async getPaginatedBlogs(
     query: Record<string, string | undefined>,
     additionalFilters: Record<string, any> = {},
-  ): Promise<PaginatedData<BlogDBOutputType[]>> {
+  ): Promise<PaginatedData<BlogViewModel[]>> {
     const sanitizedQuery = queryFilterGenerator(query as Record<string, string | undefined>);
 
     const { pageNumber, pageSize, sortBy, sortDirection, searchNameTerm } = sanitizedQuery;
@@ -40,7 +40,7 @@ export const blogQueryRepository = {
     };
   },
 
-  async getBlogById(_id: ObjectId): Promise<BlogDBOutputType | null> {
+  async getBlogById(_id: ObjectId): Promise<BlogViewModel | null> {
     const blogById = await db.getCollections().blogCollection.findOne({ _id });
 
     if (!blogById) {
@@ -52,7 +52,7 @@ export const blogQueryRepository = {
   async countBlogs(filter: Record<string, any>): Promise<number> {
     return db.getCollections().blogCollection.countDocuments(filter);
   },
-  mapBlogToOutput(blog: WithId<BlogDBType>): BlogDBOutputType {
+  mapBlogToOutput(blog: WithId<BlogDbModel>): BlogViewModel {
     return {
       id: blog._id.toString(),
       name: blog.name,

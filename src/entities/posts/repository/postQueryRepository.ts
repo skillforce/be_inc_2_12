@@ -1,4 +1,4 @@
-import { PostDBType, PostOutputDBType } from '../types/types';
+import { PostDBModel, PostViewModel } from '../types/types';
 import { ObjectId } from 'mongodb';
 import { db } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
@@ -8,7 +8,7 @@ export const postQueryRepository = {
   async getPaginatedPosts(
     query: Record<string, string | undefined>,
     filter: Record<string, any> = {},
-  ): Promise<PaginatedData<PostOutputDBType[]>> {
+  ): Promise<PaginatedData<PostViewModel[]>> {
     const sanitizedQuery = queryFilterGenerator(query as Record<string, string | undefined>);
 
     const { pageNumber, pageSize, sortBy, sortDirection } = sanitizedQuery;
@@ -33,7 +33,7 @@ export const postQueryRepository = {
       items: itemsForOutput,
     };
   },
-  async getPostById(_id: ObjectId): Promise<PostOutputDBType | null> {
+  async getPostById(_id: ObjectId): Promise<PostViewModel | null> {
     const postById = await db.getCollections().postCollection.findOne({ _id });
     if (!postById) {
       return null;
@@ -44,7 +44,7 @@ export const postQueryRepository = {
     return db.getCollections().postCollection.countDocuments(filter);
   },
 
-  mapPostToOutput(post: PostDBType): PostOutputDBType {
+  mapPostToOutput(post: PostDBModel): PostViewModel {
     return {
       id: post._id.toString(),
       title: post.title,

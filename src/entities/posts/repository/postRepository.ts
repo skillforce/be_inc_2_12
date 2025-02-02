@@ -1,12 +1,12 @@
-import { AddBlogRequestRequiredData, AddUpdatePostRequestRequiredData } from '../types/types';
+import { AddBlogDto, AddUpdatePostRequiredInputData } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
 import { db } from '../../../db/mongo-db';
 
 export const postRepository = {
-  addPost: async (newPostData: AddBlogRequestRequiredData): Promise<ObjectId | null> => {
+  addPost: async (newPostData: AddBlogDto): Promise<ObjectId | null> => {
     const result = await db
       .getCollections()
-      .postCollection.insertOne(newPostData as WithId<AddBlogRequestRequiredData>);
+      .postCollection.insertOne(newPostData as WithId<AddBlogDto>);
 
     if (!result.insertedId) {
       return null;
@@ -17,7 +17,7 @@ export const postRepository = {
 
   updatePost: async (
     _id: ObjectId,
-    postDataForUpdates: AddUpdatePostRequestRequiredData,
+    postDataForUpdates: AddUpdatePostRequiredInputData,
   ): Promise<boolean> => {
     const result = await db.getCollections().postCollection.updateOne(
       { _id },

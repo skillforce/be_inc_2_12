@@ -1,9 +1,9 @@
 import { Db, MongoClient } from 'mongodb';
-import { PostDBType } from '../entities/posts';
-import { BlogDBType } from '../entities/blogs';
-import { UserDBType } from '../entities/users';
+import { PostDBModel } from '../entities/posts';
+import { BlogDbModel } from '../entities/blogs';
+import { UserDBModel } from '../entities/users';
 import { APP_CONFIG } from '../app_config';
-import { CommentDBType } from '../entities/comments';
+import { CommentDBModel } from '../entities/comments';
 
 export const db = {
   client: {} as MongoClient,
@@ -41,10 +41,10 @@ export const db = {
   },
   getCollections() {
     return {
-      usersCollection: this.getDbName().collection<UserDBType>(APP_CONFIG.USERS_COLLECTION_NAME),
-      postCollection: this.getDbName().collection<PostDBType>(APP_CONFIG.POST_COLLECTION_NAME),
-      blogCollection: this.getDbName().collection<BlogDBType>(APP_CONFIG.BLOG_COLLECTION_NAME),
-      commentsCollection: this.getDbName().collection<CommentDBType>(
+      usersCollection: this.getDbName().collection<UserDBModel>(APP_CONFIG.USERS_COLLECTION_NAME),
+      postCollection: this.getDbName().collection<PostDBModel>(APP_CONFIG.POST_COLLECTION_NAME),
+      blogCollection: this.getDbName().collection<BlogDbModel>(APP_CONFIG.BLOG_COLLECTION_NAME),
+      commentsCollection: this.getDbName().collection<CommentDBModel>(
         APP_CONFIG.COMMENTS_COLLECTION_NAME,
       ),
     };

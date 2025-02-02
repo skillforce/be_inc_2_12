@@ -7,7 +7,7 @@ import {
 import { commentsService } from '../domain/commentsService';
 import { commentsQueryRepository } from '../repository/commentsQueryRepository';
 import { ObjectId } from 'mongodb';
-import { CommentDBOutputType, AddAndUpdateCommentRequestRequiredData } from '../types/types';
+import { CommentViewModel, AddUpdateCommentInputData } from '../types/types';
 import {
   RequestWithParams,
   RequestWithParamsAndBodyAndUserId,
@@ -23,7 +23,7 @@ export const commentsRouter = Router({});
 commentsRouter.get(
   '/:id',
   getCommentByIdValidators,
-  async (req: RequestWithParams<{ id: string }>, res: Response<CommentDBOutputType>) => {
+  async (req: RequestWithParams<{ id: string }>, res: Response<CommentViewModel>) => {
     const _id = toObjectId(req.params.id);
 
     if (!_id) {
@@ -45,11 +45,7 @@ commentsRouter.put(
   '/:id',
   updateCommentValidators,
   async (
-    req: RequestWithParamsAndBodyAndUserId<
-      { id: string },
-      AddAndUpdateCommentRequestRequiredData,
-      IdType
-    >,
+    req: RequestWithParamsAndBodyAndUserId<{ id: string }, AddUpdateCommentInputData, IdType>,
     res: Response<{}>,
   ) => {
     const commentId = req.params.id;

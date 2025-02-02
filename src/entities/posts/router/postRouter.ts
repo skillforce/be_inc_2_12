@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { AddUpdatePostRequestRequiredData, PostOutputDBType } from '../types/types';
+import { AddUpdatePostRequiredInputData, PostViewModel } from '../types/types';
 import {
   addPostBodyValidators,
   createCommentByPostIdValidators,
@@ -17,10 +17,7 @@ import {
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { commentsQueryRepository } from '../../comments/repository/commentsQueryRepository';
 import { PaginatedData } from '../../../common/types/pagination';
-import {
-  AddAndUpdateCommentRequestRequiredData,
-  CommentDBOutputType,
-} from '../../comments/types/types';
+import { AddUpdateCommentInputData, CommentViewModel } from '../../comments/types/types';
 import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
 import { commentsService } from '../../comments/domain/commentsService';
 import { ObjectId } from 'mongodb';
@@ -31,7 +28,7 @@ import { toObjectId } from '../../../common/middlewares/helper';
 
 export const postRouter = Router({});
 
-postRouter.get('/', async (req: Request, res: Response<PaginatedData<PostOutputDBType[]>>) => {
+postRouter.get('/', async (req: Request, res: Response<PaginatedData<PostViewModel[]>>) => {
   const queryObj = req.query;
   const responseData = await postQueryRepository.getPaginatedPosts(
     queryObj as Record<string, string | undefined>,
@@ -39,7 +36,7 @@ postRouter.get('/', async (req: Request, res: Response<PaginatedData<PostOutputD
   res.status(HttpStatuses.Success).json(responseData);
 });
 
-postRouter.get('/:id', async (req: Request<{ id: string }>, res: Response<PostOutputDBType>) => {
+postRouter.get('/:id', async (req: Request<{ id: string }>, res: Response<PostViewModel>) => {
   const _id = toObjectId(req.params.id);
   if (!_id) {
     res.sendStatus(HttpStatuses.NotFound);
@@ -64,7 +61,7 @@ postRouter.get(
       SortQueryFieldsType,
       IdType
     >,
-    res: Response<PaginatedData<CommentDBOutputType[]>>,
+    res: Response<PaginatedData<CommentViewModel[]>>,
   ) => {
     const postId = toObjectId(req.params.id);
     const query = req.query;
@@ -95,10 +92,10 @@ postRouter.post(
       {
         id: string;
       },
-      AddAndUpdateCommentRequestRequiredData,
+      AddUpdateCommentInputData,
       IdType
     >,
-    res: Response<CommentDBOutputType>,
+    res: Response<CommentViewModel>,
   ) => {
     const postId = toObjectId(req.params.id);
     const newCommentContent = req.body.content;
@@ -143,7 +140,7 @@ postRouter.post(
 postRouter.post(
   '/',
   addPostBodyValidators,
-  async (req: Request<any, AddUpdatePostRequestRequiredData>, res: Response<PostOutputDBType>) => {
+  async (req: Request<any, AddUpdatePostRequiredInputData>, res: Response<PostViewModel>) => {
     const { blogId } = req.body;
     const _id = toObjectId(blogId);
     if (!_id) {
@@ -177,7 +174,7 @@ postRouter.post(
 postRouter.put(
   '/:id',
   updatePostBodyValidators,
-  async (req: Request<{ id: string }, AddUpdatePostRequestRequiredData>, res: Response<any>) => {
+  async (req: Request<{ id: string }, AddUpdatePostRequiredInputData>, res: Response<any>) => {
     const queryIdForUpdate = req.params.id;
     const newDataForPostToUpdate = req.body;
     const _id = toObjectId(queryIdForUpdate);

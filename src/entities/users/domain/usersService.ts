@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { usersRepository } from '../repository/usersRepository';
-import { AddUserInputQueryRequiredData, AddUserRequestRequiredData } from '../types/types';
+import { AddUserRequiredInputData, AddUserDto } from '../types/types';
 
 import { bcryptService } from '../../../common/adapters/bcrypt.service';
 import {
@@ -25,7 +25,7 @@ export const usersService = {
     login,
     password,
     email,
-  }: AddUserInputQueryRequiredData): Promise<AddUserReturnValueType> => {
+  }: AddUserRequiredInputData): Promise<AddUserReturnValueType> => {
     const isLoginUnique = await usersRepository.isFieldValueUnique('login', login); //search by both fields login and email
     const isEmailUnique = await usersRepository.isFieldValueUnique('email', email);
 
@@ -45,7 +45,7 @@ export const usersService = {
 
     const hashedPassword = await bcryptService.generateHash(password);
 
-    const newBlogData: AddUserRequestRequiredData = {
+    const newBlogData: AddUserDto = {
       login,
       email,
       password: hashedPassword,

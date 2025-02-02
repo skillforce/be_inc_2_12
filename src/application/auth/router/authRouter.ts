@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { LoginBodyRequiredData } from '../types/types';
+import { AuthLoginDto } from '../types/types';
 import {
   loginBodyValidators,
   meRequestValidators,
@@ -19,7 +19,7 @@ export const authRouter = Router({});
 authRouter.post(
   '/login',
   loginBodyValidators,
-  async (req: Request<any, LoginBodyRequiredData>, res: Response) => {
+  async (req: Request<any, AuthLoginDto>, res: Response) => {
     const { loginOrEmail, password } = req.body;
 
     const result = await authService.loginUser({ loginOrEmail, password });

@@ -1,4 +1,4 @@
-import { AddBlogRequestRequiredData, AddUpdateBlogRequestRequiredData } from '../types/types';
+import { AddBlogDto, AddUpdateBlogRequiredInputData } from '../types/types';
 import { blogRepository } from '../repository/blogRepository';
 import { ObjectId } from 'mongodb';
 
@@ -9,8 +9,8 @@ export const blogService = {
     name,
     websiteUrl,
     description,
-  }: AddUpdateBlogRequestRequiredData): Promise<ObjectId | null> => {
-    const newBlogData: AddBlogRequestRequiredData = {
+  }: AddUpdateBlogRequiredInputData): Promise<ObjectId | null> => {
+    const newBlogData: AddBlogDto = {
       name,
       websiteUrl,
       description,
@@ -29,7 +29,7 @@ export const blogService = {
 
   updateBlog: async (
     id: string,
-    videoDataForUpdate: AddUpdateBlogRequestRequiredData,
+    videoDataForUpdate: AddUpdateBlogRequiredInputData,
   ): Promise<boolean> => {
     const _id = toObjectId(id);
     if (!_id) {

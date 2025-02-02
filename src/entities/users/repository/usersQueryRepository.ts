@@ -1,9 +1,9 @@
 import { ObjectId, WithId } from 'mongodb';
 import {
   GetPaginatedUsersQueryInterface,
-  UserAuthOutputType,
-  UserDBOutputType,
-  UserDBType,
+  UserAuthViewModel,
+  UserViewModel,
+  UserDBModel,
   UsersOutputMapEnum,
 } from '../types/types';
 import { db } from '../../../db/mongo-db';
@@ -14,7 +14,7 @@ export const usersQueryRepository = {
   async getUserById(
     _id: ObjectId,
     mapType: UsersOutputMapEnum = UsersOutputMapEnum.VIEW,
-  ): Promise<UserDBOutputType | UserAuthOutputType | null> {
+  ): Promise<UserViewModel | UserAuthViewModel | null> {
     const userById = await db.getCollections().usersCollection.findOne({ _id });
 
     if (!userById) {
@@ -31,7 +31,7 @@ export const usersQueryRepository = {
 
   async getPaginatedUsers(
     query: GetPaginatedUsersQueryInterface,
-  ): Promise<PaginatedData<UserDBOutputType[]>> {
+  ): Promise<PaginatedData<UserViewModel[]>> {
     const sanitizedQuery = queryFilterGenerator(query as Record<string, string | undefined>);
 
     const { pageNumber, pageSize, sortBy, sortDirection, searchEmailTerm, searchLoginTerm } =
@@ -79,7 +79,7 @@ export const usersQueryRepository = {
     return db.getCollections().usersCollection.countDocuments(filter);
   },
 
-  mapUsersToOutput(user: WithId<UserDBType>): UserDBOutputType {
+  mapUsersToOutput(user: WithId<UserDBModel>): UserViewModel {
     return {
       id: user._id.toString(),
       login: user.login,
@@ -87,7 +87,7 @@ export const usersQueryRepository = {
       createdAt: user.createdAt,
     };
   },
-  mapUsersToAuthOutput(user: WithId<UserDBType>): UserAuthOutputType {
+  mapUsersToAuthOutput(user: WithId<UserDBModel>): UserAuthViewModel {
     return {
       userId: user._id.toString(),
       login: user.login,

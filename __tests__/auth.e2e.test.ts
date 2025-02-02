@@ -1,6 +1,5 @@
 import { req } from './utils/test-helpers';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { AddUserInputQueryRequiredData } from '../src/entities/users/types/types';
 import { PATHS } from '../src/common/paths/paths';
 import { db } from '../src/db/mongo-db';
 import { createUser } from './utils/createUser';
@@ -30,7 +29,7 @@ describe('/login', () => {
       .expect(400);
   });
   it('should return 200 status code when there are correct loginOrEmail and password', async () => {
-    await createUser(newUser);
+    await createUser({ userDto: newUser });
 
     const res = await req
       .post(PATHS.AUTH.LOGIN)

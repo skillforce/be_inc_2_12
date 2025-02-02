@@ -1,20 +1,20 @@
 import { cleanDB, req } from './utils/test-helpers';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { db } from '../src/db/mongo-db';
-import { AddUserInputQueryRequiredData } from '../src/entities/users/types/types';
+import { AddUserRequiredInputData } from '../src/entities/users/types/types';
 import { PATHS } from '../src/common/paths/paths';
 
 const newUser = {
   email: 'testo@gmail.com',
   login: 'test123',
   password: 'Password1!',
-} as AddUserInputQueryRequiredData;
+} as AddUserRequiredInputData;
 
 const secondUser = {
   email: 'unique@gmail.com',
   login: 'unique',
   password: 'Password1!',
-} as AddUserInputQueryRequiredData;
+} as AddUserRequiredInputData;
 
 describe('/users', () => {
   beforeAll(async () => {

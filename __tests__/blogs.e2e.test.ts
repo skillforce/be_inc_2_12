@@ -1,5 +1,5 @@
 import { cleanDB, req } from './utils/test-helpers';
-import { AddUpdateBlogRequestRequiredData, BlogDBType } from '../src/entities/blogs/types/types';
+import { AddUpdateBlogRequiredInputData, BlogDbModel } from '../src/entities/blogs/types/types';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { blogService } from '../src/entities/blogs/domain/blogService';
 import { PATHS } from '../src/common/paths/paths';
@@ -25,7 +25,7 @@ describe('/blogs', () => {
       description: 'Video Description',
     };
 
-    await blogService.addBlog(insertData as BlogDBType);
+    await blogService.addBlog(insertData as BlogDbModel);
 
     const res = await req.get(PATHS.BLOGS).expect(200);
 
@@ -35,7 +35,7 @@ describe('/blogs', () => {
     await req.get(PATHS.BLOGS + '/3').expect(404);
   });
   it('should create blog object and return created one back to the client', async () => {
-    const blogData: AddUpdateBlogRequestRequiredData = {
+    const blogData: AddUpdateBlogRequiredInputData = {
       name: 'Blog Name',
       websiteUrl: 'https://www.youtube.com',
       description: 'Blog Description',
@@ -80,7 +80,7 @@ describe('/blogs', () => {
     const blogCollectionArray = (await db
       .getCollections()
       .blogCollection.find()
-      .toArray()) as BlogDBType[];
+      .toArray()) as BlogDbModel[];
     const idToUpdate = blogCollectionArray[0]._id;
     const blogData = {
       name: 'Video Name123',
@@ -97,7 +97,7 @@ describe('/blogs', () => {
     const blogCollectionArray = (await db
       .getCollections()
       .blogCollection.find()
-      .toArray()) as BlogDBType[];
+      .toArray()) as BlogDbModel[];
     const idToUpdate = blogCollectionArray[0]._id;
     const blogData = {
       name: '',
@@ -114,7 +114,7 @@ describe('/blogs', () => {
     const blogCollectionArray = (await db
       .getCollections()
       .blogCollection.find()
-      .toArray()) as BlogDBType[];
+      .toArray()) as BlogDbModel[];
     const idToUpdate = blogCollectionArray[0]._id;
     const res = await req
       .delete(`${PATHS.BLOGS}/${idToUpdate}`)

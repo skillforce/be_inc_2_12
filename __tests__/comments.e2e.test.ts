@@ -1,15 +1,15 @@
 import { cleanDB, req } from './utils/test-helpers';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { db } from '../src/db/mongo-db';
-import { UserDBOutputType } from '../src/entities/users/types/types';
+import { UserViewModel } from '../src/entities/users/types/types';
 import { PATHS } from '../src/common/paths/paths';
 import { createBlog } from './utils/createBlog';
 import { createPost } from './utils/createPost';
 import { createUser } from './utils/createUser';
 import { createComment } from './utils/createComment';
 import { loginUser } from './utils/login';
-import { CommentDBOutputType } from '../src/entities/comments/types/types';
-import { PostOutputDBType } from '../src/entities/posts/types/types';
+import { CommentViewModel } from '../src/entities/comments/types/types';
+import { PostViewModel } from '../src/entities/posts/types/types';
 import { ADMIN_AUTH_HEADER } from '../src/application/auth/guards/base.auth.guard';
 
 const firstUser = {
@@ -23,14 +23,14 @@ const secondUser = {
   password: 'Password1!',
 };
 
-let createdFirstUser = {} as UserDBOutputType;
+let createdFirstUser = {} as UserViewModel;
 let createdFirstUserAccessToken = '';
 
-let createdSecondUser = {} as UserDBOutputType;
+let createdSecondUser = {} as UserViewModel;
 let createdSecondUserAccessToken = '';
 
-let createdPost = {} as PostOutputDBType;
-let createdComment = {} as CommentDBOutputType;
+let createdPost = {} as PostViewModel;
+let createdComment = {} as CommentViewModel;
 
 describe('/comments', () => {
   beforeAll(async () => {
@@ -41,33 +41,44 @@ describe('/comments', () => {
     await cleanDB();
 
     createdFirstUser = await createUser({
-      email: firstUser.email,
-      login: firstUser.login,
-      pass: firstUser.password,
+      userDto: {
+        email: firstUser.email,
+        login: firstUser.login,
+        pass: firstUser.password,
+      },
     });
     createdSecondUser = await createUser({
-      email: secondUser.email,
-      login: secondUser.login,
-      pass: secondUser.password,
+      userDto: {
+        email: secondUser.email,
+        login: secondUser.login,
+        pass: secondUser.password,
+      },
     });
 
     const authFirstUser = await loginUser({
-      loginOrEmail: firstUser.login,
-      password: firstUser.password,
+      loginData: {
+        loginOrEmail: firstUser.login,
+        password: firstUser.password,
+      },
     });
     createdFirstUserAccessToken = authFirstUser.accessToken;
 
     const authSecondUser = await loginUser({
-      loginOrEmail: secondUser.login,
-      password: secondUser.password,
+      loginData: {
+        loginOrEmail: secondUser.login,
+        password: secondUser.password,
+      },
     });
     createdSecondUserAccessToken = authSecondUser.accessToken;
   }, 10000);
 
   it('should create comment for appropriate post for user which is logged in', async () => {
-    const newBlog = await createBlog();
-    createdPost = await createPost({ blogId: newBlog.id });
-    createdComment = await createComment(createdPost.id, createdFirstUserAccessToken);
+    const newBlog = await createBlog({});
+    createdPost = await createPost({ postDto: { blogId: newBlog.id } });
+    createdComment = await createComment({
+      postId: createdPost.id,
+      accessToken: createdFirstUserAccessToken,
+    });
 
     expect(createdComment.commentatorInfo.userId).toBe(createdFirstUser.id);
   });

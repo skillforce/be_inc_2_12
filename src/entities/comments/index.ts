@@ -1,2 +1,2 @@
-export type { CommentDBType } from './types/types';
+export type { CommentDBModel } from './types/types';
 export { commentsRouter } from './router/commentsRouter';

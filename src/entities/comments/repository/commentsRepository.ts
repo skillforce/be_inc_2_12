@@ -1,19 +1,16 @@
-import { CommentDBType, AddAndUpdateCommentRequestRequiredData } from '../types/types';
+import { CommentDBModel, AddUpdateCommentInputData } from '../types/types';
 import { ObjectId } from 'mongodb';
 import { db } from '../../../db/mongo-db';
 
 export const commentsRepository = {
-  async addComment(newCommentData: Omit<CommentDBType, '_id'>): Promise<ObjectId> {
+  async addComment(newCommentData: Omit<CommentDBModel, '_id'>): Promise<ObjectId> {
     const result = await db
       .getCollections()
-      .commentsCollection.insertOne(newCommentData as CommentDBType);
+      .commentsCollection.insertOne(newCommentData as CommentDBModel);
     return result.insertedId;
   },
 
-  async updateComment(
-    _id: ObjectId,
-    dataForUpdate: AddAndUpdateCommentRequestRequiredData,
-  ): Promise<boolean> {
+  async updateComment(_id: ObjectId, dataForUpdate: AddUpdateCommentInputData): Promise<boolean> {
     const result = await db.getCollections().commentsCollection.updateOne(
       { _id },
       {
@@ -30,7 +27,7 @@ export const commentsRepository = {
     return result.deletedCount === 1;
   },
 
-  async getCommentById(_id: ObjectId): Promise<CommentDBType | null> {
+  async getCommentById(_id: ObjectId): Promise<CommentDBModel | null> {
     const commentById = await db.getCollections().commentsCollection.findOne({ _id });
 
     if (!commentById) {

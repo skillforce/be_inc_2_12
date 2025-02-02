@@ -1,17 +1,17 @@
 import { bcryptService } from '../../../common/adapters/bcrypt.service';
 
 import { Result } from '../../../common/result/result.type';
-import { UserDBType } from '../../../entities/users';
+import { UserDBModel } from '../../../entities/users';
 import { usersRepository } from '../../../entities/users/repository/usersRepository';
 import { ResultStatus } from '../../../common/result/resultCode';
-import { LoginBodyRequiredData } from '../types/types';
+import { AuthLoginDto } from '../types/types';
 import { jwtService } from '../../../common/adapters/jwt.service';
 
 export const authService = {
   async checkUserCredentials(
     loginOrEmail: string,
     password: string,
-  ): Promise<Result<UserDBType | null>> {
+  ): Promise<Result<UserDBModel | null>> {
     const user = await usersRepository.findByLoginOrEmail(loginOrEmail);
     if (!user) {
       return {
@@ -52,7 +52,7 @@ export const authService = {
   async loginUser({
     loginOrEmail,
     password,
-  }: LoginBodyRequiredData): Promise<Result<{ accessToken: string } | null>> {
+  }: AuthLoginDto): Promise<Result<{ accessToken: string } | null>> {
     const result = await this.checkUserCredentials(loginOrEmail, password);
     if (result.status !== ResultStatus.Success) {
       return {

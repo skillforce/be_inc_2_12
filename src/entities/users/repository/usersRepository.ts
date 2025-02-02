@@ -1,13 +1,13 @@
 import { db } from '../../../db/mongo-db';
 import { Filter, ObjectId, WithId } from 'mongodb';
-import { AddUserRequestRequiredData, UserDBOutputType, UserDBType } from '../types/types';
+import { AddUserDto, UserViewModel, UserDBModel } from '../types/types';
 import { LoginFilterSchema } from '../../../application/auth/types/types';
 
 export const usersRepository = {
-  async addUser(newUserData: AddUserRequestRequiredData): Promise<ObjectId> {
+  async addUser(newUserData: AddUserDto): Promise<ObjectId> {
     const result = await db
       .getCollections()
-      .usersCollection.insertOne(newUserData as WithId<AddUserRequestRequiredData>);
+      .usersCollection.insertOne(newUserData as WithId<AddUserDto>);
     return result.insertedId;
   },
   async isFieldValueUnique(field: string, value: string): Promise<boolean> {
@@ -18,7 +18,7 @@ export const usersRepository = {
     const result = await db.getCollections().usersCollection.deleteOne({ _id });
     return result.deletedCount === 1;
   },
-  async getUserById(_id: ObjectId): Promise<UserDBType | null> {
+  async getUserById(_id: ObjectId): Promise<UserDBModel | null> {
     const userById = await db.getCollections().usersCollection.findOne({ _id });
 
     if (!userById) {
@@ -30,7 +30,7 @@ export const usersRepository = {
     const countById = await db.getCollections().usersCollection.countDocuments({ _id });
     return countById === 1;
   },
-  async findByLoginOrEmail(loginOrEmail: string): Promise<WithId<UserDBType> | null> {
+  async findByLoginOrEmail(loginOrEmail: string): Promise<WithId<UserDBModel> | null> {
     return db.getCollections().usersCollection.findOne({
       $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
     });

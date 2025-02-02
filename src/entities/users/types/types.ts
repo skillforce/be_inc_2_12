@@ -1,20 +1,20 @@
 import { ObjectId } from 'mongodb';
 import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
 
-export interface UserDBOutputType {
+export interface UserViewModel {
   id: string;
   login: string;
   email: string;
   createdAt: string;
 }
 
-export interface UserAuthOutputType {
+export interface UserAuthViewModel {
   email: string;
   login: string;
   userId: string;
 }
 
-export interface UserDBType {
+export interface UserDBModel {
   _id: ObjectId;
   login: string;
   email: string;
@@ -22,14 +22,14 @@ export interface UserDBType {
   createdAt: string;
 }
 
-export interface AddUserRequestRequiredData {
+export interface AddUserDto {
   login: string;
   email: string;
   password: string;
   createdAt: string;
 }
 
-export interface AddUserInputQueryRequiredData {
+export interface AddUserRequiredInputData {
   login: string;
   email: string;
   password: string;
