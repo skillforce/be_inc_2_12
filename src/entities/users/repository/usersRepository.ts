@@ -41,7 +41,7 @@ export const usersRepository = {
       },
     );
 
-    return updateResult.modifiedCount > 0;
+    return updateResult.modifiedCount === 1;
   },
   async getUserByRegistrationCode(code: string): Promise<UserDBModel | null> {
     const userByCode = await db
