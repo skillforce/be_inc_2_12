@@ -46,7 +46,12 @@ export const usersService = {
 
     const hashedPassword = await bcryptService.generateHash(password);
 
-    const newUser: AddUserDto = new User({ login: login, email: email, hash: hashedPassword });
+    const newUser: AddUserDto = new User({
+      login: login,
+      email: email,
+      hash: hashedPassword,
+      isConfirmed: true,
+    });
 
     const createdUserId = await usersRepository.addUser(newUser);
 

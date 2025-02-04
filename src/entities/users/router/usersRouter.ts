@@ -18,7 +18,6 @@ import { ErrorResponseObject } from '../../../common/middlewares/helper';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
 import { ObjectId } from 'mongodb';
-import { usersRepository } from '../repository/usersRepository';
 
 export const usersRouter = Router({});
 
@@ -61,12 +60,6 @@ usersRouter.post(
     const userById = await usersQueryRepository.getUserById(result.data as ObjectId);
 
     if (!userById) {
-      res.sendStatus(HttpStatuses.ServerError);
-      return;
-    }
-
-    const isEmailConfirmed = await usersRepository.confirmUserEmailById(result.data as ObjectId);
-    if (!isEmailConfirmed) {
       res.sendStatus(HttpStatuses.ServerError);
       return;
     }

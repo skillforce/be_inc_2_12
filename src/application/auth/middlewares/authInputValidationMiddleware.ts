@@ -26,6 +26,10 @@ const passwordErrors: ErrorMessages = {
   isString: 'password should be provided as a string',
   length: 'password field length should be between 6 and 20 symbols',
 };
+const codeErrors: ErrorMessages = {
+  required: 'code field is required',
+  isString: 'code should be provided as a string',
+};
 
 const additionalLoginRules: ((chain: ValidationChain) => ValidationChain)[] = [
   (chain) => chain.matches(/^[a-zA-Z0-9_-]*$/).withMessage('wrong login format'),
@@ -56,6 +60,10 @@ export const passwordLoginBodyValidationMiddleware = basicStringFieldMiddlewareG
   fieldName: 'password',
   errorMessages: passwordErrors,
 });
+export const codeBodyValidationMiddleware = basicStringFieldMiddlewareGenerator({
+  fieldName: 'code',
+  errorMessages: codeErrors,
+});
 export const passwordRegistrationBodyValidationMiddleware = basicStringFieldMiddlewareGenerator({
   fieldName: 'password',
   errorMessages: passwordErrors,
@@ -72,6 +80,15 @@ export const loginBodyValidators = [
 export const registrationBodyValidators = [
   loginBodyRegistrationValidationMiddleware,
   passwordRegistrationBodyValidationMiddleware,
+  emailBodyRegistrationValidationMiddleware,
+  inputValidationMiddleware,
+];
+
+export const confirmRegistrationBodyValidators = [
+  codeBodyValidationMiddleware,
+  inputValidationMiddleware,
+];
+export const resendRegistrationEmailBodyValidators = [
   emailBodyRegistrationValidationMiddleware,
   inputValidationMiddleware,
 ];

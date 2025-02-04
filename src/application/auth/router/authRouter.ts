@@ -1,9 +1,11 @@
 import { Request, Response, Router } from 'express';
 import { AuthLoginDto, RegisterUserDto } from '../types/types';
 import {
+  confirmRegistrationBodyValidators,
   loginBodyValidators,
   meRequestValidators,
   registrationBodyValidators,
+  resendRegistrationEmailBodyValidators,
 } from '../middlewares/authInputValidationMiddleware';
 import { authService } from '../service/authService';
 import { ResultStatus } from '../../../common/result/resultCode';
@@ -40,6 +42,47 @@ authRouter.post(
     const registerUserDto = req.body;
 
     const result = await authService.registerUser(registerUserDto);
+
+    if (result.status !== ResultStatus.Success) {
+      res.sendStatus(HttpStatuses.BadRequest);
+      return;
+    }
+
+    res.sendStatus(HttpStatuses.NoContent);
+  },
+);
+
+authRouter.post(
+  '/registration-confirmation',
+  confirmRegistrationBodyValidators,
+  async (req: RequestWithBody<{ code: string }>, res: Response) => {
+    const { code } = req.body;
+
+    const result = await authService.confirmRegistrationCode(code);
+
+    if (result.status !== ResultStatus.Success) {
+      res.sendStatus(HttpStatuses.BadRequest);
+      return;
+    }
+
+    res.sendStatus(HttpStatuses.NoContent);
+  },
+);
+
+authRouter.post(
+  '/registration-email-resending',
+  resendRegistrationEmailBodyValidators,
+  async (req: RequestWithBody<{ email: string }>, res: Response) => {
+    const { email } = req.body;
+
+    const result = await authService.resendConfirmationEmail(email);
+
+    if (result.status !== ResultStatus.Success) {
+      res.sendStatus(HttpStatuses.BadRequest);
+      return;
+    }
+
+    res.sendStatus(HttpStatuses.NoContent);
   },
 );
 

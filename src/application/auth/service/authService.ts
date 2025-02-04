@@ -5,12 +5,13 @@ import { usersRepository } from '../../../entities/users/repository/usersReposit
 import { ResultStatus } from '../../../common/result/resultCode';
 import { AuthLoginDto } from '../types/types';
 import { jwtService } from '../../../common/adapters/jwt.service';
-import { AddUserRequiredInputData } from '../../../entities/users/types/types';
+import { AddUserDto, AddUserRequiredInputData } from '../../../entities/users/types/types';
 import { ObjectId } from 'mongodb';
 import { authEmails } from '../../../common/layout/authEmails';
 import { nodemailerService } from '../../../common/adapters/nodemailer.service';
 import dayjs from 'dayjs';
 import { randomUUID } from 'crypto';
+import { User } from '../../../entities/users/service/user.entity';
 
 export const authService = {
   async checkUserCredentials(
@@ -56,40 +57,62 @@ export const authService = {
   },
 
   async registerUser({ login, email, password }: AddUserRequiredInputData): Promise<Result> {
-    const newUserResult = await usersService.addUser({ password, email, login });
+    const isLoginUnique = await usersRepository.isFieldValueUnique('login', login);
+    const isEmailUnique = await usersRepository.isFieldValueUnique('email', email);
 
-    if (newUserResult.status !== ResultStatus.Success) {
+    if (!isLoginUnique) {
       return {
-        status: newUserResult.status,
+        status: ResultStatus.BadRequest,
         data: null,
-        errorMessage: newUserResult.errorMessage,
-        extensions: newUserResult.extensions,
+        errorMessage: 'Login must be unique',
+        extensions: [
+          {
+            field: 'login',
+            message: 'Login must be unique',
+          },
+        ],
       };
     }
 
-    const newUser = await usersRepository.getUserById(newUserResult.data as ObjectId);
+    if (!isEmailUnique) {
+      return {
+        status: ResultStatus.BadRequest,
+        data: null,
+        errorMessage: 'Email must be unique',
+        extensions: [
+          {
+            field: 'email',
+            message: 'Email must be unique',
+          },
+        ],
+      };
+    }
 
-    if (!newUser) {
+    const hashedPassword = await bcryptService.generateHash(password);
+
+    const newUser: AddUserDto = new User({
+      login: login,
+      email: email,
+      hash: hashedPassword,
+    });
+
+    const createdUserId = await usersRepository.addUser(newUser);
+
+    if (!createdUserId) {
       return {
         status: ResultStatus.ServerError,
-        data: null,
         errorMessage: 'Internal server error occurred',
+        data: null,
         extensions: [],
       };
     }
 
-    const {
-      email: addedUserEmail,
-      emailConfirmation: { confirmationCode },
-    } = newUser;
-
-    this.sendConfirmationEmail(addedUserEmail, confirmationCode);
+    this.sendConfirmationEmail(newUser.email, newUser.emailConfirmation.confirmationCode);
 
     return {
       status: ResultStatus.Success,
       data: null,
       extensions: [],
-      errorMessage: '',
     };
   },
   sendConfirmationEmail(email: string, code: string): void {

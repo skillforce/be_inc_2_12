@@ -12,7 +12,17 @@ export class User {
     isConfirmed: boolean;
   };
 
-  constructor({ login, email, hash }: { login: string; email: string; hash: string }) {
+  constructor({
+    login,
+    email,
+    hash,
+    isConfirmed = false,
+  }: {
+    login: string;
+    email: string;
+    hash: string;
+    isConfirmed?: boolean;
+  }) {
     this.login = login;
     this.email = email;
     this.password = hash;
@@ -20,7 +30,7 @@ export class User {
     this.emailConfirmation = {
       expirationDate: dayjs().add(30, 'minute').toISOString(),
       confirmationCode: randomUUID(),
-      isConfirmed: false,
+      isConfirmed,
     };
   }
 }

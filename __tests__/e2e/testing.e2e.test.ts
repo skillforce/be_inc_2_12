@@ -1,7 +1,7 @@
-import { req } from './utils/test-helpers';
+import { req } from '../utils/test-helpers';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { db } from '../src/db/mongo-db';
-import { PATHS } from '../src/common/paths/paths';
+import { db } from '../../src/db/mongo-db';
+import { PATHS } from '../../src/common/paths/paths';
 
 describe('/testing', () => {
   beforeAll(async () => {

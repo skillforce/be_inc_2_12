@@ -1,9 +1,9 @@
-import { cleanDB, req } from './utils/test-helpers';
-import { AddUpdateBlogRequiredInputData, BlogDbModel } from '../src/entities/blogs/types/types';
+import { cleanDB, req } from '../utils/test-helpers';
+import { AddUpdateBlogRequiredInputData, BlogDbModel } from '../../src/entities/blogs/types/types';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { blogService } from '../src/entities/blogs/service/blogService';
-import { PATHS } from '../src/common/paths/paths';
-import { db } from '../src/db/mongo-db';
+import { blogService } from '../../src/entities/blogs/service/blogService';
+import { PATHS } from '../../src/common/paths/paths';
+import { db } from '../../src/db/mongo-db';
 
 describe('/blogs', () => {
   beforeAll(async () => {

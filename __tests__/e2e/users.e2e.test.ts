@@ -1,8 +1,8 @@
-import { cleanDB, req } from './utils/test-helpers';
+import { cleanDB, req } from '../utils/test-helpers';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { db } from '../src/db/mongo-db';
-import { AddUserRequiredInputData } from '../src/entities/users/types/types';
-import { PATHS } from '../src/common/paths/paths';
+import { db } from '../../src/db/mongo-db';
+import { AddUserRequiredInputData } from '../../src/entities/users/types/types';
+import { PATHS } from '../../src/common/paths/paths';
 
 const newUser = {
   email: 'testo@gmail.com',
