@@ -14,12 +14,19 @@ export interface UserAuthViewModel {
   userId: string;
 }
 
+interface EmailConfirmation {
+  confirmationCode: string;
+  expirationDate: string;
+  isConfirmed: boolean;
+}
+
 export interface UserDBModel {
   _id: ObjectId;
   login: string;
   email: string;
   password: string;
   createdAt: string;
+  emailConfirmation: EmailConfirmation;
 }
 
 export interface AddUserDto {
@@ -27,6 +34,7 @@ export interface AddUserDto {
   email: string;
   password: string;
   createdAt: string;
+  emailConfirmation: EmailConfirmation;
 }
 
 export interface AddUserRequiredInputData {

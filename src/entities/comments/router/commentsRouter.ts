@@ -4,7 +4,7 @@ import {
   getCommentByIdValidators,
   updateCommentValidators,
 } from '../middlewares/commentsInputValidationMiddleware';
-import { commentsService } from '../domain/commentsService';
+import { commentsService } from '../service/commentsService';
 import { commentsQueryRepository } from '../repository/commentsQueryRepository';
 import { ObjectId } from 'mongodb';
 import { CommentViewModel, AddUpdateCommentInputData } from '../types/types';

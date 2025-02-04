@@ -10,7 +10,7 @@ import {
   deleteUserValidators,
   getUsersValidators,
 } from '../middlewares/usersInputDataValidationMiddleware';
-import { usersService } from '../domain/usersService';
+import { usersService } from '../service/usersService';
 import { RequestWithBody, RequestWithParams } from '../../../common/types/request';
 import { PaginatedData } from '../../../common/types/pagination';
 import { HttpStatuses } from '../../../common/types/httpStatuses';

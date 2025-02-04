@@ -26,6 +26,40 @@ export const usersRepository = {
     }
     return userById;
   },
+  async renewVerificationData(
+    _id: ObjectId,
+    newExpirationDate: string,
+    newCode: string,
+  ): Promise<boolean> {
+    const updateResult = await db.getCollections().usersCollection.updateOne(
+      { _id },
+      {
+        $set: {
+          'emailConfirmation.expirationDate': newExpirationDate,
+          'emailConfirmation.confirmationCode': newCode,
+        },
+      },
+    );
+
+    return updateResult.modifiedCount > 0;
+  },
+  async getUserByRegistrationCode(code: string): Promise<UserDBModel | null> {
+    const userByCode = await db
+      .getCollections()
+      .usersCollection.findOne({ 'emailConfirmation.confirmationCode': code });
+
+    if (!userByCode) {
+      return null;
+    }
+    return userByCode;
+  },
+  async confirmUserEmailById(_id: ObjectId): Promise<boolean> {
+    const updateResult = await db
+      .getCollections()
+      .usersCollection.updateOne({ _id }, { $set: { 'emailConfirmation.isConfirmed': true } });
+
+    return updateResult.matchedCount === 1;
+  },
   async doesExistById(_id: ObjectId) {
     const countById = await db.getCollections().usersCollection.countDocuments({ _id });
     return countById === 1;

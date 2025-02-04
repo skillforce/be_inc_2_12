@@ -1,19 +1,19 @@
 import { ObjectId } from 'mongodb';
 import { usersRepository } from '../repository/usersRepository';
 import { AddUserDto, AddUserRequiredInputData } from '../types/types';
-
 import { bcryptService } from '../../../common/adapters/bcrypt.service';
 import { toObjectId } from '../../../common/middlewares/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
+import { User } from './user.entity';
 
 export const usersService = {
-  addUser: async ({
+  async addUser({
     login,
     password,
     email,
-  }: AddUserRequiredInputData): Promise<Result<ObjectId | null>> => {
-    const isLoginUnique = await usersRepository.isFieldValueUnique('login', login); //search by both fields login and email
+  }: AddUserRequiredInputData): Promise<Result<ObjectId | null>> {
+    const isLoginUnique = await usersRepository.isFieldValueUnique('login', login);
     const isEmailUnique = await usersRepository.isFieldValueUnique('email', email);
 
     if (!isLoginUnique) {
@@ -46,16 +46,11 @@ export const usersService = {
 
     const hashedPassword = await bcryptService.generateHash(password);
 
-    const newBlogData: AddUserDto = {
-      login,
-      email,
-      password: hashedPassword,
-      createdAt: new Date().toISOString(),
-    };
+    const newUser: AddUserDto = new User({ login: login, email: email, hash: hashedPassword });
 
-    const createdBlogId = await usersRepository.addUser(newBlogData);
+    const createdUserId = await usersRepository.addUser(newUser);
 
-    if (!createdBlogId) {
+    if (!createdUserId) {
       return {
         status: ResultStatus.ServerError,
         errorMessage: 'Internal server error occurred',
@@ -66,11 +61,10 @@ export const usersService = {
 
     return {
       status: ResultStatus.Success,
-      data: createdBlogId,
+      data: createdUserId,
       extensions: [],
     };
   },
-
   deleteUser: async (id: string): Promise<Result<boolean>> => {
     const _id = toObjectId(id);
 

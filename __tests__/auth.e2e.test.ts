@@ -50,4 +50,13 @@ describe('/login', () => {
       })
       .expect(401);
   });
+  it('should create user with appropriate schema and send email', async () => {
+    const userCredentials = {
+      login: 'testoTest',
+      password: 'Password1!',
+      email: 'testiki@mail.ru',
+    };
+
+    await req.post(PATHS.AUTH.REGISTRATION).send(userCredentials).expect(204);
+  });
 });

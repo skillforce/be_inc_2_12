@@ -7,7 +7,7 @@ import {
   getCommentByPostIdValidators,
   updatePostBodyValidators,
 } from '../middlewares/postInputValidationMiddleware';
-import { postService } from '../domain/postService';
+import { postService } from '../service/postService';
 import { postQueryRepository } from '../repository/postQueryRepository';
 import { blogQueryRepository } from '../../blogs/repository/blogQueryRepository';
 import {
@@ -19,7 +19,7 @@ import { commentsQueryRepository } from '../../comments/repository/commentsQuery
 import { PaginatedData } from '../../../common/types/pagination';
 import { AddUpdateCommentInputData, CommentViewModel } from '../../comments/types/types';
 import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
-import { commentsService } from '../../comments/domain/commentsService';
+import { commentsService } from '../../comments/service/commentsService';
 import { ObjectId } from 'mongodb';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';

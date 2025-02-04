@@ -5,13 +5,13 @@ import {
   deleteBlogValidators,
   updateBlogBodyValidators,
 } from '../middlewares/blogInputValidationMiddleware';
-import { blogService } from '../domain/blogService';
+import { blogService } from '../service/blogService';
 import {
   createPostByBlogIdValidators,
   getPostsByBlogIdValidators,
 } from '../../posts/middlewares/postInputValidationMiddleware';
 import { AddUpdatePostRequiredInputData, PostViewModel } from '../../posts/types/types';
-import { postService } from '../../posts/domain/postService';
+import { postService } from '../../posts/service/postService';
 import { blogQueryRepository } from '../repository/blogQueryRepository';
 import { ObjectId } from 'mongodb';
 import { postQueryRepository } from '../../posts/repository/postQueryRepository';
@@ -154,7 +154,7 @@ blogRouter.put(
 blogRouter.delete(
   '/:id',
   deleteBlogValidators,
-  async (req: Request<{ id: string }>, res: Response<any>) => {
+  async (req: Request<{ id: string }>, res: Response<void>) => {
     const queryId = req.params.id;
     const result = await blogService.deleteBlog(queryId);
     if (result.status !== ResultStatus.Success) {
