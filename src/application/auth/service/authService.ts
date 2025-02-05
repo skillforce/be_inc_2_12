@@ -107,7 +107,7 @@ export const authService = {
       };
     }
 
-    this.sendConfirmationEmail(newUser.email, newUser.emailConfirmation.confirmationCode);
+    await this.sendConfirmationEmail(newUser.email, newUser.emailConfirmation.confirmationCode);
 
     return {
       status: ResultStatus.Success,
@@ -115,14 +115,9 @@ export const authService = {
       extensions: [],
     };
   },
-  sendConfirmationEmail(email: string, code: string): void {
+  async sendConfirmationEmail(email: string, code: string): Promise<void> {
     const emailLayout = authEmails.registrationEmail(code);
-    nodemailerService
-      .sendEmail(email, emailLayout)
-      .then()
-      .catch((e) => {
-        console.log(e);
-      });
+    const res = await nodemailerService.sendEmail(email, emailLayout);
   },
   async resendConfirmationEmail(email: string): Promise<Result> {
     const user = await usersRepository.findByLoginOrEmail(email);
@@ -135,6 +130,16 @@ export const authService = {
         extensions: [],
       };
     }
+
+    if (user.emailConfirmation.isConfirmed) {
+      return {
+        status: ResultStatus.BadRequest,
+        data: null,
+        errorMessage: 'User already confirmed',
+        extensions: [],
+      };
+    }
+
     const newExpDate = dayjs().add(30, 'minute').toISOString();
     const newCode = randomUUID();
 
@@ -187,7 +192,7 @@ export const authService = {
       emailConfirmation: { expirationDate, isConfirmed },
     } = userByCodeResult;
 
-    if (dayjs(expirationDate).isAfter(dayjs())) {
+    if (dayjs(expirationDate).isBefore(dayjs())) {
       return {
         status: ResultStatus.BadRequest,
         errorMessage: 'Bad Request',

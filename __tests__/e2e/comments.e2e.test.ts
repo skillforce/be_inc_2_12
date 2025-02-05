@@ -5,7 +5,7 @@ import { UserViewModel } from '../../src/entities/users/types/types';
 import { PATHS } from '../../src/common/paths/paths';
 import { createBlog } from '../utils/createBlog';
 import { createPost } from '../utils/createPost';
-import { createUser } from '../utils/createUser';
+import { createUser } from '../utils/userHelpers';
 import { createComment } from '../utils/createComment';
 import { loginUser } from '../utils/login';
 import { CommentViewModel } from '../../src/entities/comments/types/types';

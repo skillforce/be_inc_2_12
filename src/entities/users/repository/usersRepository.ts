@@ -47,7 +47,6 @@ export const usersRepository = {
     const userByCode = await db
       .getCollections()
       .usersCollection.findOne({ 'emailConfirmation.confirmationCode': code });
-
     if (!userByCode) {
       return null;
     }

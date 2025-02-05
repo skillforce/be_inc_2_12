@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { PATHS } from './common/paths/paths';
-import { testingRouter } from './entities/testing/router/testingRouter';
+import { testingRouter } from './application/testing/router/testingRouter';
 import { blogRouter } from './entities/blogs';
 import { postRouter } from './entities/posts';
 import { usersRouter } from './entities/users';

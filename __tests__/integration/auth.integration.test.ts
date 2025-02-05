@@ -1,13 +1,15 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { db } from '../../src/db/mongo-db';
-import { createUser } from '../utils/createUser';
-import { req } from '../utils/test-helpers';
-import { PATHS } from '../../src/common/paths/paths';
+import { createUser, insertUser } from '../utils/userHelpers';
 import { testingDtosCreator } from '../utils/testingDtosCreator';
 import { nodemailerService } from '../../src/common/adapters/nodemailer.service';
 import { emailServiceMock } from './mock/emailSendServiceMock';
 import { authService } from '../../src/application/auth/service/authService';
 import { ResultStatus } from '../../src/common/result/resultCode';
+import { req } from '../utils/test-helpers';
+import { PATHS } from '../../src/common/paths/paths';
+import { HttpStatuses } from '../../src/common/types/httpStatuses';
+import { User } from '../../src/entities/users/service/user.entity';
 
 describe('/auth', () => {
   beforeAll(async () => {
@@ -15,9 +17,11 @@ describe('/auth', () => {
     const uri = dbServer.getUri();
     await db.run(uri);
     await db.drop();
-  }, 10000);
+  });
 
-  nodemailerService.sendEmail = jest.fn().mockImplementation(emailServiceMock.sendEmail);
+  beforeEach(async () => {
+    nodemailerService.sendEmail = jest.fn().mockImplementation(emailServiceMock.sendEmail);
+  });
 
   it('should send email after user creation', async () => {
     const dto = testingDtosCreator.createUserDto({});
@@ -31,5 +35,56 @@ describe('/auth', () => {
     expect(res.status).toBe(ResultStatus.Success);
     expect(nodemailerService.sendEmail).toBeCalled();
     expect(nodemailerService.sendEmail).toBeCalledTimes(1);
+  });
+  it("should't resend email if user exists and already confirm his email", async () => {
+    const user = await createUser({});
+
+    const res = await authService.resendConfirmationEmail(user.email);
+
+    expect(res.status).toBe(ResultStatus.BadRequest);
+    expect(nodemailerService.sendEmail).not.toBeCalled();
+  });
+  it("should resend email if user exists and didn't confirm his email", async () => {
+    const userDto = testingDtosCreator.createUserDto({});
+    await req
+      .post(PATHS.AUTH.REGISTRATION)
+      .send({
+        login: userDto.login,
+        email: userDto.email,
+        password: userDto.pass,
+      })
+      .expect(HttpStatuses.NoContent);
+
+    expect(nodemailerService.sendEmail).toBeCalled();
+    expect(nodemailerService.sendEmail).toBeCalledTimes(1);
+
+    await req
+      .post(PATHS.AUTH.REGISTRATION_EMAIL_RESENDING)
+      .send({ email: userDto.email })
+      .expect(HttpStatuses.NoContent);
+
+    expect(nodemailerService.sendEmail).toBeCalled();
+    expect(nodemailerService.sendEmail).toBeCalledTimes(2);
+  });
+  it("should't resend email if user already confirmed it", async () => {
+    const userDto = testingDtosCreator.createUserDto({});
+
+    const mockUser = new User({
+      login: userDto.login,
+      email: userDto.email,
+      hash: userDto.pass,
+    });
+
+    const userFromDB = await insertUser(mockUser);
+
+    await req
+      .post(PATHS.AUTH.CONFIRM_REGISTRATION)
+      .send({ code: userFromDB.emailConfirmation.confirmationCode })
+      .expect(HttpStatuses.NoContent);
+
+    await req
+      .post(PATHS.AUTH.REGISTRATION_EMAIL_RESENDING)
+      .send({ email: userDto.email })
+      .expect(HttpStatuses.BadRequest);
   });
 });

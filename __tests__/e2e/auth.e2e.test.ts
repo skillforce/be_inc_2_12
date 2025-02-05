@@ -2,7 +2,7 @@ import { req } from '../utils/test-helpers';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PATHS } from '../../src/common/paths/paths';
 import { db } from '../../src/db/mongo-db';
-import { createUser } from '../utils/createUser';
+import { createUser } from '../utils/userHelpers';
 import { UserDto } from '../utils/testingDtosCreator';
 
 const newUser = {
