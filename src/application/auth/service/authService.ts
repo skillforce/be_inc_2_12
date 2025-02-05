@@ -107,7 +107,7 @@ export const authService = {
       };
     }
 
-    await this.sendConfirmationEmail(newUser.email, newUser.emailConfirmation.confirmationCode);
+    this.sendConfirmationEmail(newUser.email, newUser.emailConfirmation.confirmationCode);
 
     return {
       status: ResultStatus.Success,
@@ -115,9 +115,12 @@ export const authService = {
       extensions: [],
     };
   },
-  async sendConfirmationEmail(email: string, code: string): Promise<void> {
+  sendConfirmationEmail(email: string, code: string): void {
     const emailLayout = authEmails.registrationEmail(code);
-    const res = await nodemailerService.sendEmail(email, emailLayout);
+    nodemailerService
+      .sendEmail(email, emailLayout)
+      .then()
+      .catch((e) => console.log(e));
   },
   async resendConfirmationEmail(email: string): Promise<Result> {
     const user = await usersRepository.findByLoginOrEmail(email);

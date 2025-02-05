@@ -4,25 +4,21 @@ import nodemailer from 'nodemailer';
 export const nodemailerService = {
   async sendEmail(email: string, emailLayout: string): Promise<boolean> {
     let transporter = nodemailer.createTransport({
-      service: 'Mail.ru',
-      port: 587,
+      service: APP_CONFIG.EMAIL_SERVICE,
       auth: {
         user: APP_CONFIG.EMAIL,
         pass: APP_CONFIG.EMAIL_PASS,
       },
     });
 
-    console.log(transporter);
-
     try {
       const info = await transporter.sendMail({
-        from: `Denis: <${APP_CONFIG.EMAIL}>`,
+        from: 'Incubator_HW <' + APP_CONFIG.EMAIL + '>',
         to: email,
-        subject: '👋 Hello from Node.js 🚀',
+        subject: '👋 Hello there!',
         html: emailLayout,
       });
 
-      console.log('Email sent:', info.messageId);
       return !!info;
     } catch (error) {
       console.error('Error sending email:', error);
