@@ -5,7 +5,7 @@ config();
 export const APP_CONFIG = {
   PORT: process.env.PORT || 3003,
   ADMIN_AUTH: process.env.BASIC_AUTH_CREDENTIALS as string,
-  MONGO_URL: 'mongodb://127.0.0.1:27017' as string,
+  MONGO_URL: process.env.MONGO_URL as string,
   DB_NAME: process.env.DB_NAME as string,
   AC_SECRET: process.env.AC_SECRET as string,
   AC_TIME: process.env.AC_TIME as string,
