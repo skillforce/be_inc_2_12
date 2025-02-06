@@ -1,5 +1,6 @@
 import { body, ValidationChain } from 'express-validator';
 import { ObjectId } from 'mongodb';
+import { ExtensionType } from '../result/result.type';
 
 export interface ErrorMessages {
   required: string;
@@ -58,4 +59,10 @@ export const toObjectId = (id: string): ObjectId | null => {
     return new ObjectId(id);
   }
   return null;
+};
+
+export const createErrorObject = (extensions: ExtensionType[]) => {
+  return {
+    errorsMessages: extensions,
+  };
 };

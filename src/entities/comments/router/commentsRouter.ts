@@ -16,7 +16,7 @@ import {
 import { IdType } from '../../../common/types/id';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { ResultStatus } from '../../../common/result/resultCode';
-import { toObjectId } from '../../../common/middlewares/helper';
+import { toObjectId } from '../../../common/helpers/helper';
 
 export const commentsRouter = Router({});
 

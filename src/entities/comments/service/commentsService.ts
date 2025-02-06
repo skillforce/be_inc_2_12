@@ -10,7 +10,7 @@ import { usersRepository } from '../../users/repository/usersRepository';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { UserDBModel } from '../../users';
-import { toObjectId } from '../../../common/middlewares/helper';
+import { toObjectId } from '../../../common/helpers/helper';
 
 export const commentsService = {
   createComment: async ({

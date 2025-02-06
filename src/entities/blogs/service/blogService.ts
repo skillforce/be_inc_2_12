@@ -2,7 +2,7 @@ import { AddBlogDto, AddUpdateBlogRequiredInputData } from '../types/types';
 import { blogRepository } from '../repository/blogRepository';
 import { ObjectId } from 'mongodb';
 
-import { toObjectId } from '../../../common/middlewares/helper';
+import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 

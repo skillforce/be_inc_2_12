@@ -15,7 +15,7 @@ import { RequestWithBody, RequestWithUserId } from '../../../common/types/reques
 import { IdType } from '../../../common/types/id';
 import { usersQueryRepository } from '../../../entities/users/repository/usersQueryRepository';
 import { UsersOutputMapEnum } from '../../../entities/users';
-import { toObjectId } from '../../../common/middlewares/helper';
+import { createErrorObject, toObjectId } from '../../../common/helpers/helper';
 
 export const authRouter = Router({});
 
@@ -44,7 +44,8 @@ authRouter.post(
     const result = await authService.registerUser(registerUserDto);
 
     if (result.status !== ResultStatus.Success) {
-      res.sendStatus(HttpStatuses.BadRequest);
+      const errorResponse = createErrorObject(result.extensions);
+      res.status(HttpStatuses.BadRequest).send(errorResponse);
       return;
     }
 
@@ -61,7 +62,8 @@ authRouter.post(
     const result = await authService.confirmRegistrationCode(code);
 
     if (result.status !== ResultStatus.Success) {
-      res.sendStatus(HttpStatuses.BadRequest);
+      const errorResponse = createErrorObject(result.extensions);
+      res.status(HttpStatuses.BadRequest).send(errorResponse);
       return;
     }
 
@@ -78,7 +80,8 @@ authRouter.post(
     const result = await authService.resendConfirmationEmail(email);
 
     if (result.status !== ResultStatus.Success) {
-      res.sendStatus(HttpStatuses.BadRequest);
+      const errorResponse = createErrorObject(result.extensions);
+      res.status(HttpStatuses.BadRequest).send(errorResponse);
       return;
     }
 

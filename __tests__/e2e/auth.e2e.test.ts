@@ -59,4 +59,39 @@ describe('/login', () => {
 
     await req.post(PATHS.AUTH.REGISTRATION).send(userCredentials).expect(204);
   });
+  it('should return error and error extension when register user with not uniq login or email', async () => {
+    const userCredentials = {
+      login: 'testoTest',
+      password: 'Password1!',
+      email: 'testiki@mail.ru',
+    };
+
+    const res = await req.post(PATHS.AUTH.REGISTRATION).send(userCredentials).expect(400);
+
+    expect(res.body.errorsMessages).toBeDefined();
+    expect(res.body.errorsMessages[0].field).toBe('login');
+  });
+  it('should return error and error body when try to resend email to unexisting user', async () => {
+    const userCredentials = {
+      email: 'test1223eiki@mail.ru',
+    };
+
+    const res = await req
+      .post(PATHS.AUTH.REGISTRATION_EMAIL_RESENDING)
+      .send(userCredentials)
+      .expect(400);
+
+    expect(res.body.errorsMessages).toBeDefined();
+    expect(res.body.errorsMessages[0].field).toBe('email');
+  });
+  it('should return error when user try to verify email via unexisting code', async () => {
+    const fakeCode = {
+      code: 'fake_code',
+    };
+
+    const res = await req.post(PATHS.AUTH.CONFIRM_REGISTRATION).send(fakeCode).expect(400);
+    console.log(res.body);
+    expect(res.body.errorsMessages).toBeDefined();
+    expect(res.body.errorsMessages[0].field).toBe('code');
+  });
 });

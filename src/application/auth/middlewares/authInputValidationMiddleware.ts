@@ -1,7 +1,4 @@
-import {
-  basicStringFieldMiddlewareGenerator,
-  ErrorMessages,
-} from '../../../common/middlewares/helper';
+import { basicStringFieldMiddlewareGenerator, ErrorMessages } from '../../../common/helpers/helper';
 import { inputValidationMiddleware } from '../../../common/middlewares/commonValidationMiddlewares';
 import { accessTokenGuard } from '../guards/access.token.guard';
 import { ValidationChain } from 'express-validator';

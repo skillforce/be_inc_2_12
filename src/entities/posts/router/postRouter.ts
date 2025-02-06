@@ -24,7 +24,7 @@ import { ObjectId } from 'mongodb';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
 import { IdType } from '../../../common/types/id';
-import { toObjectId } from '../../../common/middlewares/helper';
+import { toObjectId } from '../../../common/helpers/helper';
 
 export const postRouter = Router({});
 

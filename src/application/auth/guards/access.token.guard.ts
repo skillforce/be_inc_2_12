@@ -3,7 +3,7 @@ import { jwtService } from '../../../common/adapters/jwt.service';
 import { usersRepository } from '../../../entities/users/repository/usersRepository';
 import { IdType } from '../../../common/types/id';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
-import { toObjectId } from '../../../common/middlewares/helper';
+import { toObjectId } from '../../../common/helpers/helper';
 
 export const accessTokenGuard = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.headers.authorization) {

@@ -2,7 +2,7 @@ import {
   basicStringFieldMiddlewareGenerator,
   ErrorMessages,
   ObjectIdCheckingErrorMessages,
-} from '../../../common/middlewares/helper';
+} from '../../../common/helpers/helper';
 import {
   inputValidationMiddleware,
   validateUrlParamId,

@@ -130,7 +130,7 @@ export const authService = {
         status: ResultStatus.BadRequest,
         data: null,
         errorMessage: 'User not found',
-        extensions: [],
+        extensions: [{ field: 'email', message: 'User not found' }],
       };
     }
 
@@ -139,7 +139,7 @@ export const authService = {
         status: ResultStatus.BadRequest,
         data: null,
         errorMessage: 'User already confirmed',
-        extensions: [],
+        extensions: [{ field: 'email', message: 'User already confirmed' }],
       };
     }
 
@@ -195,21 +195,12 @@ export const authService = {
       emailConfirmation: { expirationDate, isConfirmed },
     } = userByCodeResult;
 
-    if (dayjs(expirationDate).isBefore(dayjs())) {
+    if (dayjs(expirationDate).isBefore(dayjs()) || isConfirmed) {
       return {
         status: ResultStatus.BadRequest,
         errorMessage: 'Bad Request',
         data: null,
-        extensions: [{ field: 'expirationDate', message: 'expiration date is over' }],
-      };
-    }
-
-    if (isConfirmed) {
-      return {
-        status: ResultStatus.BadRequest,
-        errorMessage: 'Bad Request',
-        data: null,
-        extensions: [{ field: 'isConfirmed', message: 'Provided link is expired' }],
+        extensions: [{ field: 'code', message: 'Provided code is expired' }],
       };
     }
 

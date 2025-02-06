@@ -16,7 +16,7 @@ import { blogQueryRepository } from '../repository/blogQueryRepository';
 import { ObjectId } from 'mongodb';
 import { postQueryRepository } from '../../posts/repository/postQueryRepository';
 import { PaginatedData } from '../../../common/types/pagination';
-import { toObjectId } from '../../../common/middlewares/helper';
+import { toObjectId } from '../../../common/helpers/helper';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 

@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 import { usersRepository } from '../repository/usersRepository';
 import { AddUserDto, AddUserRequiredInputData } from '../types/types';
 import { bcryptService } from '../../../common/adapters/bcrypt.service';
-import { toObjectId } from '../../../common/middlewares/helper';
+import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { User } from './user.entity';

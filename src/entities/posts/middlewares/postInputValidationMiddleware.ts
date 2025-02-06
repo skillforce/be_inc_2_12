@@ -1,8 +1,5 @@
 import { ValidationChain } from 'express-validator';
-import {
-  basicStringFieldMiddlewareGenerator,
-  ErrorMessages,
-} from '../../../common/middlewares/helper';
+import { basicStringFieldMiddlewareGenerator, ErrorMessages } from '../../../common/helpers/helper';
 import {
   checkIfBlogWithProvidedQueryParamIdExists,
   inputValidationMiddleware,
