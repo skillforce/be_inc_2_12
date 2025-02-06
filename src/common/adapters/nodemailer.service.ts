@@ -5,6 +5,8 @@ export const nodemailerService = {
   async sendEmail(email: string, emailLayout: string): Promise<boolean> {
     let transporter = nodemailer.createTransport({
       service: APP_CONFIG.EMAIL_SERVICE,
+      port: 465,
+      secure: true,
       auth: {
         user: APP_CONFIG.EMAIL,
         pass: APP_CONFIG.EMAIL_PASS,
