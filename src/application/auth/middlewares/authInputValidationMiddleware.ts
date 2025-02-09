@@ -73,6 +73,8 @@ export const loginBodyValidators = [
   passwordLoginBodyValidationMiddleware,
   inputValidationMiddleware,
 ];
+export const refreshTokenBodyValidators = [accessTokenGuard];
+export const logoutBodyValidators = [accessTokenGuard];
 
 export const registrationBodyValidators = [
   loginBodyRegistrationValidationMiddleware,

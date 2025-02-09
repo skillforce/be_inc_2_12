@@ -9,6 +9,8 @@ export const APP_CONFIG = {
   DB_NAME: process.env.DB_NAME as string,
   AC_SECRET: process.env.AC_SECRET as string,
   AC_TIME: process.env.AC_TIME as string,
+  RT_SECRET: process.env.RT_SECRET as string,
+  RT_TIME: process.env.RT_TIME as string,
   EMAIL: process.env.EMAIL as string,
   EMAIL_PASS: process.env.EMAIL_PASS as string,
   EMAIL_SERVICE: process.env.EMAIL_SERVICE as string,
@@ -16,4 +18,5 @@ export const APP_CONFIG = {
   POST_COLLECTION_NAME: process.env.POST_COLLECTION_NAME as string,
   USERS_COLLECTION_NAME: process.env.USERS_COLLECTION_NAME as string,
   COMMENTS_COLLECTION_NAME: process.env.COMMENTS_COLLECTION_NAME as string,
+  TOKEN_BLACK_LIST: process.env.TOKEN_BLACK_LIST as string,
 };

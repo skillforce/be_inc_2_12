@@ -5,6 +5,7 @@ import { ObjectId } from 'mongodb';
 import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
+import { blogQueryRepository } from '../repository/blogQueryRepository';
 
 export const blogService = {
   addBlog: async ({
@@ -32,6 +33,31 @@ export const blogService = {
     }
 
     return { status: ResultStatus.Success, data: createdBlogId, extensions: [] };
+  },
+  checkIsBlogWithIdExist: async (id: string): Promise<Result<boolean>> => {
+    const _id = toObjectId(id);
+    if (!_id) {
+      return {
+        status: ResultStatus.NotFound,
+        data: false,
+        errorMessage: 'Blog not found',
+        extensions: [],
+      };
+    }
+    const blogsFromDb = await blogRepository.getBlogById(_id);
+    if (!blogsFromDb) {
+      return {
+        status: ResultStatus.NotFound,
+        data: false,
+        errorMessage: 'Blog not found',
+        extensions: [],
+      };
+    }
+    return {
+      status: ResultStatus.Success,
+      data: true,
+      extensions: [],
+    };
   },
 
   updateBlog: async (

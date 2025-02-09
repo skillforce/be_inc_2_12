@@ -1,19 +1,51 @@
 import { bcryptService } from '../../../common/adapters/bcrypt.service';
 import { Result } from '../../../common/result/result.type';
-import { UserDBModel, usersService } from '../../../entities/users';
+import { UserDBModel } from '../../../entities/users';
 import { usersRepository } from '../../../entities/users/repository/usersRepository';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { AuthLoginDto } from '../types/types';
 import { jwtService } from '../../../common/adapters/jwt.service';
 import { AddUserDto, AddUserRequiredInputData } from '../../../entities/users/types/types';
-import { ObjectId } from 'mongodb';
 import { authEmails } from '../../../common/layout/authEmails';
 import { nodemailerService } from '../../../common/adapters/nodemailer.service';
 import dayjs from 'dayjs';
 import { randomUUID } from 'crypto';
 import { User } from '../../../entities/users/service/user.entity';
+import { authRepository } from '../repository/authRepository';
 
 export const authService = {
+  async isRefreshTokenValid(refreshToken: string): Promise<Result<boolean>> {
+    const isTokenValid = await jwtService.verifyRefreshToken(refreshToken);
+    if (!isTokenValid) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: false,
+        errorMessage: 'Unauthorized',
+        extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
+      };
+    }
+    return {
+      status: ResultStatus.Success,
+      data: true,
+      extensions: [],
+    };
+  },
+  async isTokenNotInBlackList(refreshToken: string): Promise<Result<boolean>> {
+    const isTokenInBlackList = await authRepository.isTokenExist(refreshToken);
+    if (isTokenInBlackList) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: false,
+        errorMessage: 'Unauthorized',
+        extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
+      };
+    }
+    return {
+      status: ResultStatus.Success,
+      data: true,
+      extensions: [],
+    };
+  },
   async checkUserCredentials(
     loginOrEmail: string,
     password: string,
@@ -222,11 +254,69 @@ export const authService = {
       extensions: [],
     };
   },
+  async generateTokens(
+    userId: string,
+  ): Promise<Result<{ accessToken: string; refreshToken: string }>> {
+    const accessToken = await jwtService.createAccessToken(userId);
+    const refreshToken = await jwtService.createRefreshToken(userId);
+    return {
+      status: ResultStatus.Success,
+      data: { accessToken, refreshToken },
+      extensions: [],
+    };
+  },
+  async addTokenToBlackList(token: string): Promise<Result<boolean>> {
+    const result = await authRepository.addTokenToBlackList(token);
 
+    if (!result) {
+      return {
+        status: ResultStatus.ServerError,
+        data: false,
+        errorMessage: 'Internal server error occurred',
+        extensions: [],
+      };
+    }
+    return {
+      status: ResultStatus.Success,
+      data: true,
+      errorMessage: '',
+      extensions: [],
+    };
+  },
+  async refreshTokens(
+    userId: string,
+    refreshToken: string,
+  ): Promise<Result<{ accessToken: string; refreshToken: string } | null>> {
+    const addTokenToBlackListResult = await this.addTokenToBlackList(refreshToken);
+
+    if (addTokenToBlackListResult.status !== ResultStatus.Success) {
+      return {
+        status: ResultStatus.ServerError,
+        data: null,
+        errorMessage: 'Internal server error occurred',
+        extensions: [],
+      };
+    }
+    const newTokensResult = await this.generateTokens(userId);
+
+    if (newTokensResult.status !== ResultStatus.Success) {
+      return {
+        status: ResultStatus.ServerError,
+        data: null,
+        errorMessage: 'Internal server error occurred',
+        extensions: [],
+      };
+    }
+    return {
+      status: ResultStatus.Success,
+      data: newTokensResult.data,
+      extensions: [],
+    };
+  },
   async loginUser({
     loginOrEmail,
     password,
-  }: AuthLoginDto): Promise<Result<{ accessToken: string } | null>> {
+  }: AuthLoginDto): Promise<Result<{ accessToken: string; refreshToken: string } | null>> {
     const result = await this.checkUserCredentials(loginOrEmail, password);
     if (result.status !== ResultStatus.Success) {
       return {
@@ -237,11 +327,21 @@ export const authService = {
       };
     }
 
-    const accessToken = await jwtService.createToken(result.data!._id.toString());
+    const generateTokensResult = await this.generateTokens(result.data!._id.toString());
+
+    if (generateTokensResult.status !== ResultStatus.Success) {
+      return {
+        status: ResultStatus.ServerError,
+        data: null,
+        errorMessage: 'Internal server error occurred',
+        extensions: [],
+      };
+    }
+    const { accessToken, refreshToken } = generateTokensResult.data!;
 
     return {
       status: ResultStatus.Success,
-      data: { accessToken },
+      data: { accessToken, refreshToken },
       extensions: [],
     };
   },

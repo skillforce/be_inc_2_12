@@ -2,9 +2,14 @@ import jwt from 'jsonwebtoken';
 import { APP_CONFIG } from '../../app_config';
 
 export const jwtService = {
-  async createToken(userId: string): Promise<string> {
+  async createAccessToken(userId: string): Promise<string> {
     return jwt.sign({ userId }, APP_CONFIG.AC_SECRET, {
       expiresIn: +APP_CONFIG.AC_TIME,
+    });
+  },
+  async createRefreshToken(userId: string): Promise<string> {
+    return jwt.sign({ userId }, APP_CONFIG.RT_SECRET, {
+      expiresIn: +APP_CONFIG.RT_TIME,
     });
   },
   async decodeToken(token: string): Promise<any> {
@@ -15,9 +20,17 @@ export const jwtService = {
       return null;
     }
   },
-  async verifyToken(token: string): Promise<{ userId: string } | null> {
+  async verifyAccessToken(token: string): Promise<{ userId: string } | null> {
     try {
       return jwt.verify(token, APP_CONFIG.AC_SECRET) as { userId: string };
+    } catch (error) {
+      console.error('Token verify some error');
+      return null;
+    }
+  },
+  async verifyRefreshToken(token: string): Promise<{ userId: string } | null> {
+    try {
+      return jwt.verify(token, APP_CONFIG.RT_SECRET) as { userId: string };
     } catch (error) {
       console.error('Token verify some error');
       return null;

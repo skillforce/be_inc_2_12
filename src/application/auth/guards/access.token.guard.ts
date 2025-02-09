@@ -18,7 +18,7 @@ export const accessTokenGuard = async (req: Request, res: Response, next: NextFu
     return;
   }
 
-  const payload = await jwtService.verifyToken(token);
+  const payload = await jwtService.verifyAccessToken(token);
   if (payload) {
     const { userId } = payload;
 

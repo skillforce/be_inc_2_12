@@ -13,3 +13,8 @@ export interface LoginFilterSchema {
   login: string;
   password: string;
 }
+
+export interface RefreshTokenDBModel {
+  _id: string;
+  token: string;
+}

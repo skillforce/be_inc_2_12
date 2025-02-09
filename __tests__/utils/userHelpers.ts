@@ -8,6 +8,7 @@ import { randomUUID } from 'crypto';
 import { User } from '../../src/entities/users/service/user.entity';
 import { db } from '../../src/db/mongo-db';
 import { WithId } from 'mongodb';
+import { UserViewModel } from '../../src/entities/users/types/types';
 
 type CreateUserParams = {
   userDto?: UserDto;
@@ -17,7 +18,7 @@ type CreateUserParams = {
 export const createUser = async ({
   userDto,
   expectedHttpStatus = HttpStatuses.Created,
-}: CreateUserParams): Promise<UserDBModel> => {
+}: CreateUserParams): Promise<UserViewModel> => {
   const dto = userDto ?? testingDtosCreator.createUserDto({});
 
   const resp = await req

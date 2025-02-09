@@ -7,11 +7,13 @@ import { postRouter } from './entities/posts';
 import { usersRouter } from './entities/users';
 import { authRouter } from './application/auth';
 import { commentsRouter } from './entities/comments';
+import cookieParser from 'cookie-parser';
 
 export const initApp = () => {
   const app = express();
 
   app.use(express.json());
+  app.use(cookieParser());
   app.use(cors());
 
   app.use(PATHS.AUTH.COMMON, authRouter);

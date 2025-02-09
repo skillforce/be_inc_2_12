@@ -26,7 +26,13 @@ export const blogRepository = {
     );
     return result.matchedCount === 1;
   },
-
+  async getBlogById(_id: ObjectId): Promise<AddBlogDto | null> {
+    const blogById = await db.getCollections().blogCollection.findOne({ _id });
+    if (!blogById) {
+      return null;
+    }
+    return blogById;
+  },
   async deleteBlog(_id: ObjectId): Promise<boolean> {
     const result = await db.getCollections().blogCollection.deleteOne({ _id });
     return result.deletedCount === 1;

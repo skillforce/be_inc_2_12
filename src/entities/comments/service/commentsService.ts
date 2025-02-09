@@ -108,22 +108,12 @@ export const commentsService = {
       extensions: [],
     };
   },
-
-  deleteComment: async (commentId: string, userId: string): Promise<Result<boolean>> => {
-    const commentObjectId = toObjectId(commentId);
-    const userObjectId = toObjectId(userId);
-
-    if (!commentObjectId || !userObjectId) {
-      return {
-        status: ResultStatus.NotFound,
-        data: false,
-        errorMessage: 'Comment not found',
-        extensions: [],
-      };
-    }
-
-    const comment = await commentsRepository.getCommentById(commentObjectId);
-    const user = await usersRepository.getUserById(userObjectId);
+  checkIsUserOwnComment: async (
+    commentId: ObjectId,
+    userId: ObjectId,
+  ): Promise<Result<boolean>> => {
+    const comment = await commentsRepository.getCommentById(commentId);
+    const user = await usersRepository.getUserById(userId);
 
     if (!comment || !user) {
       return {
@@ -143,13 +133,40 @@ export const commentsService = {
       };
     }
 
-    const isDeletedComment = await commentsRepository.deleteComment(commentObjectId);
+    return {
+      status: ResultStatus.Success,
+      data: true,
+      errorMessage: '',
+      extensions: [],
+    };
+  },
 
-    if (!isDeletedComment) {
+  async deleteComment(commentId: string, userId: string): Promise<Result<boolean>> {
+    const commentObjectId = toObjectId(commentId);
+    const userObjectId = toObjectId(userId);
+
+    if (!commentObjectId || !userObjectId) {
       return {
         status: ResultStatus.NotFound,
         data: false,
         errorMessage: 'Comment not found',
+        extensions: [],
+      };
+    }
+
+    const isUserOwnCommentResult = await this.checkIsUserOwnComment(commentObjectId, userObjectId);
+
+    if (isUserOwnCommentResult.status !== ResultStatus.Success) {
+      return isUserOwnCommentResult;
+    }
+
+    const isDeletedComment = await commentsRepository.deleteComment(commentObjectId);
+
+    if (!isDeletedComment) {
+      return {
+        status: ResultStatus.ServerError,
+        data: false,
+        errorMessage: 'Server error occurred',
         extensions: [],
       };
     }

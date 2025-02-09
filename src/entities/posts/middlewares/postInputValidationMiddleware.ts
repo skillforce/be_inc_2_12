@@ -5,9 +5,10 @@ import {
   inputValidationMiddleware,
   validateUrlParamId,
 } from '../../../common/middlewares/commonValidationMiddlewares';
-import { blogQueryRepository } from '../../blogs/repository/blogQueryRepository';
 import { authMiddleware } from '../../../application/auth/guards/base.auth.guard';
 import { accessTokenGuard } from '../../../application/auth/guards/access.token.guard';
+import { blogService } from '../../blogs/service/blogService';
+import { ResultStatus } from '../../../common/result/resultCode';
 
 const postTitleErrors: ErrorMessages = {
   required: 'title field is required',
@@ -40,9 +41,8 @@ const createCommentBodyContentErrors: ErrorMessages = {
 const additionalWebsiteUrlRules: ((chain: ValidationChain) => ValidationChain)[] = [
   (chain) =>
     chain.custom(async (value) => {
-      const blogsFromDb = await blogQueryRepository.getAllBlogs();
-      const blogExists = blogsFromDb.some((blog) => blog.id.toString() === value);
-      if (!blogExists) {
+      const blogCheckResult = await blogService.checkIsBlogWithIdExist(value);
+      if (blogCheckResult.status !== ResultStatus.Success) {
         throw new Error('Invalid blogId: Blog does not exist');
       }
       return true;

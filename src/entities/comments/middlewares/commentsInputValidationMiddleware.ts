@@ -1,18 +1,9 @@
-import {
-  basicStringFieldMiddlewareGenerator,
-  ErrorMessages,
-  ObjectIdCheckingErrorMessages,
-} from '../../../common/helpers/helper';
+import { basicStringFieldMiddlewareGenerator, ErrorMessages } from '../../../common/helpers/helper';
 import {
   inputValidationMiddleware,
   validateUrlParamId,
 } from '../../../common/middlewares/commonValidationMiddlewares';
 import { accessTokenGuard } from '../../../application/auth/guards/access.token.guard';
-
-const commentByIdErrors: ObjectIdCheckingErrorMessages = {
-  required: 'id is a required URL parameter',
-  isMongoId: 'provided id is not valid',
-};
 
 const commentBodyContentErrors: ErrorMessages = {
   required: 'content field is required',

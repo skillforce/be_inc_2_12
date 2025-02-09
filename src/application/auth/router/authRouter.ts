@@ -3,7 +3,9 @@ import { AuthLoginDto, RegisterUserDto } from '../types/types';
 import {
   confirmRegistrationBodyValidators,
   loginBodyValidators,
+  logoutBodyValidators,
   meRequestValidators,
+  refreshTokenBodyValidators,
   registrationBodyValidators,
   resendRegistrationEmailBodyValidators,
 } from '../middlewares/authInputValidationMiddleware';
@@ -16,6 +18,8 @@ import { IdType } from '../../../common/types/id';
 import { usersQueryRepository } from '../../../entities/users/repository/usersQueryRepository';
 import { UsersOutputMapEnum } from '../../../entities/users';
 import { createErrorObject, toObjectId } from '../../../common/helpers/helper';
+import { cookieHandler } from '../../../common/refreshToken/refreshToken';
+import { authRepository } from '../repository/authRepository';
 
 export const authRouter = Router({});
 
@@ -31,9 +35,72 @@ authRouter.post(
       res.status(resultCodeToHttpException(result.status)).send(result.extensions);
       return;
     }
+    cookieHandler.setRefreshToken(res, result.data!.refreshToken);
     res.status(HttpStatuses.Success).send({ accessToken: result.data!.accessToken });
   },
 );
+
+authRouter.post(
+  '/refresh-token',
+  refreshTokenBodyValidators,
+  async (req: Request, res: Response) => {
+    const refreshToken = cookieHandler.getRefreshToken(req);
+
+    if (!refreshToken) {
+      res.sendStatus(HttpStatuses.Unauthorized);
+      return;
+    }
+    const isTokenValidResult = await authService.isRefreshTokenValid(refreshToken);
+    const isTokenNotInBlackListResult = await authService.isTokenNotInBlackList(refreshToken);
+
+    if (
+      isTokenValidResult.status !== ResultStatus.Success ||
+      isTokenNotInBlackListResult.status !== ResultStatus.Success
+    ) {
+      res.sendStatus(HttpStatuses.Unauthorized);
+      return;
+    }
+
+    const userId = req.user?.id!;
+    const newTokensResult = await authService.refreshTokens(userId, refreshToken);
+
+    if (newTokensResult.status !== ResultStatus.Success) {
+      res.status(HttpStatuses.ServerError);
+      return;
+    }
+
+    cookieHandler.setRefreshToken(res, newTokensResult.data!.refreshToken);
+    res.status(HttpStatuses.Success).send({ accessToken: newTokensResult.data!.accessToken });
+  },
+);
+
+authRouter.post('/logout', logoutBodyValidators, async (req: Request, res: Response) => {
+  const refreshToken = cookieHandler.getRefreshToken(req);
+
+  if (!refreshToken) {
+    res.sendStatus(HttpStatuses.Unauthorized);
+    return;
+  }
+  const isTokenValidResult = await authService.isRefreshTokenValid(refreshToken);
+  const isTokenNotInBlackListResult = await authService.isTokenNotInBlackList(refreshToken);
+
+  if (
+    isTokenValidResult.status !== ResultStatus.Success ||
+    isTokenNotInBlackListResult.status !== ResultStatus.Success
+  ) {
+    res.sendStatus(HttpStatuses.Unauthorized);
+    return;
+  }
+
+  const addTokenToBlackListResult = await authService.addTokenToBlackList(refreshToken);
+
+  if (addTokenToBlackListResult.status !== ResultStatus.Success) {
+    res.sendStatus(HttpStatuses.ServerError);
+    return;
+  }
+
+  res.sendStatus(HttpStatuses.NoContent);
+});
 
 authRouter.post(
   '/registration',

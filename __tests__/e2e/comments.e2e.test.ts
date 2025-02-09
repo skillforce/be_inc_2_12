@@ -1,7 +1,7 @@
 import { cleanDB, req } from '../utils/test-helpers';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { db } from '../../src/db/mongo-db';
-import { UserViewModel } from '../../src/entities/users/types/types';
+import { UserDBModel, UserViewModel } from '../../src/entities/users/types/types';
 import { PATHS } from '../../src/common/paths/paths';
 import { createBlog } from '../utils/createBlog';
 import { createPost } from '../utils/createPost';
@@ -79,6 +79,7 @@ describe('/comments', () => {
       postId: createdPost.id,
       accessToken: createdFirstUserAccessToken,
     });
+    console.log(createdFirstUser);
 
     expect(createdComment.commentatorInfo.userId).toBe(createdFirstUser.id);
   });
