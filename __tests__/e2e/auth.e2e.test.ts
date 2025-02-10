@@ -107,8 +107,6 @@ describe('/login', () => {
       })
       .expect(200);
 
-    await delay(1000);
-
     const refreshResponse = await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
       .set('Cookie', loginResponse.headers['set-cookie'])
@@ -122,23 +120,23 @@ describe('/login', () => {
     expect(refreshResponse.headers['set-cookie']).toBeDefined();
     expect(refreshResponse.headers['set-cookie'][0]).toMatch(/refreshToken/);
   });
-  // it("shouldn't return user info if accessToken is expired", async () => {
-  //   await db.drop();
-  //   await createUser({ userDto: newUser });
-  //
-  //   const loginResponse = await req
-  //     .post(PATHS.AUTH.LOGIN)
-  //     .send({
-  //       loginOrEmail: newUser.login,
-  //       password: newUser.pass,
-  //     })
-  //     .expect(200);
-  //   await delay(10000);
-  //   await req
-  //     .get(PATHS.AUTH.ME)
-  //     .auth(loginResponse.body.accessToken, { type: 'bearer' })
-  //     .expect(401);
-  // }, 12000);
+  it("shouldn't return user info if accessToken is expired", async () => {
+    await db.drop();
+    await createUser({ userDto: newUser });
+
+    const loginResponse = await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .expect(200);
+    await delay(10000);
+    await req
+      .get(PATHS.AUTH.ME)
+      .auth(loginResponse.body.accessToken, { type: 'bearer' })
+      .expect(401);
+  }, 12000);
   it('should add refresh token in black list after logout', async () => {
     await db.drop();
     await createUser({ userDto: newUser });
