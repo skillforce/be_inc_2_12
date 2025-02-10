@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
 import { APP_CONFIG } from '../../app_config';
 
 export const jwtService = {
@@ -8,7 +9,7 @@ export const jwtService = {
     });
   },
   async createRefreshToken(userId: string): Promise<string> {
-    return jwt.sign({ userId }, APP_CONFIG.RT_SECRET, {
+    return jwt.sign({ userId, id: uuidv4() }, APP_CONFIG.RT_SECRET, {
       expiresIn: +APP_CONFIG.RT_TIME,
     });
   },

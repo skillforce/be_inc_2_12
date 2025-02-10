@@ -107,13 +107,18 @@ describe('/login', () => {
       })
       .expect(200);
 
+    await delay(1000);
+
     const refreshResponse = await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
       .set('Cookie', loginResponse.headers['set-cookie'])
       .auth(loginResponse.body.accessToken, { type: 'bearer' })
       .expect(200);
 
+    console.log(refreshResponse.body.accessToken === loginResponse.body.accessToken);
+
     expect(refreshResponse.body.accessToken).toBeDefined();
+    expect(refreshResponse.body.accessToken).not.toEqual(loginResponse.body.accessToken);
     expect(refreshResponse.headers['set-cookie']).toBeDefined();
     expect(refreshResponse.headers['set-cookie'][0]).toMatch(/refreshToken/);
   });

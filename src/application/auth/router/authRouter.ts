@@ -44,6 +44,7 @@ authRouter.post(
   refreshTokenBodyValidators,
   async (req: Request, res: Response) => {
     const refreshToken = cookieHandler.getRefreshToken(req);
+    console.log(refreshToken);
 
     if (!refreshToken) {
       res.sendStatus(HttpStatuses.Unauthorized);
@@ -98,7 +99,6 @@ authRouter.post('/logout', logoutBodyValidators, async (req: Request, res: Respo
     return;
   }
 
-  cookieHandler.setRefreshToken(res, refreshToken);
   res.sendStatus(HttpStatuses.NoContent);
 });
 
