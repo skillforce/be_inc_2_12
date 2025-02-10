@@ -284,7 +284,6 @@ export const authService = {
     };
   },
   async refreshTokens(
-    userId: string,
     refreshToken: string,
   ): Promise<Result<{ accessToken: string; refreshToken: string } | null>> {
     const addTokenToBlackListResult = await this.addTokenToBlackList(refreshToken);
@@ -297,7 +296,19 @@ export const authService = {
         extensions: [],
       };
     }
-    const newTokensResult = await this.generateTokens(userId);
+
+    const isRefreshTokenValidResult = await jwtService.verifyRefreshToken(refreshToken);
+
+    if (!isRefreshTokenValidResult) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: null,
+        errorMessage: 'Unauthorized',
+        extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
+      };
+    }
+
+    const newTokensResult = await this.generateTokens(isRefreshTokenValidResult.userId);
 
     if (newTokensResult.status !== ResultStatus.Success) {
       return {

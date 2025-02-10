@@ -3,9 +3,7 @@ import { AuthLoginDto, RegisterUserDto } from '../types/types';
 import {
   confirmRegistrationBodyValidators,
   loginBodyValidators,
-  logoutBodyValidators,
   meRequestValidators,
-  refreshTokenBodyValidators,
   registrationBodyValidators,
   resendRegistrationEmailBodyValidators,
 } from '../middlewares/authInputValidationMiddleware';
@@ -39,41 +37,34 @@ authRouter.post(
   },
 );
 
-authRouter.post(
-  '/refresh-token',
-  refreshTokenBodyValidators,
-  async (req: Request, res: Response) => {
-    const refreshToken = cookieHandler.getRefreshToken(req);
+authRouter.post('/refresh-token', async (req: Request, res: Response) => {
+  const refreshToken = cookieHandler.getRefreshToken(req);
+  if (!refreshToken) {
+    res.sendStatus(HttpStatuses.Unauthorized);
+    return;
+  }
+  const isTokenValidResult = await authService.isRefreshTokenValid(refreshToken);
+  const isTokenNotInBlackListResult = await authService.isTokenNotInBlackList(refreshToken);
+  if (
+    isTokenValidResult.status !== ResultStatus.Success ||
+    isTokenNotInBlackListResult.status !== ResultStatus.Success
+  ) {
+    res.sendStatus(HttpStatuses.Unauthorized);
+    return;
+  }
 
-    if (!refreshToken) {
-      res.sendStatus(HttpStatuses.Unauthorized);
-      return;
-    }
-    const isTokenValidResult = await authService.isRefreshTokenValid(refreshToken);
-    const isTokenNotInBlackListResult = await authService.isTokenNotInBlackList(refreshToken);
+  const newTokensResult = await authService.refreshTokens(refreshToken);
 
-    if (
-      isTokenValidResult.status !== ResultStatus.Success ||
-      isTokenNotInBlackListResult.status !== ResultStatus.Success
-    ) {
-      res.sendStatus(HttpStatuses.Unauthorized);
-      return;
-    }
+  if (newTokensResult.status !== ResultStatus.Success) {
+    res.status(HttpStatuses.ServerError);
+    return;
+  }
 
-    const userId = req.user?.id!;
-    const newTokensResult = await authService.refreshTokens(userId, refreshToken);
+  cookieHandler.setRefreshToken(res, newTokensResult.data!.refreshToken);
+  res.status(HttpStatuses.Success).send({ accessToken: newTokensResult.data!.accessToken });
+});
 
-    if (newTokensResult.status !== ResultStatus.Success) {
-      res.status(HttpStatuses.ServerError);
-      return;
-    }
-
-    cookieHandler.setRefreshToken(res, newTokensResult.data!.refreshToken);
-    res.status(HttpStatuses.Success).send({ accessToken: newTokensResult.data!.accessToken });
-  },
-);
-
-authRouter.post('/logout', logoutBodyValidators, async (req: Request, res: Response) => {
+authRouter.post('/logout', async (req: Request, res: Response) => {
   const refreshToken = cookieHandler.getRefreshToken(req);
 
   if (!refreshToken) {
@@ -160,7 +151,6 @@ authRouter.get(
   meRequestValidators,
   async (req: RequestWithUserId<IdType>, res: Response) => {
     const userId = req.user?.id;
-
     if (!userId) {
       res.sendStatus(HttpStatuses.Unauthorized);
       return;

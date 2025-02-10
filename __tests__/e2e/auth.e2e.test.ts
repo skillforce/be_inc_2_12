@@ -109,13 +109,18 @@ describe('/login', () => {
 
     const refreshResponse = await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
-      .set('Cookie', loginResponse.headers['set-cookie'])
+      .set('Cookie', loginResponse.headers['set-cookie'][0])
       .auth(loginResponse.body.accessToken, { type: 'bearer' })
       .expect(200);
 
+    console.log(loginResponse.headers['set-cookie']);
+
     expect(refreshResponse.body.accessToken).toBeDefined();
+    expect(refreshResponse.body.accessToken).not.toMatch(loginResponse.body.accessToken);
     expect(refreshResponse.headers['set-cookie']).toBeDefined();
-    expect(refreshResponse.headers['set-cookie'][0]).toMatch(/refreshToken/);
+    expect(refreshResponse.headers['set-cookie'][0]).not.toMatch(
+      loginResponse.headers['set-cookie'][0],
+    );
   });
   it("shouldn't return user info if accessToken is expired", async () => {
     await db.drop();
@@ -148,20 +153,63 @@ describe('/login', () => {
 
     const refreshTokenResponse = await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
-      .set('Cookie', loginResponse.headers['set-cookie'])
+      .set('Cookie', loginResponse.headers['set-cookie'][0])
       .auth(loginResponse.body.accessToken, { type: 'bearer' })
       .expect(200);
 
     await req
       .post(PATHS.AUTH.LOGOUT)
-      .set('Cookie', refreshTokenResponse.headers['set-cookie'])
+      .set('Cookie', refreshTokenResponse.headers['set-cookie'][0])
       .auth(refreshTokenResponse.body.accessToken, { type: 'bearer' })
       .expect(204);
 
     await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
-      .set('Cookie', refreshTokenResponse.headers['set-cookie'])
+      .set('Cookie', refreshTokenResponse.headers['set-cookie'][0])
       .auth(refreshTokenResponse.body.accessToken, { type: 'bearer' })
       .expect(401);
+  });
+  it('should return error when try to logout with invalid refresh token', async () => {
+    await db.drop();
+    await createUser({ userDto: newUser });
+
+    const loginResponse = await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .expect(200);
+
+    const refreshResponse = await req
+      .post(PATHS.AUTH.REFRESH_TOKEN)
+      .set('Cookie', loginResponse.headers['set-cookie'][0])
+      .auth(loginResponse.body.accessToken, { type: 'bearer' })
+      .expect(200);
+
+    await req
+      .post(PATHS.AUTH.LOGOUT)
+      .set('Cookie', 'refresh-token=frefrefrfrefrefrefre')
+      .auth(refreshResponse.body.accessToken, { type: 'bearer' })
+      .expect(401);
+  });
+  it('should return error when try to logout with invalid refresh token', async () => {
+    await db.drop();
+    await createUser({ userDto: newUser });
+
+    const loginResponse = await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .expect(200);
+
+    const meResp = await req
+      .get(PATHS.AUTH.ME)
+      .auth(loginResponse.body.accessToken, { type: 'bearer' })
+      .expect(200);
+
+    console.log(meResp.body);
   });
 });
