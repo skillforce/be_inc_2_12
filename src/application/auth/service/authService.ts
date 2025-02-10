@@ -283,6 +283,23 @@ export const authService = {
       extensions: [],
     };
   },
+  async checkRefreshToken(refreshToken: string): Promise<Result<boolean | string>> {
+    const result = await jwtService.verifyRefreshToken(refreshToken);
+
+    if (!result) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: false,
+        errorMessage: 'Unauthorized',
+        extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
+      };
+    }
+    return {
+      status: ResultStatus.Success,
+      data: result.userId,
+      extensions: [],
+    };
+  },
   async refreshTokens(
     refreshToken: string,
   ): Promise<Result<{ accessToken: string; refreshToken: string } | null>> {
@@ -297,9 +314,9 @@ export const authService = {
       };
     }
 
-    const isRefreshTokenValidResult = await jwtService.verifyRefreshToken(refreshToken);
+    const isRefreshTokenValidResult = await this.checkRefreshToken(refreshToken);
 
-    if (!isRefreshTokenValidResult) {
+    if (isRefreshTokenValidResult.status !== ResultStatus.Success) {
       return {
         status: ResultStatus.Unauthorized,
         data: null,
@@ -308,7 +325,7 @@ export const authService = {
       };
     }
 
-    const newTokensResult = await this.generateTokens(isRefreshTokenValidResult.userId);
+    const newTokensResult = await this.generateTokens(isRefreshTokenValidResult.data as string);
 
     if (newTokensResult.status !== ResultStatus.Success) {
       return {
@@ -329,6 +346,8 @@ export const authService = {
     password,
   }: AuthLoginDto): Promise<Result<{ accessToken: string; refreshToken: string } | null>> {
     const result = await this.checkUserCredentials(loginOrEmail, password);
+
+    console.log('result>>', result.data);
     if (result.status !== ResultStatus.Success) {
       return {
         status: ResultStatus.Unauthorized,
@@ -337,7 +356,7 @@ export const authService = {
         extensions: [{ field: 'loginOrEmail', message: 'Wrong password or email' }],
       };
     }
-
+    console.log('result.id>>>', result.data!._id);
     const generateTokensResult = await this.generateTokens(result.data!._id.toString());
 
     if (generateTokensResult.status !== ResultStatus.Success) {
