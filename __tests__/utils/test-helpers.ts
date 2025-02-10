@@ -9,3 +9,5 @@ export const cleanDB = async () => {
 };
 
 export const accessTokenHeaderGenerator = (accessToken: string) => `Bearer ${accessToken}`;
+
+export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

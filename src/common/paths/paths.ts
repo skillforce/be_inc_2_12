@@ -8,8 +8,11 @@ export const PATHS = {
   AUTH: {
     COMMON: '/auth',
     LOGIN: '/auth/login',
+    LOGOUT: '/auth/logout',
     REGISTRATION: '/auth/registration',
     CONFIRM_REGISTRATION: '/auth/registration-confirmation',
     REGISTRATION_EMAIL_RESENDING: '/auth/registration-email-resending',
+    REFRESH_TOKEN: '/auth/refresh-token',
+    ME: '/auth/me',
   },
 };

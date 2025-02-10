@@ -19,7 +19,6 @@ import { usersQueryRepository } from '../../../entities/users/repository/usersQu
 import { UsersOutputMapEnum } from '../../../entities/users';
 import { createErrorObject, toObjectId } from '../../../common/helpers/helper';
 import { cookieHandler } from '../../../common/refreshToken/refreshToken';
-import { authRepository } from '../repository/authRepository';
 
 export const authRouter = Router({});
 
@@ -99,6 +98,7 @@ authRouter.post('/logout', logoutBodyValidators, async (req: Request, res: Respo
     return;
   }
 
+  cookieHandler.setRefreshToken(res, refreshToken);
   res.sendStatus(HttpStatuses.NoContent);
 });
 

@@ -8,8 +8,6 @@ export const cookieHandler = {
     res.cookie(REFRESH_TOKEN_NAME, token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
-      path: '/refresh',
       maxAge: +APP_CONFIG.RT_TIME,
     });
   },

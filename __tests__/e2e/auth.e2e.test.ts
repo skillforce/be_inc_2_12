@@ -1,4 +1,4 @@
-import { req } from '../utils/test-helpers';
+import { delay, req } from '../utils/test-helpers';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PATHS } from '../../src/common/paths/paths';
 import { db } from '../../src/db/mongo-db';
@@ -40,6 +40,8 @@ describe('/login', () => {
       .expect(200);
 
     expect(res.body.accessToken).toBeDefined();
+    expect(res.headers['set-cookie']).toBeDefined();
+    expect(res.headers['set-cookie'][0]).toMatch(/refreshToken/);
   });
   it('should return 401 status code when there are incorrect loginOrEmail or password', async () => {
     await req
@@ -90,8 +92,76 @@ describe('/login', () => {
     };
 
     const res = await req.post(PATHS.AUTH.CONFIRM_REGISTRATION).send(fakeCode).expect(400);
-    console.log(res.body);
     expect(res.body.errorsMessages).toBeDefined();
     expect(res.body.errorsMessages[0].field).toBe('code');
+  });
+  it('should refresh tokens', async () => {
+    await db.drop();
+    await createUser({ userDto: newUser });
+
+    const loginResponse = await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .expect(200);
+
+    const refreshResponse = await req
+      .post(PATHS.AUTH.REFRESH_TOKEN)
+      .set('Cookie', loginResponse.headers['set-cookie'])
+      .auth(loginResponse.body.accessToken, { type: 'bearer' })
+      .expect(200);
+
+    expect(refreshResponse.body.accessToken).toBeDefined();
+    expect(refreshResponse.headers['set-cookie']).toBeDefined();
+    expect(refreshResponse.headers['set-cookie'][0]).toMatch(/refreshToken/);
+  });
+  // it("shouldn't return user info if accessToken is expired", async () => {
+  //   await db.drop();
+  //   await createUser({ userDto: newUser });
+  //
+  //   const loginResponse = await req
+  //     .post(PATHS.AUTH.LOGIN)
+  //     .send({
+  //       loginOrEmail: newUser.login,
+  //       password: newUser.pass,
+  //     })
+  //     .expect(200);
+  //   await delay(10000);
+  //   await req
+  //     .get(PATHS.AUTH.ME)
+  //     .auth(loginResponse.body.accessToken, { type: 'bearer' })
+  //     .expect(401);
+  // }, 12000);
+  it('should add refresh token in black list after logout', async () => {
+    await db.drop();
+    await createUser({ userDto: newUser });
+
+    const loginResponse = await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .expect(200);
+
+    const refreshTokenResponse = await req
+      .post(PATHS.AUTH.REFRESH_TOKEN)
+      .set('Cookie', loginResponse.headers['set-cookie'])
+      .auth(loginResponse.body.accessToken, { type: 'bearer' })
+      .expect(200);
+
+    await req
+      .post(PATHS.AUTH.LOGOUT)
+      .set('Cookie', refreshTokenResponse.headers['set-cookie'])
+      .auth(refreshTokenResponse.body.accessToken, { type: 'bearer' })
+      .expect(204);
+
+    await req
+      .post(PATHS.AUTH.REFRESH_TOKEN)
+      .set('Cookie', refreshTokenResponse.headers['set-cookie'])
+      .auth(refreshTokenResponse.body.accessToken, { type: 'bearer' })
+      .expect(401);
   });
 });
