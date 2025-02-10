@@ -44,7 +44,6 @@ authRouter.post(
   refreshTokenBodyValidators,
   async (req: Request, res: Response) => {
     const refreshToken = cookieHandler.getRefreshToken(req);
-    console.log(refreshToken);
 
     if (!refreshToken) {
       res.sendStatus(HttpStatuses.Unauthorized);

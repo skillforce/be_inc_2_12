@@ -4,7 +4,7 @@ import { APP_CONFIG } from '../../app_config';
 
 export const jwtService = {
   async createAccessToken(userId: string): Promise<string> {
-    return jwt.sign({ userId }, APP_CONFIG.AC_SECRET, {
+    return jwt.sign({ userId, id: uuidv4() }, APP_CONFIG.AC_SECRET, {
       expiresIn: +APP_CONFIG.AC_TIME,
     });
   },
