@@ -1,6 +1,7 @@
 import { body, ValidationChain } from 'express-validator';
 import { ObjectId } from 'mongodb';
 import { ExtensionType } from '../result/result.type';
+import dayjs from 'dayjs';
 
 export interface ErrorMessages {
   required: string;
@@ -65,4 +66,8 @@ export const createErrorObject = (extensions: ExtensionType[]) => {
   return {
     errorsMessages: extensions,
   };
+};
+
+export const generateIsoStringFromSeconds = (seconds: number) => {
+  return dayjs(seconds * 1000).toISOString();
 };

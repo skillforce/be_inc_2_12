@@ -17,6 +17,8 @@ import { usersQueryRepository } from '../../../entities/users/repository/usersQu
 import { UsersOutputMapEnum } from '../../../entities/users';
 import { createErrorObject, toObjectId } from '../../../common/helpers/helper';
 import { cookieHandler } from '../../../common/refreshToken/refreshToken';
+import { getClientInfo } from '../../../common/helpers/getClientInfoFromRequest';
+import { sessionAdapter } from '../../../common/adapters/session.service';
 
 export const authRouter = Router({});
 
@@ -26,10 +28,23 @@ authRouter.post(
   async (req: RequestWithBody<AuthLoginDto>, res: Response) => {
     const { loginOrEmail, password } = req.body;
 
-    const result = await authService.loginUser({ loginOrEmail, password });
+    const { userAgent, userIp } = getClientInfo(req) || {};
+
+    const result = await authService.loginUser({
+      loginOrEmail,
+      password,
+      device_name: userAgent,
+      ip_address: userIp,
+    });
 
     if (result.status !== ResultStatus.Success) {
       res.status(resultCodeToHttpException(result.status)).send(result.extensions);
+      return;
+    }
+    const reqWithSession = await sessionAdapter.createSession(req, result.data?.device_id!);
+
+    if (!reqWithSession) {
+      res.sendStatus(HttpStatuses.Unauthorized);
       return;
     }
     cookieHandler.setRefreshToken(res, result.data!.refreshToken);
@@ -39,24 +54,21 @@ authRouter.post(
 
 authRouter.post('/refresh-token', async (req: Request, res: Response) => {
   const refreshToken = cookieHandler.getRefreshToken(req);
+  const deviceId = sessionAdapter.getSessionData(req)?.deviceId;
+
+  if (!deviceId) {
+    res.sendStatus(HttpStatuses.Unauthorized);
+    return;
+  }
+
   if (!refreshToken) {
     res.sendStatus(HttpStatuses.Unauthorized);
     return;
   }
-  const isTokenValidResult = await authService.isRefreshTokenValid(refreshToken);
-  const isTokenNotInBlackListResult = await authService.isTokenNotInBlackList(refreshToken);
-  if (
-    isTokenValidResult.status !== ResultStatus.Success ||
-    isTokenNotInBlackListResult.status !== ResultStatus.Success
-  ) {
-    res.sendStatus(HttpStatuses.Unauthorized);
-    return;
-  }
 
-  const newTokensResult = await authService.refreshTokens(refreshToken);
-
+  const newTokensResult = await authService.refreshTokens(refreshToken, deviceId);
   if (newTokensResult.status !== ResultStatus.Success) {
-    res.status(HttpStatuses.ServerError);
+    res.sendStatus(resultCodeToHttpException(newTokensResult.status));
     return;
   }
 
@@ -71,21 +83,10 @@ authRouter.post('/logout', async (req: Request, res: Response) => {
     res.sendStatus(HttpStatuses.Unauthorized);
     return;
   }
-  const isTokenValidResult = await authService.isRefreshTokenValid(refreshToken);
-  const isTokenNotInBlackListResult = await authService.isTokenNotInBlackList(refreshToken);
+  const isTokenValidResult = await authService.checkRefreshToken(refreshToken);
 
-  if (
-    isTokenValidResult.status !== ResultStatus.Success ||
-    isTokenNotInBlackListResult.status !== ResultStatus.Success
-  ) {
+  if (isTokenValidResult.status !== ResultStatus.Success) {
     res.sendStatus(HttpStatuses.Unauthorized);
-    return;
-  }
-
-  const addTokenToBlackListResult = await authService.addTokenToBlackList(refreshToken);
-
-  if (addTokenToBlackListResult.status !== ResultStatus.Success) {
-    res.sendStatus(HttpStatuses.ServerError);
     return;
   }
 

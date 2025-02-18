@@ -4,7 +4,7 @@ import { BlogDbModel } from '../entities/blogs';
 import { UserDBModel } from '../entities/users';
 import { APP_CONFIG } from '../app_config';
 import { CommentDBModel } from '../entities/comments';
-import { RefreshTokenDBModel } from '../application/auth/types/types';
+import { AuthMetaDBModel } from '../application/auth/types/types';
 
 export const db = {
   client: {} as MongoClient,
@@ -45,8 +45,8 @@ export const db = {
       usersCollection: this.getDbName().collection<UserDBModel>(APP_CONFIG.USERS_COLLECTION_NAME),
       postCollection: this.getDbName().collection<PostDBModel>(APP_CONFIG.POST_COLLECTION_NAME),
       blogCollection: this.getDbName().collection<BlogDbModel>(APP_CONFIG.BLOG_COLLECTION_NAME),
-      tokenBlackListCollection: this.getDbName().collection<RefreshTokenDBModel>(
-        APP_CONFIG.TOKEN_BLACK_LIST,
+      authMetaCollection: this.getDbName().collection<AuthMetaDBModel>(
+        APP_CONFIG.AUTH_META_COLLECTION_NAME,
       ),
       commentsCollection: this.getDbName().collection<CommentDBModel>(
         APP_CONFIG.COMMENTS_COLLECTION_NAME,

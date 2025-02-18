@@ -8,6 +8,7 @@ import { usersRouter } from './entities/users';
 import { authRouter } from './application/auth';
 import { commentsRouter } from './entities/comments';
 import cookieParser from 'cookie-parser';
+import { sessionMiddleware } from './common/adapters/session.service';
 
 export const initApp = () => {
   const app = express();
@@ -15,6 +16,8 @@ export const initApp = () => {
   app.use(express.json());
   app.use(cookieParser());
   app.use(cors());
+  app.use(sessionMiddleware);
+  app.set('trust proxy', true);
 
   app.use(PATHS.AUTH.COMMON, authRouter);
   app.use(PATHS.BLOGS, blogRouter);

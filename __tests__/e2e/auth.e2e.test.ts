@@ -4,6 +4,8 @@ import { PATHS } from '../../src/common/paths/paths';
 import { db } from '../../src/db/mongo-db';
 import { createUser } from '../utils/userHelpers';
 import { UserDto } from '../utils/testingDtosCreator';
+import { sessionAdapter } from '../../src/common/adapters/session.service';
+import { cookie } from 'express-validator';
 
 const newUser = {
   email: 'testo@gmail.com',
@@ -39,9 +41,13 @@ describe('/login', () => {
       })
       .expect(200);
 
+    const cookies = res.headers['set-cookie'];
+    expect(cookies).toBeDefined();
+
     expect(res.body.accessToken).toBeDefined();
-    expect(res.headers['set-cookie']).toBeDefined();
-    expect(res.headers['set-cookie'][0]).toMatch(/refreshToken/);
+    expect(cookies).toBeDefined();
+    expect(cookies[0]).toMatch(/refreshToken/);
+    expect(cookies[1]).toMatch(/connect.sid/);
   });
   it('should return 401 status code when there are incorrect loginOrEmail or password', async () => {
     await req
@@ -113,8 +119,6 @@ describe('/login', () => {
       .auth(loginResponse.body.accessToken, { type: 'bearer' })
       .expect(200);
 
-    console.log(loginResponse.headers['set-cookie']);
-
     expect(refreshResponse.body.accessToken).toBeDefined();
     expect(refreshResponse.body.accessToken).not.toMatch(loginResponse.body.accessToken);
     expect(refreshResponse.headers['set-cookie']).toBeDefined();
@@ -139,36 +143,6 @@ describe('/login', () => {
       .auth(loginResponse.body.accessToken, { type: 'bearer' })
       .expect(401);
   }, 12000);
-  it('should add refresh token in black list after logout', async () => {
-    await db.drop();
-    await createUser({ userDto: newUser });
-
-    const loginResponse = await req
-      .post(PATHS.AUTH.LOGIN)
-      .send({
-        loginOrEmail: newUser.login,
-        password: newUser.pass,
-      })
-      .expect(200);
-
-    const refreshTokenResponse = await req
-      .post(PATHS.AUTH.REFRESH_TOKEN)
-      .set('Cookie', loginResponse.headers['set-cookie'][0])
-      .auth(loginResponse.body.accessToken, { type: 'bearer' })
-      .expect(200);
-
-    await req
-      .post(PATHS.AUTH.LOGOUT)
-      .set('Cookie', refreshTokenResponse.headers['set-cookie'][0])
-      .auth(refreshTokenResponse.body.accessToken, { type: 'bearer' })
-      .expect(204);
-
-    await req
-      .post(PATHS.AUTH.REFRESH_TOKEN)
-      .set('Cookie', refreshTokenResponse.headers['set-cookie'][0])
-      .auth(refreshTokenResponse.body.accessToken, { type: 'bearer' })
-      .expect(401);
-  });
   it('should return error when try to logout with invalid refresh token', async () => {
     await db.drop();
     await createUser({ userDto: newUser });

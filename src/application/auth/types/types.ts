@@ -1,6 +1,10 @@
+import { ObjectId } from 'mongodb';
+
 export interface AuthLoginDto {
   loginOrEmail: string;
   password: string;
+  ip_address: string;
+  device_name: string;
 }
 export interface RegisterUserDto {
   login: string;
@@ -14,7 +18,21 @@ export interface LoginFilterSchema {
   password: string;
 }
 
-export interface RefreshTokenDBModel {
-  _id: string;
-  token: string;
+export interface AuthMetaDBModel {
+  _id: ObjectId;
+  iat: string;
+  user_id: string;
+  device_id: string;
+  exp: string;
+  device_name: string;
+  ip_address: string;
+}
+
+export interface SessionDto {
+  iat: string;
+  user_id: string;
+  device_id: string;
+  exp: string;
+  device_name: string;
+  ip_address: string;
 }
