@@ -52,7 +52,7 @@ authRouter.post('/refresh-token', async (req: Request, res: Response) => {
     res.sendStatus(HttpStatuses.Unauthorized);
     return;
   }
-  await delay(1000);
+
   const newTokensResult = await authService.refreshTokens(refreshToken);
   if (newTokensResult.status !== ResultStatus.Success) {
     res.sendStatus(resultCodeToHttpException(newTokensResult.status));
