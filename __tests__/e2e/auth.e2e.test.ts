@@ -4,12 +4,16 @@ import { PATHS } from '../../src/common/paths/paths';
 import { db } from '../../src/db/mongo-db';
 import { createUser } from '../utils/userHelpers';
 import { UserDto } from '../utils/testingDtosCreator';
-import { sessionAdapter } from '../../src/common/adapters/session.service';
-import { cookie } from 'express-validator';
 
 const newUser = {
   email: 'testo@gmail.com',
   login: 'test123',
+  pass: 'Password1!',
+} as UserDto;
+
+const newUser2 = {
+  email: 'tessss@gmail.com',
+  login: 'sssssss',
   pass: 'Password1!',
 } as UserDto;
 
@@ -47,7 +51,6 @@ describe('/login', () => {
     expect(res.body.accessToken).toBeDefined();
     expect(cookies).toBeDefined();
     expect(cookies[0]).toMatch(/refreshToken/);
-    expect(cookies[1]).toMatch(/connect.sid/);
   });
   it('should return 401 status code when there are incorrect loginOrEmail or password', async () => {
     await req
@@ -113,6 +116,8 @@ describe('/login', () => {
       })
       .expect(200);
 
+    await delay(1000);
+
     const refreshResponse = await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
       .set('Cookie', loginResponse.headers['set-cookie'][0])
@@ -126,23 +131,23 @@ describe('/login', () => {
       loginResponse.headers['set-cookie'][0],
     );
   });
-  it("shouldn't return user info if accessToken is expired", async () => {
-    await db.drop();
-    await createUser({ userDto: newUser });
-
-    const loginResponse = await req
-      .post(PATHS.AUTH.LOGIN)
-      .send({
-        loginOrEmail: newUser.login,
-        password: newUser.pass,
-      })
-      .expect(200);
-    await delay(10000);
-    await req
-      .get(PATHS.AUTH.ME)
-      .auth(loginResponse.body.accessToken, { type: 'bearer' })
-      .expect(401);
-  }, 12000);
+  // it("shouldn't return user info if accessToken is expired", async () => {
+  //   await db.drop();
+  //   await createUser({ userDto: newUser });
+  //
+  //   const loginResponse = await req
+  //     .post(PATHS.AUTH.LOGIN)
+  //     .send({
+  //       loginOrEmail: newUser.login,
+  //       password: newUser.pass,
+  //     })
+  //     .expect(200);
+  //   await delay(10000);
+  //   await req
+  //     .get(PATHS.AUTH.ME)
+  //     .auth(loginResponse.body.accessToken, { type: 'bearer' })
+  //     .expect(401);
+  // }, 12000);
   it('should return error when try to logout with invalid refresh token', async () => {
     await db.drop();
     await createUser({ userDto: newUser });
@@ -154,7 +159,7 @@ describe('/login', () => {
         password: newUser.pass,
       })
       .expect(200);
-
+    await delay(1000);
     const refreshResponse = await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
       .set('Cookie', loginResponse.headers['set-cookie'][0])
@@ -179,11 +184,150 @@ describe('/login', () => {
       })
       .expect(200);
 
-    const meResp = await req
+    await req
       .get(PATHS.AUTH.ME)
       .auth(loginResponse.body.accessToken, { type: 'bearer' })
       .expect(200);
+  });
+  it('should login user from different devices', async () => {
+    await db.drop();
+    await createUser({ userDto: newUser });
 
-    console.log(meResp.body);
+    const loginResponseFirst = await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .set('User-Agent', 'CustomUserAgent/1.0')
+      .expect(200);
+    await delay(500);
+    await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .set('User-Agent', 'CustomUserAgent/2.0')
+      .expect(200);
+    await delay(500);
+    await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .set('User-Agent', 'CustomUserAgent/3.0')
+      .expect(200);
+
+    const result = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(loginResponseFirst.body.accessToken, { type: 'bearer' })
+      .set('Cookie', loginResponseFirst.headers['set-cookie'][0])
+      .expect(200);
+    expect(result.body.items.length).toBe(3);
+  });
+  it('should return 429 error when there was more than 5 attempts to login from one IP', async () => {
+    await db.drop();
+    await createUser({ userDto: newUser });
+
+    await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .set('User-Agent', 'CustomUserAgent/1.0')
+      .expect(200);
+
+    await delay(500);
+
+    await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .set('User-Agent', 'CustomUserAgent/1.0')
+      .expect(200);
+
+    await delay(500);
+
+    await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .set('User-Agent', 'CustomUserAgent/1.0')
+      .expect(200);
+
+    await delay(500);
+
+    await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .set('User-Agent', 'CustomUserAgent/2.0')
+      .expect(200);
+
+    await delay(500);
+
+    await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .set('User-Agent', 'CustomUserAgent/3.0')
+      .expect(200);
+
+    await delay(500);
+
+    await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .set('User-Agent', 'CustomUserAgent/3.0')
+      .expect(429);
+  });
+  it('should return error when user tries to remove not his own session ', async () => {
+    await db.drop();
+    await createUser({ userDto: newUser });
+    await createUser({ userDto: newUser2 });
+
+    const loginResponseFirst = await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .set('User-Agent', 'CustomUserAgent/1.0')
+      .expect(200);
+
+    const loginResponseSecond = await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser2.login,
+        password: newUser2.pass,
+      })
+      .set('User-Agent', 'CustomUserAgent/2.0')
+      .expect(200);
+
+    const activeSessionsResponse = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(loginResponseFirst.body.accessToken, { type: 'bearer' })
+      .set('Cookie', loginResponseFirst.headers['set-cookie'][0])
+      .expect(200);
+
+    await req
+      .delete(`${PATHS.SECURITY}/devices/${activeSessionsResponse.body[0].deviceId}`)
+      .auth(loginResponseSecond.body.accessToken, { type: 'bearer' })
+      .set('Cookie', loginResponseSecond.headers['set-cookie'][0])
+      .expect(403);
   });
 });

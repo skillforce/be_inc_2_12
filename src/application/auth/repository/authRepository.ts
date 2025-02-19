@@ -21,15 +21,33 @@ export const authRepository = {
     newVersionIat: string,
     newVersionExp: string,
   ) {
-    console.log('newVersionIat', newVersionIat);
-    console.log('newVersionExp', newVersionExp);
     const result = await db
       .getCollections()
       .authMetaCollection.updateOne(
         { device_id },
         { $set: { iat: newVersionIat, exp: newVersionExp } },
       );
-    console.log('RESULT', result);
+
     return result.modifiedCount === 1;
+  },
+  async removeSession(device_id: string, refreshTokenIatIso: string) {
+    const result = await db
+      .getCollections()
+      .authMetaCollection.deleteOne({ device_id, iat: refreshTokenIatIso });
+    return result.deletedCount === 1;
+  },
+  async removeAllUserSessionsExceptCurrentOne(userId: string, device_id: string): Promise<boolean> {
+    try {
+      await db
+        .getCollections()
+        .authMetaCollection.deleteMany({ user_id: userId, device_id: { $ne: device_id } });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+  async removeSessionByDeviceId(device_id: string): Promise<boolean> {
+    const result = await db.getCollections().authMetaCollection.deleteOne({ device_id });
+    return result.deletedCount === 1;
   },
 };

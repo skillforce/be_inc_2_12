@@ -5,6 +5,7 @@ export const PATHS = {
   POSTS: '/posts',
   USERS: '/users',
   TESTING: '/testing',
+  SECURITY: '/security',
   AUTH: {
     COMMON: '/auth',
     LOGIN: '/auth/login',

@@ -224,18 +224,22 @@ export const authService = {
       extensions: [],
     };
   },
-  async generateTokens(
-    userId: string,
-  ): Promise<Result<{ accessToken: string; refreshToken: string }>> {
+  async generateTokens({
+    userId,
+    deviceId,
+  }: {
+    userId: string;
+    deviceId?: string;
+  }): Promise<Result<{ accessToken: string; refreshToken: string }>> {
     const accessToken = await jwtService.createAccessToken(userId);
-    const refreshToken = await jwtService.createRefreshToken(userId);
+    const refreshToken = await jwtService.createRefreshToken(userId, deviceId);
     return {
       status: ResultStatus.Success,
       data: { accessToken, refreshToken },
       extensions: [],
     };
   },
-  async updateRefreshTokenVersion(refreshToken: string, deviceId: string): Promise<Result> {
+  async updateRefreshTokenVersion(refreshToken: string): Promise<Result> {
     const refreshTokenSessionBodyResult = await this.generateSessionBody(refreshToken);
 
     if (!refreshTokenSessionBodyResult.data) {
@@ -246,9 +250,9 @@ export const authService = {
         extensions: [],
       };
     }
-    const { iat, exp } = refreshTokenSessionBodyResult.data;
+    const { iat, exp, device_id } = refreshTokenSessionBodyResult.data;
 
-    const result = await authRepository.updateRefreshTokenVersionByDeviceId(deviceId, iat, exp);
+    const result = await authRepository.updateRefreshTokenVersionByDeviceId(device_id, iat, exp);
     if (!result) {
       return {
         status: ResultStatus.ServerError,
@@ -267,13 +271,12 @@ export const authService = {
   },
   async checkRefreshToken(
     refreshToken: string,
-    deviceId: string,
-  ): Promise<Result<boolean | string>> {
+  ): Promise<Result<null | { userId: string; deviceId: string }>> {
     const result = await jwtService.verifyRefreshToken(refreshToken);
     if (!result) {
       return {
         status: ResultStatus.Unauthorized,
-        data: false,
+        data: null,
         errorMessage: 'Unauthorized',
         extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
       };
@@ -283,33 +286,64 @@ export const authService = {
     if (!refreshTokenVersion) {
       return {
         status: ResultStatus.Unauthorized,
-        data: false,
+        data: null,
         errorMessage: 'Unauthorized',
         extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
       };
     }
-    const deviceSession = await authRepository.getSessionByDeviceId(deviceId);
+    const deviceSession = await authRepository.getSessionByDeviceId(result.deviceId);
     const refreshTokenIatIso = generateIsoStringFromSeconds(+refreshTokenVersion);
 
     if (deviceSession && refreshTokenIatIso === deviceSession.iat) {
       return {
         status: ResultStatus.Success,
-        data: result.userId,
+        data: { userId: result.userId, deviceId: result.deviceId },
         extensions: [],
       };
     }
     return {
       status: ResultStatus.Unauthorized,
-      data: false,
+      data: null,
       errorMessage: 'Unauthorized',
       extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
     };
   },
+  async removeSession(refreshToken: string): Promise<Result<boolean>> {
+    const refreshTokenVersion = await jwtService.getRefreshTokenVersion(refreshToken);
+    const refreshTokenDeviceId = await jwtService.getRefreshTokenDeviceId(refreshToken);
+
+    if (!refreshTokenVersion || !refreshTokenDeviceId) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: false,
+        errorMessage: 'Unauthorized',
+        extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
+      };
+    }
+    const refreshTokenIatIso = generateIsoStringFromSeconds(+refreshTokenVersion);
+    const removeSessionResult = await authRepository.removeSession(
+      refreshTokenDeviceId,
+      refreshTokenIatIso,
+    );
+    if (!removeSessionResult) {
+      return {
+        status: ResultStatus.ServerError,
+        data: false,
+        errorMessage: 'Internal server error occurred',
+        extensions: [],
+      };
+    }
+
+    return {
+      status: ResultStatus.Success,
+      data: true,
+      extensions: [],
+    };
+  },
   async refreshTokens(
     refreshToken: string,
-    device_id: string,
   ): Promise<Result<{ accessToken: string; refreshToken: string } | null>> {
-    const isRefreshTokenValidResult = await this.checkRefreshToken(refreshToken, device_id);
+    const isRefreshTokenValidResult = await this.checkRefreshToken(refreshToken);
     if (isRefreshTokenValidResult.status !== ResultStatus.Success) {
       return {
         status: ResultStatus.Unauthorized,
@@ -318,7 +352,11 @@ export const authService = {
         extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
       };
     }
-    const newTokensResult = await this.generateTokens(isRefreshTokenValidResult.data as string);
+
+    const newTokensResult = await this.generateTokens({
+      userId: isRefreshTokenValidResult.data?.userId as string,
+      deviceId: isRefreshTokenValidResult.data?.deviceId as string,
+    });
     if (newTokensResult.status !== ResultStatus.Success) {
       return {
         status: ResultStatus.ServerError,
@@ -329,10 +367,7 @@ export const authService = {
     }
 
     const { refreshToken: newRefreshToken } = newTokensResult.data;
-    const updateRefreshTokenVersionResult = await this.updateRefreshTokenVersion(
-      newRefreshToken,
-      device_id,
-    );
+    const updateRefreshTokenVersionResult = await this.updateRefreshTokenVersion(newRefreshToken);
     if (updateRefreshTokenVersionResult.status !== ResultStatus.Success) {
       return {
         status: ResultStatus.ServerError,
@@ -384,7 +419,8 @@ export const authService = {
       typeof decodedToken !== 'string' &&
       decodedToken.iat &&
       decodedToken.exp &&
-      decodedToken.userId
+      decodedToken.userId &&
+      decodedToken.deviceId
     ) {
       return {
         status: ResultStatus.Success,
@@ -392,7 +428,7 @@ export const authService = {
           iat: generateIsoStringFromSeconds(decodedToken.iat),
           user_id: decodedToken.userId,
           exp: generateIsoStringFromSeconds(decodedToken.exp),
-          device_id: v4(),
+          device_id: decodedToken.deviceId,
           device_name: device_name ?? 'N/A',
           ip_address: ip_address ?? 'N/A',
         },
@@ -425,7 +461,7 @@ export const authService = {
       };
     }
 
-    const generateTokensResult = await this.generateTokens(result.data!._id.toString());
+    const generateTokensResult = await this.generateTokens({ userId: result.data!._id.toString() });
 
     if (generateTokensResult.status !== ResultStatus.Success) {
       return {

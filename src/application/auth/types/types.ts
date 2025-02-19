@@ -28,6 +28,13 @@ export interface AuthMetaDBModel {
   ip_address: string;
 }
 
+export interface SessionsViewModel {
+  ip: string;
+  title: string;
+  lastActiveDate: string;
+  deviceId: string;
+}
+
 export interface SessionDto {
   iat: string;
   user_id: string;

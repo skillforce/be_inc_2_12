@@ -5,6 +5,7 @@ import { UserDBModel } from '../entities/users';
 import { APP_CONFIG } from '../app_config';
 import { CommentDBModel } from '../entities/comments';
 import { AuthMetaDBModel } from '../application/auth/types/types';
+import { TriggerAttemptsCollectionDBModel } from '../common/types/types';
 
 export const db = {
   client: {} as MongoClient,
@@ -47,6 +48,9 @@ export const db = {
       blogCollection: this.getDbName().collection<BlogDbModel>(APP_CONFIG.BLOG_COLLECTION_NAME),
       authMetaCollection: this.getDbName().collection<AuthMetaDBModel>(
         APP_CONFIG.AUTH_META_COLLECTION_NAME,
+      ),
+      triggerAttemptsCollection: this.getDbName().collection<TriggerAttemptsCollectionDBModel>(
+        APP_CONFIG.TRIGGER_ATTEMPTS_COLLECTION,
       ),
       commentsCollection: this.getDbName().collection<CommentDBModel>(
         APP_CONFIG.COMMENTS_COLLECTION_NAME,

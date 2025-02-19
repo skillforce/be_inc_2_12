@@ -2,6 +2,9 @@ import { basicStringFieldMiddlewareGenerator, ErrorMessages } from '../../../com
 import { inputValidationMiddleware } from '../../../common/middlewares/commonValidationMiddlewares';
 import { accessTokenGuard } from '../guards/access.token.guard';
 import { ValidationChain } from 'express-validator';
+import { NextFunction, Request, Response } from 'express';
+import { authRepository } from '../repository/authRepository';
+import { createAttemptLimitMiddleware } from '../../../common/middlewares/attemptLimitMiddleware';
 
 const loginOrEmailErrors: ErrorMessages = {
   required: 'loginOrEmail field is required',
@@ -26,6 +29,10 @@ const passwordErrors: ErrorMessages = {
 const codeErrors: ErrorMessages = {
   required: 'code field is required',
   isString: 'code should be provided as a string',
+};
+const deviceIdErrors: ErrorMessages = {
+  required: 'deviceId field is required',
+  isString: 'deviceId should be provided as a string',
 };
 
 const additionalLoginRules: ((chain: ValidationChain) => ValidationChain)[] = [
@@ -68,9 +75,15 @@ export const passwordRegistrationBodyValidationMiddleware = basicStringFieldMidd
   minLength: 6,
 });
 
+export const deviceIdBodyValidationMiddleware = basicStringFieldMiddlewareGenerator({
+  fieldName: 'deviceId',
+  errorMessages: deviceIdErrors,
+});
+
 export const loginBodyValidators = [
   loginOrEmailBodyValidationMiddleware,
   passwordLoginBodyValidationMiddleware,
+  createAttemptLimitMiddleware('login'),
   inputValidationMiddleware,
 ];
 
@@ -78,16 +91,39 @@ export const registrationBodyValidators = [
   loginBodyRegistrationValidationMiddleware,
   passwordRegistrationBodyValidationMiddleware,
   emailBodyRegistrationValidationMiddleware,
+  createAttemptLimitMiddleware('registration'),
   inputValidationMiddleware,
 ];
 
 export const confirmRegistrationBodyValidators = [
   codeBodyValidationMiddleware,
+  createAttemptLimitMiddleware('registerConfirmation'),
   inputValidationMiddleware,
 ];
 export const resendRegistrationEmailBodyValidators = [
   emailBodyRegistrationValidationMiddleware,
+  createAttemptLimitMiddleware('resendConfirmation'),
   inputValidationMiddleware,
 ];
 
 export const meRequestValidators = [accessTokenGuard];
+
+export const checkIfDeviceIdWithProvidedQueryParamIdExists = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const paramId = req.params.id;
+  if (!paramId) {
+    res.sendStatus(404);
+    return;
+  }
+
+  const isSessionExist = await authRepository.getSessionByDeviceId(paramId);
+  if (!isSessionExist) {
+    res.sendStatus(404);
+    return;
+  }
+
+  return next();
+};

@@ -5,10 +5,9 @@ import { testingRouter } from './application/testing/router/testingRouter';
 import { blogRouter } from './entities/blogs';
 import { postRouter } from './entities/posts';
 import { usersRouter } from './entities/users';
-import { authRouter } from './application/auth';
+import { authRouter, securityRouter } from './application/auth';
 import { commentsRouter } from './entities/comments';
 import cookieParser from 'cookie-parser';
-import { sessionMiddleware } from './common/adapters/session.service';
 
 export const initApp = () => {
   const app = express();
@@ -16,7 +15,6 @@ export const initApp = () => {
   app.use(express.json());
   app.use(cookieParser());
   app.use(cors());
-  app.use(sessionMiddleware);
   app.set('trust proxy', true);
 
   app.use(PATHS.AUTH.COMMON, authRouter);
@@ -24,6 +22,7 @@ export const initApp = () => {
   app.use(PATHS.COMMENTS, commentsRouter);
   app.use(PATHS.POSTS, postRouter);
   app.use(PATHS.USERS, usersRouter);
+  app.use(PATHS.SECURITY, securityRouter);
   app.use(PATHS.TESTING, testingRouter);
 
   app.get('/', (req, res) => {

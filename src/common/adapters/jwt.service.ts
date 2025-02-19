@@ -11,12 +11,12 @@ export interface TokenBodyPayload {
 
 export const jwtService = {
   async createAccessToken(userId: string): Promise<string> {
-    return jwt.sign({ userId, id: uuidv4() }, APP_CONFIG.AC_SECRET, {
+    return jwt.sign({ userId }, APP_CONFIG.AC_SECRET, {
       expiresIn: +APP_CONFIG.AC_TIME,
     });
   },
-  async createRefreshToken(userId: string): Promise<string> {
-    return jwt.sign({ userId, id: uuidv4() }, APP_CONFIG.RT_SECRET, {
+  async createRefreshToken(userId: string, deviceId?: string): Promise<string> {
+    return jwt.sign({ userId, deviceId: deviceId ?? uuidv4() }, APP_CONFIG.RT_SECRET, {
       expiresIn: +APP_CONFIG.RT_TIME,
     });
   },
@@ -40,17 +40,29 @@ export const jwtService = {
       return null;
     }
   },
+  async getRefreshTokenDeviceId(token: string): Promise<string | null> {
+    try {
+      const decodedToken = await this.decodeToken(token);
+      if (decodedToken && typeof decodedToken !== 'string' && decodedToken.deviceId) {
+        return decodedToken.deviceId.toString();
+      }
+      return null;
+    } catch (error) {
+      console.error('Error in getRefreshTokenVersion:', error);
+      return null;
+    }
+  },
   async verifyAccessToken(token: string): Promise<{ userId: string } | null> {
     try {
-      return jwt.verify(token, APP_CONFIG.AC_SECRET) as { userId: string; id: string };
+      return jwt.verify(token, APP_CONFIG.AC_SECRET) as { userId: string };
     } catch (error) {
       console.error('Token verify some error');
       return null;
     }
   },
-  async verifyRefreshToken(token: string): Promise<{ userId: string } | null> {
+  async verifyRefreshToken(token: string): Promise<{ userId: string; deviceId: string } | null> {
     try {
-      return jwt.verify(token, APP_CONFIG.RT_SECRET) as { userId: string; id: string };
+      return jwt.verify(token, APP_CONFIG.RT_SECRET) as { userId: string; deviceId: string };
     } catch (error) {
       console.error('Token verify some error');
       return null;
