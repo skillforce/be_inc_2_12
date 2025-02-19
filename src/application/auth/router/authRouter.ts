@@ -46,7 +46,10 @@ authRouter.post(
   },
 );
 
-authRouter.post('/refresh-token', async (req: Request, res: Response) => {
+const delayMiddleware = (ms: number) => (req: any, res: any, next: any) => {
+  setTimeout(next, ms);
+};
+authRouter.post('/refresh-token', delayMiddleware(1000), async (req: Request, res: Response) => {
   const refreshToken = cookieHandler.getRefreshToken(req);
   if (!refreshToken) {
     res.sendStatus(HttpStatuses.Unauthorized);
