@@ -361,4 +361,33 @@ describe('/login', () => {
 
     expect(activeSessionsAfterRemoving.body.length).toBe(1);
   });
+  it('should return error when user logout with expired refresh token', async () => {
+    await db.drop();
+    const firstUser = await createAndLoginUser();
+    const secondUser = await createAndLoginUser();
+    await delay(1000);
+    const refreshedFirstUser = await req
+      .post(PATHS.AUTH.REFRESH_TOKEN)
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', firstUser.headers['set-cookie'][0])
+      .expect(200);
+
+    const activeSessions = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(refreshedFirstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', refreshedFirstUser.headers['set-cookie'][0])
+      .expect(200);
+
+    expect(activeSessions.body.length).toBe(2);
+
+    await req.post(PATHS.AUTH.LOGOUT).set('Cookie', firstUser.headers['set-cookie'][0]).expect(401);
+
+    const activeSessionsAfterLogout = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(secondUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', secondUser.headers['set-cookie'][0])
+      .expect(200);
+
+    expect(activeSessionsAfterLogout.body.length).toBe(2);
+  });
 });

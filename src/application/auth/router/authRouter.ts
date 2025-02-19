@@ -18,6 +18,7 @@ import { UsersOutputMapEnum } from '../../../entities/users';
 import { createErrorObject, toObjectId } from '../../../common/helpers/helper';
 import { cookieHandler } from '../../../common/refreshToken/refreshToken';
 import { getClientInfo } from '../../../common/helpers/getClientInfoFromRequest';
+import { delay } from '../../../../__tests__/utils/test-helpers';
 
 export const authRouter = Router({});
 
@@ -51,7 +52,7 @@ authRouter.post('/refresh-token', async (req: Request, res: Response) => {
     res.sendStatus(HttpStatuses.Unauthorized);
     return;
   }
-
+  await delay(1000);
   const newTokensResult = await authService.refreshTokens(refreshToken);
   if (newTokensResult.status !== ResultStatus.Success) {
     res.sendStatus(resultCodeToHttpException(newTokensResult.status));
