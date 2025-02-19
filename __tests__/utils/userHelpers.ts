@@ -4,11 +4,11 @@ import { ADMIN_AUTH_HEADER } from '../../src/application/auth/guards/base.auth.g
 import { req } from './test-helpers';
 import { HttpStatuses } from '../../src/common/types/httpStatuses';
 import { UserDBModel } from '../../src/entities/users';
-import { randomUUID } from 'crypto';
 import { User } from '../../src/entities/users/service/user.entity';
 import { db } from '../../src/db/mongo-db';
 import { WithId } from 'mongodb';
 import { UserViewModel } from '../../src/entities/users/types/types';
+import { Response } from 'supertest';
 
 type CreateUserParams = {
   userDto?: UserDto;
@@ -54,4 +54,16 @@ export const insertUser = async ({
     id: res.insertedId.toString(),
     ...newUser,
   };
+};
+
+export const createAndLoginUser = async (userDto?: UserDto): Promise<Response> => {
+  const dto = userDto ?? testingDtosCreator.createUserDto({});
+  await createUser({ userDto: dto });
+  return req
+    .post(PATHS.AUTH.LOGIN)
+    .send({
+      loginOrEmail: dto.login,
+      password: dto.pass,
+    })
+    .expect(200);
 };

@@ -2,7 +2,7 @@ import { delay, req } from '../utils/test-helpers';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PATHS } from '../../src/common/paths/paths';
 import { db } from '../../src/db/mongo-db';
-import { createUser } from '../utils/userHelpers';
+import { createAndLoginUser, createUser } from '../utils/userHelpers';
 import { UserDto } from '../utils/testingDtosCreator';
 
 const newUser = {
@@ -229,63 +229,17 @@ describe('/login', () => {
   });
   it('should return 429 error when there was more than 5 attempts to login from one IP', async () => {
     await db.drop();
+    await createAndLoginUser();
+    await delay(500);
+    await createAndLoginUser();
+    await delay(500);
+    await createAndLoginUser();
+    await delay(500);
+    await createAndLoginUser();
+    await delay(500);
+    await createAndLoginUser();
+    await delay(500);
     await createUser({ userDto: newUser });
-
-    await req
-      .post(PATHS.AUTH.LOGIN)
-      .send({
-        loginOrEmail: newUser.login,
-        password: newUser.pass,
-      })
-      .set('User-Agent', 'CustomUserAgent/1.0')
-      .expect(200);
-
-    await delay(500);
-
-    await req
-      .post(PATHS.AUTH.LOGIN)
-      .send({
-        loginOrEmail: newUser.login,
-        password: newUser.pass,
-      })
-      .set('User-Agent', 'CustomUserAgent/1.0')
-      .expect(200);
-
-    await delay(500);
-
-    await req
-      .post(PATHS.AUTH.LOGIN)
-      .send({
-        loginOrEmail: newUser.login,
-        password: newUser.pass,
-      })
-      .set('User-Agent', 'CustomUserAgent/1.0')
-      .expect(200);
-
-    await delay(500);
-
-    await req
-      .post(PATHS.AUTH.LOGIN)
-      .send({
-        loginOrEmail: newUser.login,
-        password: newUser.pass,
-      })
-      .set('User-Agent', 'CustomUserAgent/2.0')
-      .expect(200);
-
-    await delay(500);
-
-    await req
-      .post(PATHS.AUTH.LOGIN)
-      .send({
-        loginOrEmail: newUser.login,
-        password: newUser.pass,
-      })
-      .set('User-Agent', 'CustomUserAgent/3.0')
-      .expect(200);
-
-    await delay(500);
-
     await req
       .post(PATHS.AUTH.LOGIN)
       .send({
@@ -297,37 +251,114 @@ describe('/login', () => {
   });
   it('should return error when user tries to remove not his own session ', async () => {
     await db.drop();
-    await createUser({ userDto: newUser });
-    await createUser({ userDto: newUser2 });
-
-    const loginResponseFirst = await req
-      .post(PATHS.AUTH.LOGIN)
-      .send({
-        loginOrEmail: newUser.login,
-        password: newUser.pass,
-      })
-      .set('User-Agent', 'CustomUserAgent/1.0')
-      .expect(200);
-
-    const loginResponseSecond = await req
-      .post(PATHS.AUTH.LOGIN)
-      .send({
-        loginOrEmail: newUser2.login,
-        password: newUser2.pass,
-      })
-      .set('User-Agent', 'CustomUserAgent/2.0')
-      .expect(200);
+    const firstUser = await createAndLoginUser();
+    const secondUser = await createAndLoginUser();
 
     const activeSessionsResponse = await req
       .get(`${PATHS.SECURITY}/devices`)
-      .auth(loginResponseFirst.body.accessToken, { type: 'bearer' })
-      .set('Cookie', loginResponseFirst.headers['set-cookie'][0])
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', firstUser.headers['set-cookie'][0])
       .expect(200);
 
     await req
       .delete(`${PATHS.SECURITY}/devices/${activeSessionsResponse.body[0].deviceId}`)
-      .auth(loginResponseSecond.body.accessToken, { type: 'bearer' })
-      .set('Cookie', loginResponseSecond.headers['set-cookie'][0])
+      .auth(secondUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', secondUser.headers['set-cookie'][0])
       .expect(403);
+  });
+  it('should remove session info when logout properly ', async () => {
+    await db.drop();
+    const firstUser = await createAndLoginUser();
+    const secondUser = await createAndLoginUser();
+    await createAndLoginUser();
+    await createAndLoginUser();
+
+    const activeSessions = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', firstUser.headers['set-cookie'][0])
+      .expect(200);
+
+    expect(activeSessions.body.length).toBe(4);
+
+    await req
+      .post(PATHS.AUTH.LOGOUT)
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', firstUser.headers['set-cookie'][0])
+      .expect(204);
+
+    const activeSessionsAfterLogout = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(secondUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', secondUser.headers['set-cookie'][0])
+      .expect(200);
+
+    expect(activeSessionsAfterLogout.body.length).toBe(3);
+  });
+  it('should refresh session iat and exp when refresh token', async () => {
+    await db.drop();
+    const firstUser = await createAndLoginUser();
+    const secondUser = await createAndLoginUser();
+    await createAndLoginUser();
+    await createAndLoginUser();
+
+    const activeSessions = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', firstUser.headers['set-cookie'][0])
+      .expect(200);
+
+    expect(activeSessions.body.length).toBe(4);
+
+    await req
+      .post(PATHS.AUTH.REFRESH_TOKEN)
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', firstUser.headers['set-cookie'][0])
+      .expect(200);
+
+    const activeSessionsAfterRefresh = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(secondUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', secondUser.headers['set-cookie'][0])
+      .expect(200);
+
+    expect(activeSessionsAfterRefresh.body.length).toBe(4);
+    expect(activeSessions.body[0].deviceId).toEqual(activeSessionsAfterRefresh.body[0].deviceId);
+    expect(activeSessions.body[1].deviceId).toEqual(activeSessionsAfterRefresh.body[1].deviceId);
+    expect(activeSessions.body[2].deviceId).toEqual(activeSessionsAfterRefresh.body[2].deviceId);
+    expect(activeSessions.body[3].deviceId).toEqual(activeSessionsAfterRefresh.body[3].deviceId);
+  });
+  it('should remove session from db list', async () => {
+    await db.drop();
+    const firstUser = await createAndLoginUser();
+    const secondUser = await createAndLoginUser();
+
+    const activeSessions = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', firstUser.headers['set-cookie'][0])
+      .expect(200);
+
+    expect(activeSessions.body.length).toBe(2);
+
+    const updatedFirstUser = await req
+      .post(PATHS.AUTH.REFRESH_TOKEN)
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', firstUser.headers['set-cookie'][0])
+      .expect(200);
+
+    await req
+      .delete(`${PATHS.SECURITY}/devices/${activeSessions.body[0].deviceId}`)
+      .auth(updatedFirstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', updatedFirstUser.headers['set-cookie'][0])
+      .expect(204);
+
+    const activeSessionsAfterRemoving = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(secondUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', secondUser.headers['set-cookie'][0])
+      .expect(200);
+
+    expect(activeSessionsAfterRemoving.body.length).toBe(1);
   });
 });

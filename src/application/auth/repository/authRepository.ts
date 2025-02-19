@@ -28,7 +28,7 @@ export const authRepository = {
         { $set: { iat: newVersionIat, exp: newVersionExp } },
       );
 
-    return result.modifiedCount === 1;
+    return result.matchedCount;
   },
   async removeSession(device_id: string, refreshTokenIatIso: string) {
     const result = await db
