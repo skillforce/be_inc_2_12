@@ -23,7 +23,7 @@ export const initApp = () => {
     console.log(`Incoming Request: ${req.method} ${req.url}`);
     console.log('Request Body:', req.body);
     const refreshToken = cookieHandler.getRefreshToken(req);
-    console.log('tokenInfo:', await jwtService.verifyRefreshToken(refreshToken!));
+    refreshToken && console.log('tokenInfo:', await jwtService.verifyRefreshToken(refreshToken!));
 
     // Capture response body
     const oldSend = res.send;
