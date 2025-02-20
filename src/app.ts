@@ -8,6 +8,8 @@ import { usersRouter } from './entities/users';
 import { authRouter, securityRouter } from './application/auth';
 import { commentsRouter } from './entities/comments';
 import cookieParser from 'cookie-parser';
+import { cookieHandler } from './common/refreshToken/refreshToken';
+import { jwtService } from './common/adapters/jwt.service';
 
 export const initApp = () => {
   const app = express();
@@ -17,9 +19,11 @@ export const initApp = () => {
   app.use(cors());
   app.set('trust proxy', true);
 
-  app.use((req: Request, res: Response, next: NextFunction) => {
+  app.use(async (req: Request, res: Response, next: NextFunction) => {
     console.log(`Incoming Request: ${req.method} ${req.url}`);
     console.log('Request Body:', req.body);
+    const refreshToken = cookieHandler.getRefreshToken(req);
+    console.log('tokenInfo:', await jwtService.verifyRefreshToken(refreshToken!));
 
     // Capture response body
     const oldSend = res.send;

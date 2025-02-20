@@ -49,7 +49,6 @@ authRouter.post(
 
 authRouter.post('/refresh-token', async (req: Request, res: Response) => {
   const refreshToken = cookieHandler.getRefreshToken(req);
-  console.log(await jwtService.verifyRefreshToken(refreshToken!));
   if (!refreshToken) {
     res.sendStatus(HttpStatuses.Unauthorized);
     return;
