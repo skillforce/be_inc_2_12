@@ -73,11 +73,20 @@ export const generateIsoStringFromSeconds = (seconds: number) => {
 };
 
 export function nanosecondsStringToISOString(nanosecondsStr: string): string {
-  const milliseconds = BigInt(nanosecondsStr) / BigInt(1_000_000);
-  const date = new Date(Number(milliseconds)); // Create Date object
+  const nanoseconds = BigInt(nanosecondsStr);
 
-  const remainingNs = BigInt(nanosecondsStr) % BigInt(1_000_000_000);
-  const fractionalSeconds = `${remainingNs}`.padStart(9, '0').slice(0, 6);
+  // Convert nanoseconds to milliseconds
+  const milliseconds = nanoseconds / BigInt(1_000_000);
 
+  // Create Date object based on Unix Epoch (absolute time)
+  const date = new Date(
+    Number(milliseconds) + Date.now() - Number(process.hrtime.bigint() / BigInt(1_000_000)),
+  );
+
+  // Extract remaining nanoseconds for sub-millisecond precision
+  const remainingNs = nanoseconds % BigInt(1_000_000_000);
+  const fractionalSeconds = `${remainingNs}`.padStart(9, '0').slice(0, 6); // Keep 6 digits (microseconds)
+
+  // Format as ISO 8601 with microseconds
   return `${date.toISOString().replace('Z', '')}.${fractionalSeconds}Z`;
 }
