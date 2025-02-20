@@ -71,13 +71,3 @@ export const createErrorObject = (extensions: ExtensionType[]) => {
 export const generateIsoStringFromSeconds = (seconds: number) => {
   return dayjs(seconds * 1000).toISOString();
 };
-
-export function nanosecondsStringToISOString(nanosecondsStr: string): string {
-  const milliseconds = BigInt(nanosecondsStr) / BigInt(1_000_000);
-  const date = new Date(Number(milliseconds)); // Create Date object
-
-  const remainingNs = BigInt(nanosecondsStr) % BigInt(1_000_000_000);
-  const fractionalSeconds = `${remainingNs}`.padStart(9, '0').slice(0, 6);
-
-  return `${date.toISOString().replace('Z', '')}.${fractionalSeconds}Z`;
-}
