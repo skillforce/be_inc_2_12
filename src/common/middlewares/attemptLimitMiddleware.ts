@@ -1,13 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import { db } from '../../db/mongo-db';
 import { TriggerAttemptsCollectionDBModel } from '../types/types';
+import { HttpStatuses } from '../types/httpStatuses';
 
 export function createAttemptLimitMiddleware(routeName: string, limit = 5, windowSec = 10) {
   return async function attemptLimitMiddleware(req: Request, res: Response, next: NextFunction) {
     try {
       const ip = req.ip || req.connection.remoteAddress;
       if (!ip) {
-        return res.status(400).json({ error: 'IP address not found' });
+        return res.status(HttpStatuses.Forbidden);
       }
 
       const attemptsCollection = db.getCollections().triggerAttemptsCollection;

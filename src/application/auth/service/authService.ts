@@ -239,8 +239,14 @@ export const authService = {
       extensions: [],
     };
   },
-  async updateRefreshTokenVersion(refreshToken: string): Promise<Result> {
-    const refreshTokenSessionBodyResult = await this.generateSessionBody(refreshToken);
+  async updateRefreshTokenVersion({
+    newRefreshToken,
+    oldRefreshTokenIat,
+  }: {
+    newRefreshToken: string;
+    oldRefreshTokenIat: string;
+  }): Promise<Result> {
+    const refreshTokenSessionBodyResult = await this.generateSessionBody(newRefreshToken);
 
     if (!refreshTokenSessionBodyResult.data) {
       return {
@@ -252,7 +258,12 @@ export const authService = {
     }
     const { iat, exp, device_id } = refreshTokenSessionBodyResult.data;
 
-    const result = await authRepository.updateRefreshTokenVersionByDeviceId(device_id, iat, exp);
+    const result = await authRepository.updateRefreshTokenVersionByDeviceId({
+      device_id,
+      newVersionIat: iat,
+      newVersionExp: exp,
+      prevRefreshTokenIat: oldRefreshTokenIat,
+    });
     if (!result) {
       return {
         status: ResultStatus.ServerError,
@@ -271,7 +282,7 @@ export const authService = {
   },
   async checkRefreshToken(
     refreshToken: string,
-  ): Promise<Result<null | { userId: string; deviceId: string }>> {
+  ): Promise<Result<null | { userId: string; deviceId: string; iat: string }>> {
     const result = await jwtService.verifyRefreshToken(refreshToken);
     if (!result) {
       return {
@@ -297,7 +308,7 @@ export const authService = {
     if (deviceSession && refreshTokenIatIso === deviceSession.iat) {
       return {
         status: ResultStatus.Success,
-        data: { userId: result.userId, deviceId: result.deviceId },
+        data: { userId: result.userId, deviceId: result.deviceId, iat: refreshTokenVersion },
         extensions: [],
       };
     }
@@ -353,33 +364,49 @@ export const authService = {
       };
     }
 
-    const newTokensResult = await this.generateTokens({
-      userId: isRefreshTokenValidResult.data?.userId as string,
-      deviceId: isRefreshTokenValidResult.data?.deviceId as string,
-    });
-    if (newTokensResult.status !== ResultStatus.Success) {
+    if (
+      isRefreshTokenValidResult.data?.userId &&
+      isRefreshTokenValidResult.data?.deviceId &&
+      isRefreshTokenValidResult.data?.iat
+    ) {
+      const newTokensResult = await this.generateTokens({
+        userId: isRefreshTokenValidResult.data.userId,
+        deviceId: isRefreshTokenValidResult.data.deviceId,
+      });
+      if (newTokensResult.status !== ResultStatus.Success) {
+        return {
+          status: ResultStatus.ServerError,
+          data: null,
+          errorMessage: 'Internal server error occurred',
+          extensions: [],
+        };
+      }
+
+      const { refreshToken: newRefreshToken } = newTokensResult.data;
+      const updateRefreshTokenVersionResult = await this.updateRefreshTokenVersion({
+        newRefreshToken: newRefreshToken,
+        oldRefreshTokenIat: generateIsoStringFromSeconds(+isRefreshTokenValidResult.data.iat),
+      });
+      if (updateRefreshTokenVersionResult.status !== ResultStatus.Success) {
+        return {
+          status: ResultStatus.ServerError,
+          data: null,
+          errorMessage: 'Internal server error occurred',
+          extensions: [],
+        };
+      }
       return {
-        status: ResultStatus.ServerError,
-        data: null,
-        errorMessage: 'Internal server error occurred',
+        status: ResultStatus.Success,
+        data: newTokensResult.data,
         extensions: [],
       };
     }
 
-    const { refreshToken: newRefreshToken } = newTokensResult.data;
-    const updateRefreshTokenVersionResult = await this.updateRefreshTokenVersion(newRefreshToken);
-    if (updateRefreshTokenVersionResult.status !== ResultStatus.Success) {
-      return {
-        status: ResultStatus.ServerError,
-        data: null,
-        errorMessage: 'Internal server error occurred',
-        extensions: [],
-      };
-    }
     return {
-      status: ResultStatus.Success,
-      data: newTokensResult.data,
-      extensions: [],
+      status: ResultStatus.Unauthorized,
+      data: null,
+      errorMessage: 'Unauthorized',
+      extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
     };
   },
   async initializeSession(sessionBody: SessionDto): Promise<Result<string | null>> {

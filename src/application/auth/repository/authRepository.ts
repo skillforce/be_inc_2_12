@@ -16,15 +16,21 @@ export const authRepository = {
   async getSessionByDeviceId(device_id: string) {
     return await db.getCollections().authMetaCollection.findOne({ device_id });
   },
-  async updateRefreshTokenVersionByDeviceId(
-    device_id: string,
-    newVersionIat: string,
-    newVersionExp: string,
-  ) {
+  async updateRefreshTokenVersionByDeviceId({
+    device_id,
+    newVersionIat,
+    newVersionExp,
+    prevRefreshTokenIat,
+  }: {
+    device_id: string;
+    newVersionIat: string;
+    newVersionExp: string;
+    prevRefreshTokenIat: string;
+  }) {
     const result = await db
       .getCollections()
       .authMetaCollection.updateOne(
-        { device_id },
+        { device_id, iat: prevRefreshTokenIat },
         { $set: { iat: newVersionIat, exp: newVersionExp } },
       );
 
