@@ -5,7 +5,7 @@ export const authQueryRepository = {
   async getAllSessionsForCurrentUser({ userId }: { userId: string }): Promise<SessionsViewModel[]> {
     const allSessionsFromDb = await db
       .getCollections()
-      .authMetaCollection.find({ userId })
+      .authMetaCollection.find({ user_id: userId })
       .toArray();
     return allSessionsFromDb.map(this.mapSessionToOutput);
   },
