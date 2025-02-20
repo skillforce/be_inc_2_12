@@ -12,7 +12,7 @@ export interface TokenBodyPayload {
 export const jwtService = {
   async createAccessToken(userId: string): Promise<string> {
     return jwt.sign({ userId, internalId: uuidv4() }, APP_CONFIG.AC_SECRET, {
-      expiresIn: +APP_CONFIG.AC_TIME,
+      expiresIn: APP_CONFIG.AC_TIME as unknown as number,
     });
   },
   async createRefreshToken(userId: string, deviceId?: string): Promise<string> {
@@ -20,7 +20,7 @@ export const jwtService = {
       { userId, deviceId: deviceId ?? uuidv4(), internalId: uuidv4() },
       APP_CONFIG.RT_SECRET,
       {
-        expiresIn: +APP_CONFIG.RT_TIME,
+        expiresIn: APP_CONFIG.RT_TIME as unknown as number,
       },
     );
   },
