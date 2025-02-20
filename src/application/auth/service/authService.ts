@@ -279,7 +279,7 @@ export const authService = {
   },
   async checkRefreshToken(
     refreshToken: string,
-  ): Promise<Result<null | { userId: string; deviceId: string; iat_ns: string }>> {
+  ): Promise<Result<null | { userId: string; deviceId: string; iat: string }>> {
     const result = await jwtService.verifyRefreshToken(refreshToken);
     if (!result) {
       return {
@@ -300,11 +300,12 @@ export const authService = {
       };
     }
     const deviceSession = await authRepository.getSessionByDeviceId(result.deviceId);
+    const refreshTokenIatIso = generateIsoStringFromSeconds(+refreshTokenVersion);
 
-    if (deviceSession && refreshTokenVersion === deviceSession.iat) {
+    if (deviceSession && refreshTokenIatIso === deviceSession.iat) {
       return {
         status: ResultStatus.Success,
-        data: { userId: result.userId, deviceId: result.deviceId, iat_ns: refreshTokenVersion },
+        data: { userId: result.userId, deviceId: result.deviceId, iat: refreshTokenVersion },
         extensions: [],
       };
     }
@@ -360,7 +361,11 @@ export const authService = {
       };
     }
 
-    if (isRefreshTokenValidResult.data?.userId && isRefreshTokenValidResult.data?.deviceId) {
+    if (
+      isRefreshTokenValidResult.data?.userId &&
+      isRefreshTokenValidResult.data?.deviceId &&
+      isRefreshTokenValidResult.data?.iat
+    ) {
       const newTokensResult = await this.generateTokens({
         userId: isRefreshTokenValidResult.data?.userId as string,
         deviceId: isRefreshTokenValidResult.data?.deviceId as string,
@@ -435,7 +440,7 @@ export const authService = {
     if (
       decodedToken &&
       typeof decodedToken !== 'string' &&
-      decodedToken.iat_ns &&
+      decodedToken.iat &&
       decodedToken.exp &&
       decodedToken.userId &&
       decodedToken.deviceId
@@ -443,7 +448,7 @@ export const authService = {
       return {
         status: ResultStatus.Success,
         data: {
-          iat: decodedToken.iat_ns,
+          iat: generateIsoStringFromSeconds(decodedToken.iat),
           user_id: decodedToken.userId,
           exp: generateIsoStringFromSeconds(decodedToken.exp),
           device_id: decodedToken.deviceId,

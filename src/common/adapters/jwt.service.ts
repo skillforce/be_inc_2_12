@@ -16,9 +16,8 @@ export const jwtService = {
     });
   },
   async createRefreshToken(userId: string, deviceId?: string): Promise<string> {
-    const nowNs = process.hrtime.bigint();
     return jwt.sign(
-      { userId, deviceId: deviceId ?? uuidv4(), iat_ns: nowNs.toString() },
+      { userId, deviceId: deviceId ?? uuidv4(), internalId: uuidv4() },
       APP_CONFIG.RT_SECRET,
       {
         expiresIn: +APP_CONFIG.RT_TIME,
@@ -36,8 +35,8 @@ export const jwtService = {
   async getRefreshTokenVersion(token: string): Promise<string | null> {
     try {
       const decodedToken = await this.decodeToken(token);
-      if (decodedToken && typeof decodedToken !== 'string' && decodedToken.iat_ns) {
-        return decodedToken.iat_ns;
+      if (decodedToken && typeof decodedToken !== 'string' && decodedToken.iat) {
+        return decodedToken.iat.toString();
       }
       return null;
     } catch (error) {
@@ -67,12 +66,12 @@ export const jwtService = {
   },
   async verifyRefreshToken(
     token: string,
-  ): Promise<{ userId: string; deviceId: string; iat_ns: string } | null> {
+  ): Promise<{ userId: string; deviceId: string; internalId: string } | null> {
     try {
       return jwt.verify(token, APP_CONFIG.RT_SECRET) as {
         userId: string;
         deviceId: string;
-        iat_ns: string;
+        internalId: string;
       };
     } catch (error) {
       console.error('Token verify some error');

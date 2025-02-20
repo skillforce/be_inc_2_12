@@ -364,8 +364,9 @@ describe('/login', () => {
   it('should return error when user logout with expired refresh token', async () => {
     await db.drop();
     const firstUser = await createAndLoginUser();
+    const secondUser = await createAndLoginUser();
 
-    const sessions = await req
+    const activeSessionsOne = await req
       .get(`${PATHS.SECURITY}/devices`)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
@@ -377,26 +378,25 @@ describe('/login', () => {
       .set('Cookie', firstUser.headers['set-cookie'][0])
       .expect(200);
 
-    const sessions1 = await req
-      .get(`${PATHS.SECURITY}/devices`)
-      .auth(refresh.body.accessToken, { type: 'bearer' })
-      .set('Cookie', refresh.headers['set-cookie'][0])
-      .expect(200);
-
     const refreshedFirstUser = await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
-      .expect(401);
-
-    const sessions2 = await req
-      .get(`${PATHS.SECURITY}/devices`)
-      .auth(refresh.body.accessToken, { type: 'bearer' })
-      .set('Cookie', refresh.headers['set-cookie'][0])
       .expect(200);
 
-    console.log('11111111>>>>>>>', sessions.body);
-    console.log('2222222>>>>>>>', sessions1.body);
-    console.log('3333333>>>>>>>', sessions2.body);
+    await req
+      .post(PATHS.AUTH.LOGOUT)
+      .auth(refreshedFirstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', refreshedFirstUser.headers['set-cookie'][0])
+      .expect(204);
+
+    const activeSessionsTwo = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(secondUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', secondUser.headers['set-cookie'][0])
+      .expect(200);
+
+    expect(activeSessionsOne.body.length).toBe(2);
+    expect(activeSessionsTwo.body.length).toBe(1);
   });
 });
