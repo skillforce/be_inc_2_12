@@ -65,6 +65,7 @@ authRouter.post('/refresh-token', async (req: Request, res: Response) => {
 
 authRouter.post('/logout', async (req: Request, res: Response) => {
   const refreshToken = cookieHandler.getRefreshToken(req);
+
   if (!refreshToken) {
     res.sendStatus(HttpStatuses.Unauthorized);
     return;
@@ -79,7 +80,6 @@ authRouter.post('/logout', async (req: Request, res: Response) => {
     res.sendStatus(HttpStatuses.Unauthorized);
     return;
   }
-
   res.sendStatus(HttpStatuses.NoContent);
 });
 

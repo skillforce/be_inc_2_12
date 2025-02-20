@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import { PATHS } from './common/paths/paths';
 import { testingRouter } from './application/testing/router/testingRouter';
@@ -16,6 +16,20 @@ export const initApp = () => {
   app.use(cookieParser());
   app.use(cors());
   app.set('trust proxy', true);
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    console.log(`Incoming Request: ${req.method} ${req.url}`);
+    console.log('Request Body:', req.body);
+
+    // Capture response body
+    const oldSend = res.send;
+    res.send = function (this: Response, data: any) {
+      console.log('Response:', data);
+      return oldSend.call(this, data);
+    };
+
+    next();
+  });
 
   app.use(PATHS.AUTH.COMMON, authRouter);
   app.use(PATHS.BLOGS, blogRouter);

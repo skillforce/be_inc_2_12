@@ -365,29 +365,34 @@ describe('/login', () => {
     await db.drop();
     const firstUser = await createAndLoginUser();
     const secondUser = await createAndLoginUser();
-    await delay(1000);
+    const thirdUser = await createAndLoginUser();
+    const fourthUser = await createAndLoginUser();
+
+    const activeSessionsOne = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', firstUser.headers['set-cookie'][0])
+      .expect(200);
+
     const refreshedFirstUser = await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
       .expect(200);
 
-    const activeSessions = await req
-      .get(`${PATHS.SECURITY}/devices`)
+    await req
+      .post(PATHS.AUTH.LOGOUT)
       .auth(refreshedFirstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', refreshedFirstUser.headers['set-cookie'][0])
-      .expect(200);
+      .expect(204);
 
-    expect(activeSessions.body.length).toBe(2);
-
-    await req.post(PATHS.AUTH.LOGOUT).set('Cookie', firstUser.headers['set-cookie'][0]).expect(401);
-
-    const activeSessionsAfterLogout = await req
+    const activeSessionsTwo = await req
       .get(`${PATHS.SECURITY}/devices`)
       .auth(secondUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', secondUser.headers['set-cookie'][0])
       .expect(200);
 
-    expect(activeSessionsAfterLogout.body.length).toBe(2);
+    expect(activeSessionsOne.body.length).toBe(4);
+    expect(activeSessionsTwo.body.length).toBe(3);
   });
 });

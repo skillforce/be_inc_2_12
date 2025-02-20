@@ -114,6 +114,7 @@ export const checkIfDeviceIdWithProvidedQueryParamIdExists = async (
   next: NextFunction,
 ) => {
   const paramId = req.params.id;
+
   if (!paramId) {
     res.sendStatus(404);
     return;

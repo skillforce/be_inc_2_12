@@ -241,10 +241,8 @@ export const authService = {
   },
   async updateRefreshTokenVersion({
     newRefreshToken,
-    oldRefreshTokenIat,
   }: {
     newRefreshToken: string;
-    oldRefreshTokenIat: string;
   }): Promise<Result> {
     const refreshTokenSessionBodyResult = await this.generateSessionBody(newRefreshToken);
 
@@ -262,7 +260,6 @@ export const authService = {
       device_id,
       newVersionIat: iat,
       newVersionExp: exp,
-      prevRefreshTokenIat: oldRefreshTokenIat,
     });
     if (!result) {
       return {
@@ -370,8 +367,8 @@ export const authService = {
       isRefreshTokenValidResult.data?.iat
     ) {
       const newTokensResult = await this.generateTokens({
-        userId: isRefreshTokenValidResult.data.userId,
-        deviceId: isRefreshTokenValidResult.data.deviceId,
+        userId: isRefreshTokenValidResult.data?.userId as string,
+        deviceId: isRefreshTokenValidResult.data?.deviceId as string,
       });
       if (newTokensResult.status !== ResultStatus.Success) {
         return {
@@ -385,7 +382,6 @@ export const authService = {
       const { refreshToken: newRefreshToken } = newTokensResult.data;
       const updateRefreshTokenVersionResult = await this.updateRefreshTokenVersion({
         newRefreshToken: newRefreshToken,
-        oldRefreshTokenIat: generateIsoStringFromSeconds(+isRefreshTokenValidResult.data.iat),
       });
       if (updateRefreshTokenVersionResult.status !== ResultStatus.Success) {
         return {

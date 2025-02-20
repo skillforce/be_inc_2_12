@@ -20,17 +20,15 @@ export const authRepository = {
     device_id,
     newVersionIat,
     newVersionExp,
-    prevRefreshTokenIat,
   }: {
     device_id: string;
     newVersionIat: string;
     newVersionExp: string;
-    prevRefreshTokenIat: string;
   }) {
     const result = await db
       .getCollections()
       .authMetaCollection.updateOne(
-        { device_id, iat: prevRefreshTokenIat },
+        { device_id },
         { $set: { iat: newVersionIat, exp: newVersionExp } },
       );
 
