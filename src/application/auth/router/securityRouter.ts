@@ -27,7 +27,9 @@ securityRouter.get('/devices', async (req: Request, res: Response) => {
     res.sendStatus(HttpStatuses.Unauthorized);
     return;
   }
-  const sessions = await authQueryRepository.getAllSessions();
+  const sessions = await authQueryRepository.getAllSessionsForCurrentUser({
+    userId: isRefreshTokenValidResult.data!.userId,
+  });
 
   res.status(HttpStatuses.Success).send(sessions);
 });

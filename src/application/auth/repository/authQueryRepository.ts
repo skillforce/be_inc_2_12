@@ -2,8 +2,11 @@ import { db } from '../../../db/mongo-db';
 import { AuthMetaDBModel, SessionsViewModel } from '../types/types';
 
 export const authQueryRepository = {
-  async getAllSessions(): Promise<SessionsViewModel[]> {
-    const allSessionsFromDb = await db.getCollections().authMetaCollection.find().toArray();
+  async getAllSessionsForCurrentUser({ userId }: { userId: string }): Promise<SessionsViewModel[]> {
+    const allSessionsFromDb = await db
+      .getCollections()
+      .authMetaCollection.find({ userId })
+      .toArray();
     return allSessionsFromDb.map(this.mapSessionToOutput);
   },
 
