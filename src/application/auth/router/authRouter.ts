@@ -19,6 +19,7 @@ import { createErrorObject, toObjectId } from '../../../common/helpers/helper';
 import { cookieHandler } from '../../../common/refreshToken/refreshToken';
 import { getClientInfo } from '../../../common/helpers/getClientInfoFromRequest';
 import { delay } from '../../../../__tests__/utils/test-helpers';
+import { jwtService } from '../../../common/adapters/jwt.service';
 
 export const authRouter = Router({});
 
@@ -48,6 +49,7 @@ authRouter.post(
 
 authRouter.post('/refresh-token', async (req: Request, res: Response) => {
   const refreshToken = cookieHandler.getRefreshToken(req);
+  console.log(await jwtService.verifyRefreshToken(refreshToken!));
   if (!refreshToken) {
     res.sendStatus(HttpStatuses.Unauthorized);
     return;

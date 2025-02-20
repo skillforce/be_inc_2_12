@@ -365,11 +365,15 @@ describe('/login', () => {
     await db.drop();
     const firstUser = await createAndLoginUser();
     const secondUser = await createAndLoginUser();
-    const thirdUser = await createAndLoginUser();
-    const fourthUser = await createAndLoginUser();
 
     const activeSessionsOne = await req
       .get(`${PATHS.SECURITY}/devices`)
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', firstUser.headers['set-cookie'][0])
+      .expect(200);
+
+    const refresh = await req
+      .post(PATHS.AUTH.REFRESH_TOKEN)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
       .expect(200);
@@ -392,7 +396,7 @@ describe('/login', () => {
       .set('Cookie', secondUser.headers['set-cookie'][0])
       .expect(200);
 
-    expect(activeSessionsOne.body.length).toBe(4);
-    expect(activeSessionsTwo.body.length).toBe(3);
+    expect(activeSessionsOne.body.length).toBe(2);
+    expect(activeSessionsTwo.body.length).toBe(1);
   });
 });
