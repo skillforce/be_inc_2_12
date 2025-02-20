@@ -13,7 +13,10 @@ import { randomUUID } from 'crypto';
 import { User } from '../../../entities/users/service/user.entity';
 import { authRepository } from '../repository/authRepository';
 import { v4 } from 'uuid';
-import { generateIsoStringFromSeconds } from '../../../common/helpers/helper';
+import {
+  generateIsoStringFromSeconds,
+  nanosecondsStringToISOString,
+} from '../../../common/helpers/helper';
 
 export const authService = {
   async checkUserCredentials(
@@ -299,9 +302,11 @@ export const authService = {
         extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
       };
     }
+
+    const isoStringRefreshTokenVersion = nanosecondsStringToISOString(refreshTokenVersion);
     const deviceSession = await authRepository.getSessionByDeviceId(result.deviceId);
 
-    if (deviceSession && refreshTokenVersion === deviceSession.iat) {
+    if (deviceSession && isoStringRefreshTokenVersion === deviceSession.iat) {
       return {
         status: ResultStatus.Success,
         data: { userId: result.userId, deviceId: result.deviceId, iat_ns: refreshTokenVersion },
@@ -443,7 +448,7 @@ export const authService = {
       return {
         status: ResultStatus.Success,
         data: {
-          iat: decodedToken.iat_ns,
+          iat: nanosecondsStringToISOString(decodedToken.iat_ns),
           user_id: decodedToken.userId,
           exp: generateIsoStringFromSeconds(decodedToken.exp),
           device_id: decodedToken.deviceId,
