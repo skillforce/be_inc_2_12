@@ -12,8 +12,6 @@ import dayjs from 'dayjs';
 import { randomUUID } from 'crypto';
 import { User } from '../../../entities/users/service/user.entity';
 import { authRepository } from '../repository/authRepository';
-import { v4 } from 'uuid';
-import { generateIsoStringFromSeconds } from '../../../common/helpers/helper';
 
 export const authService = {
   async checkUserCredentials(
@@ -300,9 +298,8 @@ export const authService = {
       };
     }
     const deviceSession = await authRepository.getSessionByDeviceId(result.deviceId);
-    const refreshTokenIatIso = generateIsoStringFromSeconds(+refreshTokenVersion);
 
-    if (deviceSession && refreshTokenIatIso === deviceSession.iat) {
+    if (deviceSession && refreshTokenVersion === deviceSession.iat) {
       return {
         status: ResultStatus.Success,
         data: { userId: result.userId, deviceId: result.deviceId, iat: refreshTokenVersion },
@@ -328,10 +325,10 @@ export const authService = {
         extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
       };
     }
-    const refreshTokenIatIso = generateIsoStringFromSeconds(+refreshTokenVersion);
+
     const removeSessionResult = await authRepository.removeSession(
       refreshTokenDeviceId,
-      refreshTokenIatIso,
+      refreshTokenVersion,
     );
     if (!removeSessionResult) {
       return {
@@ -361,11 +358,7 @@ export const authService = {
       };
     }
 
-    if (
-      isRefreshTokenValidResult.data?.userId &&
-      isRefreshTokenValidResult.data?.deviceId &&
-      isRefreshTokenValidResult.data?.iat
-    ) {
+    if (isRefreshTokenValidResult.data?.userId && isRefreshTokenValidResult.data?.deviceId) {
       const newTokensResult = await this.generateTokens({
         userId: isRefreshTokenValidResult.data?.userId as string,
         deviceId: isRefreshTokenValidResult.data?.deviceId as string,
@@ -448,9 +441,9 @@ export const authService = {
       return {
         status: ResultStatus.Success,
         data: {
-          iat: generateIsoStringFromSeconds(decodedToken.iat),
+          iat: decodedToken.iat.toString(),
           user_id: decodedToken.userId,
-          exp: generateIsoStringFromSeconds(decodedToken.exp),
+          exp: decodedToken.exp.toString(), ///!!!!!!!!!!!(presigion)
           device_id: decodedToken.deviceId,
           device_name: device_name ?? 'N/A',
           ip_address: ip_address ?? 'N/A',
