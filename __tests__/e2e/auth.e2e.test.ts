@@ -4,6 +4,7 @@ import { PATHS } from '../../src/common/paths/paths';
 import { db } from '../../src/db/mongo-db';
 import { createAndLoginUser, createUser } from '../utils/userHelpers';
 import { UserDto } from '../utils/testingDtosCreator';
+import { HttpStatuses } from '../../src/common/types/httpStatuses';
 
 const newUser = {
   email: 'testo@gmail.com',
@@ -11,13 +12,7 @@ const newUser = {
   pass: 'Password1!',
 } as UserDto;
 
-const newUser2 = {
-  email: 'tessss@gmail.com',
-  login: 'sssssss',
-  pass: 'Password1!',
-} as UserDto;
-
-describe('/login', () => {
+describe('auth', () => {
   beforeAll(async () => {
     const dbServer = await MongoMemoryServer.create();
     const uri = dbServer.getUri();
@@ -32,7 +27,7 @@ describe('/login', () => {
         loginOrEmail: undefined,
         password: undefined,
       })
-      .expect(400);
+      .expect(HttpStatuses.BadRequest);
   });
   it('should return 200 status code when there are correct loginOrEmail and password', async () => {
     await createUser({ userDto: newUser });
@@ -43,7 +38,7 @@ describe('/login', () => {
         loginOrEmail: newUser.login,
         password: newUser.pass,
       })
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
     const cookies = res.headers['set-cookie'];
     expect(cookies).toBeDefined();
@@ -59,7 +54,7 @@ describe('/login', () => {
         loginOrEmail: newUser.login,
         password: 'assasas',
       })
-      .expect(401);
+      .expect(HttpStatuses.Unauthorized);
   });
   it('should create user with appropriate schema and send email', async () => {
     const userCredentials = {
@@ -68,7 +63,7 @@ describe('/login', () => {
       email: 'testiki@mail.ru',
     };
 
-    await req.post(PATHS.AUTH.REGISTRATION).send(userCredentials).expect(204);
+    await req.post(PATHS.AUTH.REGISTRATION).send(userCredentials).expect(HttpStatuses.NoContent);
   });
   it('should return error and error extension when register user with not uniq login or email', async () => {
     const userCredentials = {
@@ -77,7 +72,10 @@ describe('/login', () => {
       email: 'testiki@mail.ru',
     };
 
-    const res = await req.post(PATHS.AUTH.REGISTRATION).send(userCredentials).expect(400);
+    const res = await req
+      .post(PATHS.AUTH.REGISTRATION)
+      .send(userCredentials)
+      .expect(HttpStatuses.BadRequest);
 
     expect(res.body.errorsMessages).toBeDefined();
     expect(res.body.errorsMessages[0].field).toBe('login');
@@ -90,7 +88,7 @@ describe('/login', () => {
     const res = await req
       .post(PATHS.AUTH.REGISTRATION_EMAIL_RESENDING)
       .send(userCredentials)
-      .expect(400);
+      .expect(HttpStatuses.BadRequest);
 
     expect(res.body.errorsMessages).toBeDefined();
     expect(res.body.errorsMessages[0].field).toBe('email');
@@ -100,7 +98,10 @@ describe('/login', () => {
       code: 'fake_code',
     };
 
-    const res = await req.post(PATHS.AUTH.CONFIRM_REGISTRATION).send(fakeCode).expect(400);
+    const res = await req
+      .post(PATHS.AUTH.CONFIRM_REGISTRATION)
+      .send(fakeCode)
+      .expect(HttpStatuses.BadRequest);
     expect(res.body.errorsMessages).toBeDefined();
     expect(res.body.errorsMessages[0].field).toBe('code');
   });
@@ -114,7 +115,7 @@ describe('/login', () => {
         loginOrEmail: newUser.login,
         password: newUser.pass,
       })
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
     await delay(1000);
 
@@ -122,7 +123,7 @@ describe('/login', () => {
       .post(PATHS.AUTH.REFRESH_TOKEN)
       .set('Cookie', loginResponse.headers['set-cookie'][0])
       .auth(loginResponse.body.accessToken, { type: 'bearer' })
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
     expect(refreshResponse.body.accessToken).toBeDefined();
     expect(refreshResponse.body.accessToken).not.toMatch(loginResponse.body.accessToken);
@@ -131,23 +132,23 @@ describe('/login', () => {
       loginResponse.headers['set-cookie'][0],
     );
   });
-  // it("shouldn't return user info if accessToken is expired", async () => {
-  //   await db.drop();
-  //   await createUser({ userDto: newUser });
-  //
-  //   const loginResponse = await req
-  //     .post(PATHS.AUTH.LOGIN)
-  //     .send({
-  //       loginOrEmail: newUser.login,
-  //       password: newUser.pass,
-  //     })
-  //     .expect(200);
-  //   await delay(10000);
-  //   await req
-  //     .get(PATHS.AUTH.ME)
-  //     .auth(loginResponse.body.accessToken, { type: 'bearer' })
-  //     .expect(401);
-  // }, 12000);
+  it("shouldn't return user info if accessToken is expired", async () => {
+    await db.drop();
+    await createUser({ userDto: newUser });
+
+    const loginResponse = await req
+      .post(PATHS.AUTH.LOGIN)
+      .send({
+        loginOrEmail: newUser.login,
+        password: newUser.pass,
+      })
+      .expect(HttpStatuses.Success);
+    await delay(10000);
+    await req
+      .get(PATHS.AUTH.ME)
+      .auth(loginResponse.body.accessToken, { type: 'bearer' })
+      .expect(401);
+  }, 12000);
   it('should return error when try to logout with invalid refresh token', async () => {
     await db.drop();
     await createUser({ userDto: newUser });
@@ -158,19 +159,19 @@ describe('/login', () => {
         loginOrEmail: newUser.login,
         password: newUser.pass,
       })
-      .expect(200);
+      .expect(HttpStatuses.Success);
     await delay(1000);
     const refreshResponse = await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
       .set('Cookie', loginResponse.headers['set-cookie'][0])
       .auth(loginResponse.body.accessToken, { type: 'bearer' })
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
     await req
       .post(PATHS.AUTH.LOGOUT)
       .set('Cookie', 'refresh-token=frefrefrfrefrefrefre')
       .auth(refreshResponse.body.accessToken, { type: 'bearer' })
-      .expect(401);
+      .expect(HttpStatuses.Unauthorized);
   });
   it('should return error when try to logout with invalid refresh token', async () => {
     await db.drop();
@@ -182,12 +183,12 @@ describe('/login', () => {
         loginOrEmail: newUser.login,
         password: newUser.pass,
       })
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
     await req
       .get(PATHS.AUTH.ME)
       .auth(loginResponse.body.accessToken, { type: 'bearer' })
-      .expect(200);
+      .expect(HttpStatuses.Success);
   });
   it('should login user from different devices', async () => {
     await db.drop();
@@ -200,7 +201,7 @@ describe('/login', () => {
         password: newUser.pass,
       })
       .set('User-Agent', 'CustomUserAgent/1.0')
-      .expect(200);
+      .expect(HttpStatuses.Success);
     await delay(500);
     await req
       .post(PATHS.AUTH.LOGIN)
@@ -209,7 +210,7 @@ describe('/login', () => {
         password: newUser.pass,
       })
       .set('User-Agent', 'CustomUserAgent/2.0')
-      .expect(200);
+      .expect(HttpStatuses.Success);
     await delay(500);
     await req
       .post(PATHS.AUTH.LOGIN)
@@ -218,14 +219,14 @@ describe('/login', () => {
         password: newUser.pass,
       })
       .set('User-Agent', 'CustomUserAgent/3.0')
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
     const result = await req
       .get(`${PATHS.SECURITY}/devices`)
       .auth(loginResponseFirst.body.accessToken, { type: 'bearer' })
       .set('Cookie', loginResponseFirst.headers['set-cookie'][0])
-      .expect(200);
-    expect(result.body.items.length).toBe(3);
+      .expect(HttpStatuses.Success);
+    expect(result.body.length).toBe(3);
   });
   it('should return 429 error when there was more than 5 attempts to login from one IP', async () => {
     await db.drop();
@@ -258,7 +259,7 @@ describe('/login', () => {
       .get(`${PATHS.SECURITY}/devices`)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
     await req
       .delete(`${PATHS.SECURITY}/devices/${activeSessionsResponse.body[0].deviceId}`)
@@ -273,27 +274,31 @@ describe('/login', () => {
     await createAndLoginUser();
     await createAndLoginUser();
 
-    const activeSessions = await req
+    const activeSessionsForUserOne = await req
       .get(`${PATHS.SECURITY}/devices`)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
-      .expect(200);
+      .expect(HttpStatuses.Success);
+    const activeSessionsForSecondUser = await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(secondUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', secondUser.headers['set-cookie'][0])
+      .expect(HttpStatuses.Success);
 
-    expect(activeSessions.body.length).toBe(4);
+    expect(activeSessionsForUserOne.body.length).toBe(1);
+    expect(activeSessionsForSecondUser.body.length).toBe(1);
 
     await req
       .post(PATHS.AUTH.LOGOUT)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
-      .expect(204);
+      .expect(HttpStatuses.NoContent);
 
-    const activeSessionsAfterLogout = await req
+    await req
       .get(`${PATHS.SECURITY}/devices`)
-      .auth(secondUser.body.accessToken, { type: 'bearer' })
-      .set('Cookie', secondUser.headers['set-cookie'][0])
-      .expect(200);
-
-    expect(activeSessionsAfterLogout.body.length).toBe(3);
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', firstUser.headers['set-cookie'][0])
+      .expect(HttpStatuses.Unauthorized);
   });
   it('should refresh session iat and exp when refresh token', async () => {
     await db.drop();
@@ -302,31 +307,27 @@ describe('/login', () => {
     await createAndLoginUser();
     await createAndLoginUser();
 
-    const activeSessions = await req
+    const activeSessionsForFirstUser = await req
       .get(`${PATHS.SECURITY}/devices`)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
-    expect(activeSessions.body.length).toBe(4);
+    expect(activeSessionsForFirstUser.body.length).toBe(1);
 
-    await req
+    const newRefreshTokenFirstUser = await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
     const activeSessionsAfterRefresh = await req
       .get(`${PATHS.SECURITY}/devices`)
-      .auth(secondUser.body.accessToken, { type: 'bearer' })
-      .set('Cookie', secondUser.headers['set-cookie'][0])
-      .expect(200);
+      .auth(newRefreshTokenFirstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', newRefreshTokenFirstUser.headers['set-cookie'][0])
+      .expect(HttpStatuses.Success);
 
-    expect(activeSessionsAfterRefresh.body.length).toBe(4);
-    expect(activeSessions.body[0].deviceId).toEqual(activeSessionsAfterRefresh.body[0].deviceId);
-    expect(activeSessions.body[1].deviceId).toEqual(activeSessionsAfterRefresh.body[1].deviceId);
-    expect(activeSessions.body[2].deviceId).toEqual(activeSessionsAfterRefresh.body[2].deviceId);
-    expect(activeSessions.body[3].deviceId).toEqual(activeSessionsAfterRefresh.body[3].deviceId);
+    expect(activeSessionsAfterRefresh.body.length).toBe(1);
   });
   it('should remove session from db list', async () => {
     await db.drop();
@@ -337,29 +338,27 @@ describe('/login', () => {
       .get(`${PATHS.SECURITY}/devices`)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
-    expect(activeSessions.body.length).toBe(2);
+    expect(activeSessions.body.length).toBe(1);
 
     const updatedFirstUser = await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
     await req
       .delete(`${PATHS.SECURITY}/devices/${activeSessions.body[0].deviceId}`)
       .auth(updatedFirstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', updatedFirstUser.headers['set-cookie'][0])
-      .expect(204);
+      .expect(HttpStatuses.NoContent);
 
-    const activeSessionsAfterRemoving = await req
+    await req
       .get(`${PATHS.SECURITY}/devices`)
-      .auth(secondUser.body.accessToken, { type: 'bearer' })
-      .set('Cookie', secondUser.headers['set-cookie'][0])
-      .expect(200);
-
-    expect(activeSessionsAfterRemoving.body.length).toBe(1);
+      .auth(updatedFirstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', updatedFirstUser.headers['set-cookie'][0])
+      .expect(HttpStatuses.Unauthorized);
   });
   it('should return error when user logout with expired refresh token', async () => {
     await db.drop();
@@ -370,33 +369,33 @@ describe('/login', () => {
       .get(`${PATHS.SECURITY}/devices`)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
-      .expect(200);
-
-    const refresh = await req
-      .post(PATHS.AUTH.REFRESH_TOKEN)
-      .auth(firstUser.body.accessToken, { type: 'bearer' })
-      .set('Cookie', firstUser.headers['set-cookie'][0])
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
     const refreshedFirstUser = await req
       .post(PATHS.AUTH.REFRESH_TOKEN)
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
     await req
       .post(PATHS.AUTH.LOGOUT)
       .auth(refreshedFirstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', refreshedFirstUser.headers['set-cookie'][0])
-      .expect(204);
+      .expect(HttpStatuses.NoContent);
 
     const activeSessionsTwo = await req
       .get(`${PATHS.SECURITY}/devices`)
       .auth(secondUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', secondUser.headers['set-cookie'][0])
-      .expect(200);
+      .expect(HttpStatuses.Success);
 
-    expect(activeSessionsOne.body.length).toBe(2);
+    await req
+      .get(`${PATHS.SECURITY}/devices`)
+      .auth(refreshedFirstUser.body.accessToken, { type: 'bearer' })
+      .set('Cookie', refreshedFirstUser.headers['set-cookie'][0])
+      .expect(HttpStatuses.Unauthorized);
+
+    expect(activeSessionsOne.body.length).toBe(1);
     expect(activeSessionsTwo.body.length).toBe(1);
   });
 });

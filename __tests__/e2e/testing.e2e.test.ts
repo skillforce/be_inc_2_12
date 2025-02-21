@@ -15,9 +15,16 @@ describe('/testing', () => {
     const blogCollectionArray = await db.getCollections().blogCollection.find().toArray();
     const usersCollection = await db.getCollections().usersCollection.find().toArray();
     const commentsCollection = await db.getCollections().commentsCollection.find().toArray();
+    const authMetaCollection = await db.getCollections().authMetaCollection.find().toArray();
+    const triggerAttemptsCollection = await db
+      .getCollections()
+      .triggerAttemptsCollection.find()
+      .toArray();
     expect(postCollectionArray.length).toBe(0);
     expect(blogCollectionArray.length).toBe(0);
     expect(usersCollection.length).toBe(0);
     expect(commentsCollection.length).toBe(0);
+    expect(authMetaCollection.length).toBe(0);
+    expect(triggerAttemptsCollection.length).toBe(0);
   });
 });

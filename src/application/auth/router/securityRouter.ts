@@ -1,19 +1,15 @@
 import { Request, Response, Router } from 'express';
 import { RequestWithParams } from '../../../common/types/request';
-import { cookieHandler } from '../../../common/refreshToken/refreshToken';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
-import { authService } from '../service/authService';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { authQueryRepository } from '../repository/authQueryRepository';
 import { securityService } from '../service/securityService';
 import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
 import {
-  checkIfDeviceIdWithProvidedQueryParamIdExists,
   getDevicesByUserIdRequestValidators,
   removeSessionsByDeviceIdRequestValidators,
   removeSessionsRequestValidators,
 } from '../middlewares/authInputValidationMiddleware';
-import { jwtService } from '../../../common/adapters/jwt.service';
 
 export const securityRouter = Router({});
 
