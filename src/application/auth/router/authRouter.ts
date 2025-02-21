@@ -3,7 +3,9 @@ import { AuthLoginDto, RegisterUserDto } from '../types/types';
 import {
   confirmRegistrationBodyValidators,
   loginBodyValidators,
+  logoutRequestValidators,
   meRequestValidators,
+  refreshTokenGuard,
   registrationBodyValidators,
   resendRegistrationEmailBodyValidators,
 } from '../middlewares/authInputValidationMiddleware';
@@ -18,8 +20,6 @@ import { UsersOutputMapEnum } from '../../../entities/users';
 import { createErrorObject, toObjectId } from '../../../common/helpers/helper';
 import { cookieHandler } from '../../../common/refreshToken/refreshToken';
 import { getClientInfo } from '../../../common/helpers/getClientInfoFromRequest';
-import { delay } from '../../../../__tests__/utils/test-helpers';
-import { jwtService } from '../../../common/adapters/jwt.service';
 
 export const authRouter = Router({});
 
@@ -47,14 +47,13 @@ authRouter.post(
   },
 );
 
-authRouter.post('/refresh-token', async (req: Request, res: Response) => {
-  const refreshToken = cookieHandler.getRefreshToken(req);
-  if (!refreshToken) {
-    res.sendStatus(HttpStatuses.Unauthorized);
-    return;
-  }
+authRouter.post('/refresh-token', refreshTokenGuard, async (req: Request, res: Response) => {
+  const { sessionData } = req;
 
-  const newTokensResult = await authService.refreshTokens(refreshToken);
+  const newTokensResult = await authService.refreshTokens(
+    sessionData!.userId,
+    sessionData!.deviceId,
+  );
   if (newTokensResult.status !== ResultStatus.Success) {
     res.sendStatus(resultCodeToHttpException(newTokensResult.status));
     return;
@@ -64,19 +63,10 @@ authRouter.post('/refresh-token', async (req: Request, res: Response) => {
   res.status(HttpStatuses.Success).send({ accessToken: newTokensResult.data!.accessToken });
 });
 
-authRouter.post('/logout', async (req: Request, res: Response) => {
-  const refreshToken = cookieHandler.getRefreshToken(req);
+authRouter.post('/logout', logoutRequestValidators, async (req: Request, res: Response) => {
+  const { sessionData } = req;
 
-  if (!refreshToken) {
-    res.sendStatus(HttpStatuses.Unauthorized);
-    return;
-  }
-  const isTokenValidResult = await authService.checkRefreshToken(refreshToken);
-  if (isTokenValidResult.status !== ResultStatus.Success) {
-    res.sendStatus(HttpStatuses.Unauthorized);
-    return;
-  }
-  const result = await authService.removeSession(refreshToken);
+  const result = await authService.removeSession(sessionData!.iat, sessionData!.deviceId);
   if (result.status !== ResultStatus.Success) {
     res.sendStatus(HttpStatuses.Unauthorized);
     return;

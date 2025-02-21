@@ -5,6 +5,7 @@ import { ValidationChain } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { authRepository } from '../repository/authRepository';
 import { createAttemptLimitMiddleware } from '../../../common/middlewares/attemptLimitMiddleware';
+import { checkRefreshToken } from '../guards/refreshToken.guard';
 
 const loginOrEmailErrors: ErrorMessages = {
   required: 'loginOrEmail field is required',
@@ -30,9 +31,26 @@ const codeErrors: ErrorMessages = {
   required: 'code field is required',
   isString: 'code should be provided as a string',
 };
-const deviceIdErrors: ErrorMessages = {
-  required: 'deviceId field is required',
-  isString: 'deviceId should be provided as a string',
+
+export const checkIfDeviceIdWithProvidedQueryParamIdExists = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const paramId = req.params.id;
+
+  if (!paramId) {
+    res.sendStatus(404);
+    return;
+  }
+
+  const isSessionExist = await authRepository.getSessionByDeviceId(paramId);
+  if (!isSessionExist) {
+    res.sendStatus(404);
+    return;
+  }
+
+  return next();
 };
 
 const additionalLoginRules: ((chain: ValidationChain) => ValidationChain)[] = [
@@ -75,11 +93,6 @@ export const passwordRegistrationBodyValidationMiddleware = basicStringFieldMidd
   minLength: 6,
 });
 
-export const deviceIdBodyValidationMiddleware = basicStringFieldMiddlewareGenerator({
-  fieldName: 'deviceId',
-  errorMessages: deviceIdErrors,
-});
-
 export const loginBodyValidators = [
   loginOrEmailBodyValidationMiddleware,
   passwordLoginBodyValidationMiddleware,
@@ -108,23 +121,11 @@ export const resendRegistrationEmailBodyValidators = [
 
 export const meRequestValidators = [accessTokenGuard];
 
-export const checkIfDeviceIdWithProvidedQueryParamIdExists = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const paramId = req.params.id;
-
-  if (!paramId) {
-    res.sendStatus(404);
-    return;
-  }
-
-  const isSessionExist = await authRepository.getSessionByDeviceId(paramId);
-  if (!isSessionExist) {
-    res.sendStatus(404);
-    return;
-  }
-
-  return next();
-};
+export const refreshTokenGuard = [checkRefreshToken];
+export const logoutRequestValidators = [checkRefreshToken];
+export const getDevicesByUserIdRequestValidators = [checkRefreshToken];
+export const removeSessionsRequestValidators = [checkRefreshToken];
+export const removeSessionsByDeviceIdRequestValidators = [
+  checkRefreshToken,
+  checkIfDeviceIdWithProvidedQueryParamIdExists,
+];

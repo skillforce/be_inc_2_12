@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import { PATHS } from './common/paths/paths';
 import { testingRouter } from './application/testing/router/testingRouter';
@@ -8,8 +8,6 @@ import { usersRouter } from './entities/users';
 import { authRouter, securityRouter } from './application/auth';
 import { commentsRouter } from './entities/comments';
 import cookieParser from 'cookie-parser';
-import { cookieHandler } from './common/refreshToken/refreshToken';
-import { jwtService } from './common/adapters/jwt.service';
 
 export const initApp = () => {
   const app = express();
@@ -18,22 +16,6 @@ export const initApp = () => {
   app.use(cookieParser());
   app.use(cors());
   app.set('trust proxy', true);
-
-  app.use(async (req: Request, res: Response, next: NextFunction) => {
-    console.log(`Incoming Request: ${req.method} ${req.url}`);
-    console.log('Request Body:', req.body);
-    const refreshToken = cookieHandler.getRefreshToken(req);
-    console.log('tokenInfo:', await jwtService.verifyRefreshToken(refreshToken!));
-
-    // Capture response body
-    const oldSend = res.send;
-    res.send = function (this: Response, data: any) {
-      console.log('Response:', data);
-      return oldSend.call(this, data);
-    };
-
-    next();
-  });
 
   app.use(PATHS.AUTH.COMMON, authRouter);
   app.use(PATHS.BLOGS, blogRouter);

@@ -12,7 +12,6 @@ import dayjs from 'dayjs';
 import { randomUUID } from 'crypto';
 import { User } from '../../../entities/users/service/user.entity';
 import { authRepository } from '../repository/authRepository';
-import { v4 } from 'uuid';
 import { generateIsoStringFromSeconds } from '../../../common/helpers/helper';
 
 export const authService = {
@@ -277,62 +276,9 @@ export const authService = {
       extensions: [],
     };
   },
-  async checkRefreshToken(
-    refreshToken: string,
-  ): Promise<Result<null | { userId: string; deviceId: string; iat: string }>> {
-    const result = await jwtService.verifyRefreshToken(refreshToken);
-    if (!result) {
-      return {
-        status: ResultStatus.Unauthorized,
-        data: null,
-        errorMessage: 'Unauthorized',
-        extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
-      };
-    }
-    const refreshTokenVersion = await jwtService.getRefreshTokenVersion(refreshToken);
-
-    if (!refreshTokenVersion) {
-      return {
-        status: ResultStatus.Unauthorized,
-        data: null,
-        errorMessage: 'Unauthorized',
-        extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
-      };
-    }
-    const deviceSession = await authRepository.getSessionByDeviceId(result.deviceId);
-    const refreshTokenIatIso = generateIsoStringFromSeconds(+refreshTokenVersion);
-
-    if (deviceSession && refreshTokenIatIso === deviceSession.iat) {
-      return {
-        status: ResultStatus.Success,
-        data: { userId: result.userId, deviceId: result.deviceId, iat: refreshTokenVersion },
-        extensions: [],
-      };
-    }
-    return {
-      status: ResultStatus.Unauthorized,
-      data: null,
-      errorMessage: 'Unauthorized',
-      extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
-    };
-  },
-  async removeSession(refreshToken: string): Promise<Result<boolean>> {
-    const refreshTokenVersion = await jwtService.getRefreshTokenVersion(refreshToken);
-    const refreshTokenDeviceId = await jwtService.getRefreshTokenDeviceId(refreshToken);
-
-    if (!refreshTokenVersion || !refreshTokenDeviceId) {
-      return {
-        status: ResultStatus.Unauthorized,
-        data: false,
-        errorMessage: 'Unauthorized',
-        extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
-      };
-    }
-    const refreshTokenIatIso = generateIsoStringFromSeconds(+refreshTokenVersion);
-    const removeSessionResult = await authRepository.removeSession(
-      refreshTokenDeviceId,
-      refreshTokenIatIso,
-    );
+  async removeSession(iat: number, deviceId: string): Promise<Result<boolean>> {
+    const refreshTokenIatIso = generateIsoStringFromSeconds(iat);
+    const removeSessionResult = await authRepository.removeSession(deviceId, refreshTokenIatIso);
     if (!removeSessionResult) {
       return {
         status: ResultStatus.ServerError,
@@ -349,60 +295,39 @@ export const authService = {
     };
   },
   async refreshTokens(
-    refreshToken: string,
+    userId: string,
+    deviceId: string,
   ): Promise<Result<{ accessToken: string; refreshToken: string } | null>> {
-    const isRefreshTokenValidResult = await this.checkRefreshToken(refreshToken);
-    if (isRefreshTokenValidResult.status !== ResultStatus.Success) {
+    const newTokensResult = await this.generateTokens({
+      userId,
+      deviceId,
+    });
+
+    if (newTokensResult.status !== ResultStatus.Success) {
       return {
-        status: ResultStatus.Unauthorized,
+        status: ResultStatus.ServerError,
         data: null,
-        errorMessage: 'Unauthorized',
-        extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
-      };
-    }
-
-    if (
-      isRefreshTokenValidResult.data?.userId &&
-      isRefreshTokenValidResult.data?.deviceId &&
-      isRefreshTokenValidResult.data?.iat
-    ) {
-      const newTokensResult = await this.generateTokens({
-        userId: isRefreshTokenValidResult.data?.userId as string,
-        deviceId: isRefreshTokenValidResult.data?.deviceId as string,
-      });
-      if (newTokensResult.status !== ResultStatus.Success) {
-        return {
-          status: ResultStatus.ServerError,
-          data: null,
-          errorMessage: 'Internal server error occurred',
-          extensions: [],
-        };
-      }
-
-      const { refreshToken: newRefreshToken } = newTokensResult.data;
-      const updateRefreshTokenVersionResult = await this.updateRefreshTokenVersion({
-        newRefreshToken: newRefreshToken,
-      });
-      if (updateRefreshTokenVersionResult.status !== ResultStatus.Success) {
-        return {
-          status: ResultStatus.ServerError,
-          data: null,
-          errorMessage: 'Internal server error occurred',
-          extensions: [],
-        };
-      }
-      return {
-        status: ResultStatus.Success,
-        data: newTokensResult.data,
+        errorMessage: 'Internal server error occurred',
         extensions: [],
       };
     }
 
+    const { refreshToken: newRefreshToken } = newTokensResult.data;
+    const updateRefreshTokenVersionResult = await this.updateRefreshTokenVersion({
+      newRefreshToken: newRefreshToken,
+    });
+    if (updateRefreshTokenVersionResult.status !== ResultStatus.Success) {
+      return {
+        status: ResultStatus.ServerError,
+        data: null,
+        errorMessage: 'Internal server error occurred',
+        extensions: [],
+      };
+    }
     return {
-      status: ResultStatus.Unauthorized,
-      data: null,
-      errorMessage: 'Unauthorized',
-      extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
+      status: ResultStatus.Success,
+      data: newTokensResult.data,
+      extensions: [],
     };
   },
   async initializeSession(sessionBody: SessionDto): Promise<Result<string | null>> {

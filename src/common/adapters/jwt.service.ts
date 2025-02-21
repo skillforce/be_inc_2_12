@@ -2,11 +2,10 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { APP_CONFIG } from '../../app_config';
 
-export interface TokenBodyPayload {
+interface CustomJwtPayload extends JwtPayload {
   userId: string;
-  id: string;
-  iat: string;
-  exp: string;
+  deviceId: string;
+  internalId: string;
 }
 
 export const jwtService = {
@@ -24,9 +23,9 @@ export const jwtService = {
       },
     );
   },
-  async decodeToken(token: string): Promise<JwtPayload | null | string> {
+  async decodeToken(token: string): Promise<CustomJwtPayload | null> {
     try {
-      return jwt.decode(token);
+      return jwt.decode(token) as CustomJwtPayload | null;
     } catch (e: unknown) {
       console.error("Can't decode token", e);
       return null;

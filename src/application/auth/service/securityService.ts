@@ -4,22 +4,13 @@ import { ResultStatus } from '../../../common/result/resultCode';
 import { authRepository } from '../repository/authRepository';
 
 export const securityService = {
-  async removeAllUserSessionsExceptCurrentOne(refreshToken: string): Promise<Result<boolean>> {
-    const isRefreshTokenValidResult = await authService.checkRefreshToken(refreshToken);
-    if (
-      isRefreshTokenValidResult.status !== ResultStatus.Success ||
-      !isRefreshTokenValidResult.data?.userId ||
-      !isRefreshTokenValidResult.data?.deviceId
-    ) {
-      return {
-        status: ResultStatus.Unauthorized,
-        data: false,
-        extensions: [],
-      };
-    }
+  async removeAllUserSessionsExceptCurrentOne(
+    userId: string,
+    deviceId: string,
+  ): Promise<Result<boolean>> {
     const removeResult = await authRepository.removeAllUserSessionsExceptCurrentOne(
-      isRefreshTokenValidResult.data?.userId,
-      isRefreshTokenValidResult.data?.deviceId,
+      userId,
+      deviceId,
     );
     if (!removeResult) {
       return {
@@ -35,9 +26,7 @@ export const securityService = {
       extensions: [],
     };
   },
-  async removeSessionByDeviceId(refreshToken: string, deviceId: string): Promise<Result<boolean>> {
-    const isRefreshTokenValidResult = await authService.checkRefreshToken(refreshToken);
-
+  async removeSessionByDeviceId(userId: string, deviceId: string): Promise<Result<boolean>> {
     const sessionByDeviceId = await authRepository.getSessionByDeviceId(deviceId);
 
     if (!sessionByDeviceId) {
@@ -47,19 +36,8 @@ export const securityService = {
         extensions: [],
       };
     }
-    if (
-      isRefreshTokenValidResult.status !== ResultStatus.Success ||
-      !isRefreshTokenValidResult.data?.userId
-    ) {
-      return {
-        status: ResultStatus.Unauthorized,
-        data: false,
-        extensions: [],
-      };
-    }
 
-    const isCurrentUserOwnSession =
-      isRefreshTokenValidResult.data.userId === sessionByDeviceId.user_id;
+    const isCurrentUserOwnSession = userId === sessionByDeviceId.user_id;
 
     if (!isCurrentUserOwnSession) {
       return {
