@@ -5,14 +5,13 @@ import { ObjectId } from 'mongodb';
 import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
-import { blogQueryRepository } from '../repository/blogQueryRepository';
 
-export const blogService = {
-  addBlog: async ({
+class BlogService {
+  async addBlog({
     name,
     websiteUrl,
     description,
-  }: AddUpdateBlogRequiredInputData): Promise<Result<ObjectId | null>> => {
+  }: AddUpdateBlogRequiredInputData): Promise<Result<ObjectId | null>> {
     const newBlogData: AddBlogDto = {
       name,
       websiteUrl,
@@ -33,8 +32,8 @@ export const blogService = {
     }
 
     return { status: ResultStatus.Success, data: createdBlogId, extensions: [] };
-  },
-  checkIsBlogWithIdExist: async (id: string): Promise<Result<boolean>> => {
+  }
+  async checkIsBlogWithIdExist(id: string): Promise<Result<boolean>> {
     const _id = toObjectId(id);
     if (!_id) {
       return {
@@ -58,12 +57,12 @@ export const blogService = {
       data: true,
       extensions: [],
     };
-  },
+  }
 
-  updateBlog: async (
+  async updateBlog(
     id: string,
     videoDataForUpdate: AddUpdateBlogRequiredInputData,
-  ): Promise<Result<boolean>> => {
+  ): Promise<Result<boolean>> {
     const _id = toObjectId(id);
     if (!_id) {
       return {
@@ -88,9 +87,9 @@ export const blogService = {
       data: isBlogUpdated,
       extensions: [],
     };
-  },
+  }
 
-  deleteBlog: async (id: string): Promise<Result<boolean>> => {
+  async deleteBlog(id: string): Promise<Result<boolean>> {
     const _id = toObjectId(id);
 
     if (!_id) {
@@ -118,5 +117,7 @@ export const blogService = {
       data: isBlogDeleted,
       extensions: [],
     };
-  },
-};
+  }
+}
+
+export const blogService = new BlogService();

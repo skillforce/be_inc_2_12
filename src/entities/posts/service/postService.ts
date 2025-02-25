@@ -6,11 +6,11 @@ import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 
-export const postService = {
-  addPost: async (
+class PostService {
+  async addPost(
     { title, content, shortDescription }: Omit<AddUpdatePostRequiredInputData, 'blogId'>,
     blog: BlogViewModel,
-  ): Promise<Result<ObjectId | null>> => {
+  ): Promise<Result<ObjectId | null>> {
     const newPostData: AddBlogDto = {
       title,
       shortDescription,
@@ -32,13 +32,13 @@ export const postService = {
     }
 
     return { status: ResultStatus.Success, data: newPostId, extensions: [] };
-  },
+  }
 
-  updatePost: async (
+  async updatePost(
     id: ObjectId,
     blog: BlogViewModel,
     videoDataForUpdate: AddUpdatePostRequiredInputData,
-  ): Promise<Result<boolean>> => {
+  ): Promise<Result<boolean>> {
     const updatePostData = { ...videoDataForUpdate, blogId: blog.id, blogName: blog.name };
 
     const updatedPostId = await postRepository.updatePost(id, updatePostData);
@@ -56,9 +56,9 @@ export const postService = {
       data: true,
       extensions: [],
     };
-  },
+  }
 
-  deletePost: async (id: string): Promise<Result<boolean>> => {
+  async deletePost(id: string): Promise<Result<boolean>> {
     const _id = toObjectId(id);
     if (!_id) {
       return {
@@ -85,5 +85,7 @@ export const postService = {
       data: true,
       extensions: [],
     };
-  },
-};
+  }
+}
+
+export const postService = new PostService();

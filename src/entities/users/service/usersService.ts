@@ -7,7 +7,7 @@ import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { User } from './user.entity';
 
-export const usersService = {
+class UsersService {
   async addUser({
     login,
     password,
@@ -69,8 +69,8 @@ export const usersService = {
       data: createdUserId,
       extensions: [],
     };
-  },
-  deleteUser: async (id: string): Promise<Result<boolean>> => {
+  }
+  async deleteUser(id: string): Promise<Result<boolean>> {
     const _id = toObjectId(id);
 
     if (!_id) {
@@ -97,5 +97,7 @@ export const usersService = {
       data: isUserDeleted,
       extensions: [],
     };
-  },
-};
+  }
+}
+
+export const usersService = new UsersService();

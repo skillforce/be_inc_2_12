@@ -2,8 +2,8 @@ import { AddBlogDto, AddUpdatePostRequiredInputData } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
 import { db } from '../../../db/mongo-db';
 
-export const postRepository = {
-  addPost: async (newPostData: AddBlogDto): Promise<ObjectId | null> => {
+class PostRepository {
+  async addPost(newPostData: AddBlogDto): Promise<ObjectId | null> {
     const result = await db
       .getCollections()
       .postCollection.insertOne(newPostData as WithId<AddBlogDto>);
@@ -13,12 +13,12 @@ export const postRepository = {
     }
 
     return result.insertedId;
-  },
+  }
 
-  updatePost: async (
+  async updatePost(
     _id: ObjectId,
     postDataForUpdates: AddUpdatePostRequiredInputData,
-  ): Promise<boolean> => {
+  ): Promise<boolean> {
     const result = await db.getCollections().postCollection.updateOne(
       { _id },
       {
@@ -30,10 +30,12 @@ export const postRepository = {
       },
     );
     return result.matchedCount === 1;
-  },
+  }
 
-  deletePost: async (_id: ObjectId): Promise<boolean> => {
+  async deletePost(_id: ObjectId): Promise<boolean> {
     const result = await db.getCollections().postCollection.deleteOne({ _id });
     return result.deletedCount === 1;
-  },
-};
+  }
+}
+
+export const postRepository = new PostRepository();

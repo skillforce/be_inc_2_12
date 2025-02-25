@@ -4,11 +4,7 @@ import { db } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
-export const blogQueryRepository = {
-  async getAllBlogs(): Promise<BlogViewModel[]> {
-    const allBlogsFromDb = await db.getCollections().blogCollection.find().toArray();
-    return allBlogsFromDb.map(this.mapBlogToOutput);
-  },
+class BlogQueryRepository {
   async getPaginatedBlogs(
     query: Record<string, string | undefined>,
     additionalFilters: Record<string, any> = {},
@@ -38,7 +34,7 @@ export const blogQueryRepository = {
       totalCount,
       items: itemsForOutput,
     };
-  },
+  }
 
   async getBlogById(_id: ObjectId): Promise<BlogViewModel | null> {
     const blogById = await db.getCollections().blogCollection.findOne({ _id });
@@ -47,11 +43,11 @@ export const blogQueryRepository = {
       return null;
     }
     return this.mapBlogToOutput(blogById);
-  },
+  }
 
   async countBlogs(filter: Record<string, any>): Promise<number> {
     return db.getCollections().blogCollection.countDocuments(filter);
-  },
+  }
   mapBlogToOutput(blog: WithId<BlogDbModel>): BlogViewModel {
     return {
       id: blog._id.toString(),
@@ -61,5 +57,7 @@ export const blogQueryRepository = {
       createdAt: blog.createdAt,
       isMembership: blog.isMembership,
     };
-  },
-};
+  }
+}
+
+export const blogQueryRepository = new BlogQueryRepository();

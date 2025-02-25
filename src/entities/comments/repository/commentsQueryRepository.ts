@@ -5,7 +5,7 @@ import { PaginatedData } from '../../../common/types/pagination';
 import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
-export const commentsQueryRepository = {
+class CommentsQueryRepository {
   async getCommentById(_id: ObjectId): Promise<CommentViewModel | null> {
     const commentById = await db.getCollections().commentsCollection.findOne({ _id });
 
@@ -13,7 +13,7 @@ export const commentsQueryRepository = {
       return null;
     }
     return this.mapCommentToOutput(commentById);
-  },
+  }
   async getPaginatedCommentsByPostId(
     query: SortQueryFieldsType,
     postId: ObjectId,
@@ -43,10 +43,10 @@ export const commentsQueryRepository = {
       totalCount,
       items: itemsForOutput,
     };
-  },
+  }
   async countComments(filter: Record<string, any>): Promise<number> {
     return db.getCollections().commentsCollection.countDocuments(filter);
-  },
+  }
 
   mapCommentToOutput(comment: WithId<CommentDBModel>): CommentViewModel {
     return {
@@ -55,5 +55,7 @@ export const commentsQueryRepository = {
       content: comment.content,
       createdAt: comment.createdAt,
     };
-  },
-};
+  }
+}
+
+export const commentsQueryRepository = new CommentsQueryRepository();

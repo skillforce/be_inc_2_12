@@ -12,12 +12,12 @@ import { ResultStatus } from '../../../common/result/resultCode';
 import { UserDBModel } from '../../users';
 import { toObjectId } from '../../../common/helpers/helper';
 
-export const commentsService = {
-  createComment: async ({
+class CommentsService {
+  async createComment({
     userId,
     postId,
     content,
-  }: AddCommentDto): Promise<Result<ObjectId | null>> => {
+  }: AddCommentDto): Promise<Result<ObjectId | null>> {
     const creator = (await usersRepository.getUserById(userId)) as UserDBModel;
 
     const commentatorInfo: CommentatorInfo = {
@@ -49,13 +49,13 @@ export const commentsService = {
       errorMessage: '',
       extensions: [],
     };
-  },
+  }
 
-  updateComment: async (
+  async updateComment(
     commentId: string,
     videoDataForUpdate: AddUpdateCommentInputData,
     userId: string,
-  ): Promise<Result<boolean>> => {
+  ): Promise<Result<boolean>> {
     const commentObjectId = toObjectId(commentId);
     const userObjectId = toObjectId(userId);
 
@@ -107,11 +107,8 @@ export const commentsService = {
       errorMessage: '',
       extensions: [],
     };
-  },
-  checkIsUserOwnComment: async (
-    commentId: ObjectId,
-    userId: ObjectId,
-  ): Promise<Result<boolean>> => {
+  }
+  async checkIsUserOwnComment(commentId: ObjectId, userId: ObjectId): Promise<Result<boolean>> {
     const comment = await commentsRepository.getCommentById(commentId);
     const user = await usersRepository.getUserById(userId);
 
@@ -139,7 +136,7 @@ export const commentsService = {
       errorMessage: '',
       extensions: [],
     };
-  },
+  }
 
   async deleteComment(commentId: string, userId: string): Promise<Result<boolean>> {
     const commentObjectId = toObjectId(commentId);
@@ -176,5 +173,7 @@ export const commentsService = {
       errorMessage: '',
       extensions: [],
     };
-  },
-};
+  }
+}
+
+export const commentsService = new CommentsService();

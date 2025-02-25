@@ -14,7 +14,7 @@ import { User } from '../../../entities/users/service/user.entity';
 import { authRepository } from '../repository/authRepository';
 import { generateIsoStringFromSeconds } from '../../../common/helpers/helper';
 
-export const authService = {
+class AuthService {
   async checkUserCredentials(
     loginOrEmail: string,
     password: string,
@@ -55,7 +55,7 @@ export const authService = {
       data: user,
       extensions: [],
     };
-  },
+  }
 
   async registerUser({ login, email, password }: AddUserRequiredInputData): Promise<Result> {
     const isLoginUnique = await usersRepository.isFieldValueUnique('login', login);
@@ -115,14 +115,14 @@ export const authService = {
       data: null,
       extensions: [],
     };
-  },
+  }
   sendConfirmationEmail(email: string, code: string): void {
     const emailLayout = authEmails.registrationEmail(code);
     nodemailerService
       .sendEmail(email, emailLayout)
       .then()
       .catch((e) => console.log(e));
-  },
+  }
   async resendConfirmationEmail(email: string): Promise<Result> {
     const user = await usersRepository.findByLoginOrEmail(email);
 
@@ -165,7 +165,7 @@ export const authService = {
       extensions: [],
       errorMessage: '',
     };
-  },
+  }
   async confirmRegistrationCode(code: string): Promise<Result> {
     const isUuid = new RegExp(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
@@ -222,7 +222,7 @@ export const authService = {
       data: null,
       extensions: [],
     };
-  },
+  }
   async generateTokens({
     userId,
     deviceId,
@@ -237,7 +237,7 @@ export const authService = {
       data: { accessToken, refreshToken },
       extensions: [],
     };
-  },
+  }
   async updateRefreshTokenVersion({
     newRefreshToken,
   }: {
@@ -275,7 +275,7 @@ export const authService = {
       data: null,
       extensions: [],
     };
-  },
+  }
   async removeSession(iat: number, deviceId: string): Promise<Result<boolean>> {
     const refreshTokenIatIso = generateIsoStringFromSeconds(iat);
     const removeSessionResult = await authRepository.removeSession(deviceId, refreshTokenIatIso);
@@ -293,7 +293,7 @@ export const authService = {
       data: true,
       extensions: [],
     };
-  },
+  }
   async refreshTokens(
     userId: string,
     deviceId: string,
@@ -329,7 +329,7 @@ export const authService = {
       data: newTokensResult.data,
       extensions: [],
     };
-  },
+  }
   async initializeSession(sessionBody: SessionDto): Promise<Result<string | null>> {
     const sessionId = await authRepository.addSession(sessionBody);
     if (!sessionId) {
@@ -354,7 +354,7 @@ export const authService = {
       data: createdSession.device_id,
       extensions: [],
     };
-  },
+  }
   async generateSessionBody(
     refreshToken: string,
     device_name?: string,
@@ -390,7 +390,7 @@ export const authService = {
       errorMessage: 'JWT service error',
       extensions: [{ field: 'refreshToken', message: 'JWT service error' }],
     };
-  },
+  }
   async loginUser({
     loginOrEmail,
     password,
@@ -447,5 +447,7 @@ export const authService = {
       data: { accessToken, refreshToken, device_id: initializeSessionResult.data! },
       extensions: [],
     };
-  },
-};
+  }
+}
+
+export const authService = new AuthService();

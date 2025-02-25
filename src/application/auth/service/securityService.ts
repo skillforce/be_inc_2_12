@@ -3,7 +3,7 @@ import { authService } from './authService';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { authRepository } from '../repository/authRepository';
 
-export const securityService = {
+class SecurityService {
   async removeAllUserSessionsExceptCurrentOne(
     userId: string,
     deviceId: string,
@@ -25,7 +25,7 @@ export const securityService = {
       data: true,
       extensions: [],
     };
-  },
+  }
   async removeSessionByDeviceId(userId: string, deviceId: string): Promise<Result<boolean>> {
     const sessionByDeviceId = await authRepository.getSessionByDeviceId(deviceId);
 
@@ -61,5 +61,7 @@ export const securityService = {
       data: true,
       extensions: [],
     };
-  },
-};
+  }
+}
+
+export const securityService = new SecurityService();

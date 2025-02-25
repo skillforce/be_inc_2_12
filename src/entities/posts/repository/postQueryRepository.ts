@@ -4,7 +4,7 @@ import { db } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
-export const postQueryRepository = {
+class PostQueryRepository {
   async getPaginatedPosts(
     query: Record<string, string | undefined>,
     filter: Record<string, any> = {},
@@ -32,17 +32,17 @@ export const postQueryRepository = {
       totalCount,
       items: itemsForOutput,
     };
-  },
+  }
   async getPostById(_id: ObjectId): Promise<PostViewModel | null> {
     const postById = await db.getCollections().postCollection.findOne({ _id });
     if (!postById) {
       return null;
     }
     return this.mapPostToOutput(postById);
-  },
+  }
   async countPosts(filter: Record<string, any>): Promise<number> {
     return db.getCollections().postCollection.countDocuments(filter);
-  },
+  }
 
   mapPostToOutput(post: PostDBModel): PostViewModel {
     return {
@@ -54,5 +54,7 @@ export const postQueryRepository = {
       blogName: post.blogName,
       createdAt: post.createdAt,
     };
-  },
-};
+  }
+}
+
+export const postQueryRepository = new PostQueryRepository();

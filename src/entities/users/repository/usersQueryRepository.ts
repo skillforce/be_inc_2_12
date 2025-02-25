@@ -10,7 +10,7 @@ import { db } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
-export const usersQueryRepository = {
+class UsersQueryRepository {
   async getUserById(
     _id: ObjectId,
     mapType: UsersOutputMapEnum = UsersOutputMapEnum.VIEW,
@@ -27,7 +27,7 @@ export const usersQueryRepository = {
       case UsersOutputMapEnum.AUTH:
         return this.mapUsersToAuthOutput(userById);
     }
-  },
+  }
 
   async getPaginatedUsers(
     query: GetPaginatedUsersQueryInterface,
@@ -73,11 +73,11 @@ export const usersQueryRepository = {
       totalCount,
       items: itemsForOutput,
     };
-  },
+  }
 
   async countUsers(filter: Record<string, any>): Promise<number> {
     return db.getCollections().usersCollection.countDocuments(filter);
-  },
+  }
 
   mapUsersToOutput(user: WithId<UserDBModel>): UserViewModel {
     return {
@@ -86,12 +86,14 @@ export const usersQueryRepository = {
       email: user.email,
       createdAt: user.createdAt,
     };
-  },
+  }
   mapUsersToAuthOutput(user: WithId<UserDBModel>): UserAuthViewModel {
     return {
       userId: user._id.toString(),
       login: user.login,
       email: user.email,
     };
-  },
-};
+  }
+}
+
+export const usersQueryRepository = new UsersQueryRepository();
