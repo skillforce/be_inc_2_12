@@ -2,7 +2,7 @@ import { db } from '../../../db/mongo-db';
 import { SessionDto } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
 
-class AuthRepository {
+export class AuthRepository {
   async addSession(sessionBody: SessionDto) {
     const result = await db
       .getCollections()
@@ -55,5 +55,3 @@ class AuthRepository {
     return result.deletedCount === 1;
   }
 }
-
-export const authRepository = new AuthRepository();

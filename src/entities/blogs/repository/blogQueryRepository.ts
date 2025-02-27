@@ -4,7 +4,7 @@ import { db } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
-class BlogQueryRepository {
+export class BlogQueryRepository {
   async getPaginatedBlogs(
     query: Record<string, string | undefined>,
     additionalFilters: Record<string, any> = {},
@@ -59,5 +59,3 @@ class BlogQueryRepository {
     };
   }
 }
-
-export const blogQueryRepository = new BlogQueryRepository();

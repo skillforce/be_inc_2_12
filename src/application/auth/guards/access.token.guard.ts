@@ -1,9 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import { jwtService } from '../../../common/adapters/jwt.service';
-import { usersRepository } from '../../../entities/users/repository/usersRepository';
 import { IdType } from '../../../common/types/id';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { toObjectId } from '../../../common/helpers/helper';
+import { UsersRepository } from '../../../entities/users/repository/usersRepository';
+
+const usersRepository = new UsersRepository();
 
 export const accessTokenGuard = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.headers.authorization) {

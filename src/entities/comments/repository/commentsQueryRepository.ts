@@ -5,7 +5,7 @@ import { PaginatedData } from '../../../common/types/pagination';
 import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
-class CommentsQueryRepository {
+export class CommentsQueryRepository {
   async getCommentById(_id: ObjectId): Promise<CommentViewModel | null> {
     const commentById = await db.getCollections().commentsCollection.findOne({ _id });
 
@@ -57,5 +57,3 @@ class CommentsQueryRepository {
     };
   }
 }
-
-export const commentsQueryRepository = new CommentsQueryRepository();

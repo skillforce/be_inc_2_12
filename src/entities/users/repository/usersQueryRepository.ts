@@ -10,7 +10,7 @@ import { db } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
-class UsersQueryRepository {
+export class UsersQueryRepository {
   async getUserById(
     _id: ObjectId,
     mapType: UsersOutputMapEnum = UsersOutputMapEnum.VIEW,
@@ -95,5 +95,3 @@ class UsersQueryRepository {
     };
   }
 }
-
-export const usersQueryRepository = new UsersQueryRepository();

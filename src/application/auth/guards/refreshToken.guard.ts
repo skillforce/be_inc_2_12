@@ -2,8 +2,10 @@ import { cookieHandler } from '../../../common/refreshToken/refreshToken';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { NextFunction, Request, Response } from 'express';
 import { jwtService } from '../../../common/adapters/jwt.service';
-import { authRepository } from '../repository/authRepository';
 import { generateIsoStringFromSeconds } from '../../../common/helpers/helper';
+import { AuthRepository } from '../repository/authRepository';
+
+const authRepository = new AuthRepository();
 
 export const checkRefreshToken = async (req: Request, res: Response, next: NextFunction) => {
   const refreshToken = cookieHandler.getRefreshToken(req);

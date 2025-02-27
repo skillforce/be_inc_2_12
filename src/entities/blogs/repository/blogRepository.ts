@@ -2,7 +2,7 @@ import { AddBlogDto, AddUpdateBlogRequiredInputData } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
 import { db } from '../../../db/mongo-db';
 
-class BlogRepository {
+export class BlogRepository {
   async addBlog(newBlogData: AddBlogDto): Promise<ObjectId> {
     const result = await db
       .getCollections()
@@ -38,5 +38,3 @@ class BlogRepository {
     return result.deletedCount === 1;
   }
 }
-
-export const blogRepository = new BlogRepository();

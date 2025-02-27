@@ -1,12 +1,13 @@
 import { AddBlogDto, AddUpdatePostRequiredInputData } from '../types/types';
-import { postRepository } from '../repository/postRepository';
+import { PostRepository } from '../repository/postRepository';
 import { ObjectId } from 'mongodb';
 import { BlogViewModel } from '../../blogs/types/types';
 import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 
-class PostService {
+export class PostService {
+  constructor(protected postRepository: PostRepository) {}
   async addPost(
     { title, content, shortDescription }: Omit<AddUpdatePostRequiredInputData, 'blogId'>,
     blog: BlogViewModel,
@@ -20,7 +21,7 @@ class PostService {
       createdAt: new Date().toISOString(),
     };
 
-    const newPostId = await postRepository.addPost(newPostData);
+    const newPostId = await this.postRepository.addPost(newPostData);
 
     if (!newPostId) {
       return {
@@ -41,7 +42,7 @@ class PostService {
   ): Promise<Result<boolean>> {
     const updatePostData = { ...videoDataForUpdate, blogId: blog.id, blogName: blog.name };
 
-    const updatedPostId = await postRepository.updatePost(id, updatePostData);
+    const updatedPostId = await this.postRepository.updatePost(id, updatePostData);
     if (!updatedPostId) {
       return {
         status: ResultStatus.NotFound,
@@ -69,7 +70,7 @@ class PostService {
       };
     }
 
-    const isPostDeleted = await postRepository.deletePost(_id);
+    const isPostDeleted = await this.postRepository.deletePost(_id);
 
     if (!isPostDeleted) {
       return {
@@ -87,5 +88,3 @@ class PostService {
     };
   }
 }
-
-export const postService = new PostService();

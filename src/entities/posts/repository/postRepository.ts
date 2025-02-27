@@ -2,7 +2,7 @@ import { AddBlogDto, AddUpdatePostRequiredInputData } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
 import { db } from '../../../db/mongo-db';
 
-class PostRepository {
+export class PostRepository {
   async addPost(newPostData: AddBlogDto): Promise<ObjectId | null> {
     const result = await db
       .getCollections()
@@ -37,5 +37,3 @@ class PostRepository {
     return result.deletedCount === 1;
   }
 }
-
-export const postRepository = new PostRepository();

@@ -4,21 +4,25 @@ import {
   CommentDBModel,
   AddUpdateCommentInputData,
 } from '../types/types';
-import { commentsRepository } from '../repository/commentsRepository';
+import { CommentsRepository } from '../repository/commentsRepository';
 import { ObjectId } from 'mongodb';
-import { usersRepository } from '../../users/repository/usersRepository';
+import { UsersRepository } from '../../users/repository/usersRepository';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { UserDBModel } from '../../users';
 import { toObjectId } from '../../../common/helpers/helper';
 
-class CommentsService {
+export class CommentsService {
+  constructor(
+    protected usersRepository: UsersRepository,
+    protected commentsRepository: CommentsRepository,
+  ) {}
   async createComment({
     userId,
     postId,
     content,
   }: AddCommentDto): Promise<Result<ObjectId | null>> {
-    const creator = (await usersRepository.getUserById(userId)) as UserDBModel;
+    const creator = (await this.usersRepository.getUserById(userId)) as UserDBModel;
 
     const commentatorInfo: CommentatorInfo = {
       userId: creator._id,
@@ -32,7 +36,7 @@ class CommentsService {
       createdAt: new Date().toISOString(),
     };
 
-    const createdCommentId = await commentsRepository.addComment(newCommentData);
+    const createdCommentId = await this.commentsRepository.addComment(newCommentData);
 
     if (!createdCommentId) {
       return {
@@ -67,8 +71,8 @@ class CommentsService {
         extensions: [],
       };
     }
-    const user = await usersRepository.getUserById(userObjectId);
-    const comment = await commentsRepository.getCommentById(commentObjectId);
+    const user = await this.usersRepository.getUserById(userObjectId);
+    const comment = await this.commentsRepository.getCommentById(commentObjectId);
 
     if (!user || !comment) {
       return {
@@ -87,7 +91,7 @@ class CommentsService {
         extensions: [],
       };
     }
-    const isUpdatedComment = await commentsRepository.updateComment(
+    const isUpdatedComment = await this.commentsRepository.updateComment(
       commentObjectId,
       videoDataForUpdate,
     );
@@ -109,8 +113,8 @@ class CommentsService {
     };
   }
   async checkIsUserOwnComment(commentId: ObjectId, userId: ObjectId): Promise<Result<boolean>> {
-    const comment = await commentsRepository.getCommentById(commentId);
-    const user = await usersRepository.getUserById(userId);
+    const comment = await this.commentsRepository.getCommentById(commentId);
+    const user = await this.usersRepository.getUserById(userId);
 
     if (!comment || !user) {
       return {
@@ -157,7 +161,7 @@ class CommentsService {
       return isUserOwnCommentResult;
     }
 
-    const isDeletedComment = await commentsRepository.deleteComment(commentObjectId);
+    const isDeletedComment = await this.commentsRepository.deleteComment(commentObjectId);
 
     if (!isDeletedComment) {
       return {
@@ -175,5 +179,3 @@ class CommentsService {
     };
   }
 }
-
-export const commentsService = new CommentsService();

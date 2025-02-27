@@ -3,7 +3,7 @@ import { Filter, ObjectId, WithId } from 'mongodb';
 import { AddUserDto, UserViewModel, UserDBModel } from '../types/types';
 import { LoginFilterSchema } from '../../../application/auth/types/types';
 
-class UsersRepository {
+export class UsersRepository {
   async addUser(newUserData: AddUserDto): Promise<ObjectId> {
     const result = await db
       .getCollections()
@@ -69,5 +69,3 @@ class UsersRepository {
     });
   }
 }
-
-export const usersRepository = new UsersRepository();

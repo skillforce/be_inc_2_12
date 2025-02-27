@@ -2,7 +2,7 @@ import { CommentDBModel, AddUpdateCommentInputData } from '../types/types';
 import { ObjectId } from 'mongodb';
 import { db } from '../../../db/mongo-db';
 
-class CommentsRepository {
+export class CommentsRepository {
   async addComment(newCommentData: Omit<CommentDBModel, '_id'>): Promise<ObjectId> {
     const result = await db
       .getCollections()
@@ -36,5 +36,3 @@ class CommentsRepository {
     return commentById;
   }
 }
-
-export const commentsRepository = new CommentsRepository();

@@ -1,95 +1,27 @@
-import { Response, Router } from 'express';
+import { Router } from 'express';
 import {
   deleteCommentValidators,
   getCommentByIdValidators,
   updateCommentValidators,
 } from '../middlewares/commentsInputValidationMiddleware';
-import { commentsService } from '../service/commentsService';
-import { commentsQueryRepository } from '../repository/commentsQueryRepository';
-import { ObjectId } from 'mongodb';
-import { CommentViewModel, AddUpdateCommentInputData } from '../types/types';
-import {
-  RequestWithParams,
-  RequestWithParamsAndBodyAndUserId,
-  RequestWithParamsAndUserId,
-} from '../../../common/types/request';
-import { IdType } from '../../../common/types/id';
-import { HttpStatuses } from '../../../common/types/httpStatuses';
-import { ResultStatus } from '../../../common/result/resultCode';
-import { toObjectId } from '../../../common/helpers/helper';
+import { commentsController } from '../compositions-root/comments-composition-root';
 
 export const commentsRouter = Router({});
 
 commentsRouter.get(
   '/:id',
   getCommentByIdValidators,
-  async (req: RequestWithParams<{ id: string }>, res: Response<CommentViewModel>) => {
-    const _id = toObjectId(req.params.id);
-
-    if (!_id) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-
-    const responseData = await commentsQueryRepository.getCommentById(_id as ObjectId);
-
-    if (!responseData) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-    res.status(HttpStatuses.Success).json(responseData);
-  },
+  commentsController.getComments.bind(commentsController),
 );
 
 commentsRouter.put(
   '/:id',
   updateCommentValidators,
-  async (
-    req: RequestWithParamsAndBodyAndUserId<{ id: string }, AddUpdateCommentInputData, IdType>,
-    res: Response<{}>,
-  ) => {
-    const commentId = req.params.id;
-    const newDataForBlogToUpdate = req.body;
-    const userId = req.user?.id as string;
-
-    const updateBlogResult = await commentsService.updateComment(
-      commentId,
-      newDataForBlogToUpdate,
-      userId,
-    );
-
-    if (updateBlogResult.status === ResultStatus.Forbidden) {
-      res.sendStatus(HttpStatuses.Forbidden);
-      return;
-    }
-
-    if (updateBlogResult.status !== ResultStatus.Success) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-
-    res.sendStatus(HttpStatuses.NoContent);
-  },
+  commentsController.updateCommentById.bind(commentsController),
 );
 
 commentsRouter.delete(
   '/:id',
   deleteCommentValidators,
-  async (req: RequestWithParamsAndUserId<{ id: string }, IdType>, res: Response<boolean>) => {
-    const queryId = req.params.id;
-    const userId = req.user?.id;
-
-    const deleteCommentResult = await commentsService.deleteComment(queryId, userId as string);
-
-    if (deleteCommentResult.status === ResultStatus.Forbidden) {
-      res.sendStatus(HttpStatuses.Forbidden);
-      return;
-    }
-    if (deleteCommentResult.status !== ResultStatus.Success) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-
-    res.sendStatus(HttpStatuses.NoContent);
-  },
+  commentsController.deleteCommentById.bind(commentsController),
 );

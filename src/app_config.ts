@@ -2,22 +2,44 @@ import { config } from 'dotenv';
 
 config();
 
-export const APP_CONFIG = {
-  PORT: process.env.PORT || 3003,
-  ADMIN_AUTH: process.env.BASIC_AUTH_CREDENTIALS as string,
-  MONGO_URL: process.env.MONGO_URL as string,
-  DB_NAME: process.env.DB_NAME as string,
-  AC_SECRET: process.env.AC_SECRET as string,
-  AC_TIME: process.env.AC_TIME as string,
-  RT_SECRET: process.env.RT_SECRET as string,
-  RT_TIME: process.env.RT_TIME as string,
-  EMAIL: process.env.EMAIL as string,
-  EMAIL_PASS: process.env.EMAIL_PASS as string,
-  EMAIL_SERVICE: process.env.EMAIL_SERVICE as string,
-  BLOG_COLLECTION_NAME: process.env.BLOG_COLLECTION_NAME as string,
-  POST_COLLECTION_NAME: process.env.POST_COLLECTION_NAME as string,
-  USERS_COLLECTION_NAME: process.env.USERS_COLLECTION_NAME as string,
-  COMMENTS_COLLECTION_NAME: process.env.COMMENTS_COLLECTION_NAME as string,
-  AUTH_META_COLLECTION_NAME: process.env.AUTH_META_COLLECTION_NAME as string,
-  TRIGGER_ATTEMPTS_COLLECTION: process.env.TRIGGER_ATTEMPTS_COLLECTION as string,
-};
+export class AppConfig {
+  public readonly PORT: number;
+  public readonly ADMIN_AUTH: string;
+  public readonly MONGO_URL: string;
+  public readonly DB_NAME: string;
+  public readonly AC_SECRET: string;
+  public readonly AC_TIME: string;
+  public readonly RT_SECRET: string;
+  public readonly RT_TIME: string;
+  public readonly EMAIL: string;
+  public readonly EMAIL_PASS: string;
+  public readonly EMAIL_SERVICE: string;
+  public readonly BLOG_COLLECTION_NAME: string;
+  public readonly POST_COLLECTION_NAME: string;
+  public readonly USERS_COLLECTION_NAME: string;
+  public readonly COMMENTS_COLLECTION_NAME: string;
+  public readonly AUTH_META_COLLECTION_NAME: string;
+  public readonly TRIGGER_ATTEMPTS_COLLECTION: string;
+
+  constructor(private env: NodeJS.ProcessEnv) {
+    this.PORT = Number(env.PORT) || 3003;
+    this.ADMIN_AUTH = env.BASIC_AUTH_CREDENTIALS || '';
+    this.MONGO_URL = env.MONGO_URL || '';
+    this.DB_NAME = env.DB_NAME || '';
+    this.AC_SECRET = env.AC_SECRET || '';
+    this.AC_TIME = env.AC_TIME || '';
+    this.RT_SECRET = env.RT_SECRET || '';
+    this.RT_TIME = env.RT_TIME || '';
+    this.EMAIL = env.EMAIL || '';
+    this.EMAIL_PASS = env.EMAIL_PASS || '';
+    this.EMAIL_SERVICE = env.EMAIL_SERVICE || '';
+    this.BLOG_COLLECTION_NAME = env.BLOG_COLLECTION_NAME || '';
+    this.POST_COLLECTION_NAME = env.POST_COLLECTION_NAME || '';
+    this.USERS_COLLECTION_NAME = env.USERS_COLLECTION_NAME || '';
+    this.COMMENTS_COLLECTION_NAME = env.COMMENTS_COLLECTION_NAME || '';
+    this.AUTH_META_COLLECTION_NAME = env.AUTH_META_COLLECTION_NAME || '';
+    this.TRIGGER_ATTEMPTS_COLLECTION = env.TRIGGER_ATTEMPTS_COLLECTION || '';
+  }
+}
+
+export const APP_CONFIG = new AppConfig(process.env);

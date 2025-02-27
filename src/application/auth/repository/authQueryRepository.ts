@@ -1,7 +1,7 @@
 import { db } from '../../../db/mongo-db';
 import { AuthMetaDBModel, SessionsViewModel } from '../types/types';
 
-class AuthQueryRepository {
+export class AuthQueryRepository {
   async getAllSessionsForCurrentUser({ userId }: { userId: string }): Promise<SessionsViewModel[]> {
     const allSessionsFromDb = await db
       .getCollections()
@@ -19,5 +19,3 @@ class AuthQueryRepository {
     };
   }
 }
-
-export const authQueryRepository = new AuthQueryRepository();

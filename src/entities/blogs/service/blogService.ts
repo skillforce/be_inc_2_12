@@ -1,12 +1,13 @@
 import { AddBlogDto, AddUpdateBlogRequiredInputData } from '../types/types';
-import { blogRepository } from '../repository/blogRepository';
+import { BlogRepository } from '../repository/blogRepository';
 import { ObjectId } from 'mongodb';
 
 import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 
-class BlogService {
+export class BlogService {
+  constructor(protected blogRepository: BlogRepository) {}
   async addBlog({
     name,
     websiteUrl,
@@ -20,7 +21,7 @@ class BlogService {
       isMembership: false,
     };
 
-    const createdBlogId = await blogRepository.addBlog(newBlogData);
+    const createdBlogId = await this.blogRepository.addBlog(newBlogData);
 
     if (!createdBlogId) {
       return {
@@ -43,7 +44,7 @@ class BlogService {
         extensions: [],
       };
     }
-    const blogsFromDb = await blogRepository.getBlogById(_id);
+    const blogsFromDb = await this.blogRepository.getBlogById(_id);
     if (!blogsFromDb) {
       return {
         status: ResultStatus.NotFound,
@@ -72,7 +73,7 @@ class BlogService {
         extensions: [],
       };
     }
-    const isBlogUpdated = await blogRepository.updateBlog(_id, videoDataForUpdate);
+    const isBlogUpdated = await this.blogRepository.updateBlog(_id, videoDataForUpdate);
     if (!isBlogUpdated) {
       return {
         status: ResultStatus.NotFound,
@@ -101,7 +102,7 @@ class BlogService {
       };
     }
 
-    const isBlogDeleted = await blogRepository.deleteBlog(_id);
+    const isBlogDeleted = await this.blogRepository.deleteBlog(_id);
 
     if (!isBlogDeleted) {
       return {
@@ -119,5 +120,3 @@ class BlogService {
     };
   }
 }
-
-export const blogService = new BlogService();

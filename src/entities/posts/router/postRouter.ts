@@ -1,5 +1,4 @@
-import { Request, Response, Router } from 'express';
-import { AddUpdatePostRequiredInputData, PostViewModel } from '../types/types';
+import { Router } from 'express';
 import {
   addPostBodyValidators,
   createCommentByPostIdValidators,
@@ -7,218 +6,28 @@ import {
   getCommentByPostIdValidators,
   updatePostBodyValidators,
 } from '../middlewares/postInputValidationMiddleware';
-import { postService } from '../service/postService';
-import { postQueryRepository } from '../repository/postQueryRepository';
-import { blogQueryRepository } from '../../blogs/repository/blogQueryRepository';
-import {
-  RequestWithParamsAndBodyAndUserId,
-  RequestWithParamsAndQueryAndUserId,
-} from '../../../common/types/request';
-import { HttpStatuses } from '../../../common/types/httpStatuses';
-import { commentsQueryRepository } from '../../comments/repository/commentsQueryRepository';
-import { PaginatedData } from '../../../common/types/pagination';
-import { AddUpdateCommentInputData, CommentViewModel } from '../../comments/types/types';
-import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
-import { commentsService } from '../../comments/service/commentsService';
-import { ObjectId } from 'mongodb';
-import { ResultStatus } from '../../../common/result/resultCode';
-import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
-import { IdType } from '../../../common/types/id';
-import { toObjectId } from '../../../common/helpers/helper';
+import { postController } from '../composition-root/posts-composition-root';
 
 export const postRouter = Router({});
 
-postRouter.get('/', async (req: Request, res: Response<PaginatedData<PostViewModel[]>>) => {
-  const queryObj = req.query;
-  const responseData = await postQueryRepository.getPaginatedPosts(
-    queryObj as Record<string, string | undefined>,
-  );
-  res.status(HttpStatuses.Success).json(responseData);
-});
+postRouter.get('/', postController.getPosts.bind(postController));
 
-postRouter.get('/:id', async (req: Request<{ id: string }>, res: Response<PostViewModel>) => {
-  const _id = toObjectId(req.params.id);
-  if (!_id) {
-    res.sendStatus(HttpStatuses.NotFound);
-    return;
-  }
-  const responseData = await postQueryRepository.getPostById(_id);
-  if (responseData) {
-    res.status(HttpStatuses.Success).json(responseData);
-    return;
-  }
-  res.sendStatus(HttpStatuses.NotFound);
-});
+postRouter.get('/:id', postController.getPostById.bind(postController));
 
 postRouter.get(
   '/:id/comments',
   getCommentByPostIdValidators,
-  async (
-    req: RequestWithParamsAndQueryAndUserId<
-      {
-        id: string;
-      },
-      SortQueryFieldsType,
-      IdType
-    >,
-    res: Response<PaginatedData<CommentViewModel[]>>,
-  ) => {
-    const postId = toObjectId(req.params.id);
-    const query = req.query;
-
-    if (!postId) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-
-    const postById = await postQueryRepository.getPostById(postId);
-
-    if (!postById) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-
-    const commentsList = await commentsQueryRepository.getPaginatedCommentsByPostId(query, postId);
-
-    res.status(HttpStatuses.Success).send(commentsList);
-  },
+  postController.getPostCommentsByPostId.bind(postController),
 );
 
 postRouter.post(
   '/:id/comments',
   createCommentByPostIdValidators,
-  async (
-    req: RequestWithParamsAndBodyAndUserId<
-      {
-        id: string;
-      },
-      AddUpdateCommentInputData,
-      IdType
-    >,
-    res: Response<CommentViewModel>,
-  ) => {
-    const postId = toObjectId(req.params.id);
-    const newCommentContent = req.body.content;
-    const userObjectId = toObjectId(req.user?.id!);
-
-    if (!postId) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-
-    const postById = await postQueryRepository.getPostById(postId);
-
-    if (!postById) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-
-    const newCommentResult = await commentsService.createComment({
-      userId: userObjectId as ObjectId,
-      postId,
-      content: newCommentContent,
-    });
-
-    if (newCommentResult.status !== ResultStatus.Success) {
-      res.sendStatus(resultCodeToHttpException(newCommentResult.status));
-      return;
-    }
-
-    const createdComment = await commentsQueryRepository.getCommentById(
-      newCommentResult.data as ObjectId,
-    );
-
-    if (!createdComment) {
-      res.sendStatus(HttpStatuses.ServerError);
-      return;
-    }
-
-    res.status(HttpStatuses.Created).send(createdComment);
-  },
+  postController.createCommentByPostId.bind(postController),
 );
 
-postRouter.post(
-  '/',
-  addPostBodyValidators,
-  async (req: Request<any, AddUpdatePostRequiredInputData>, res: Response<PostViewModel>) => {
-    const { blogId } = req.body;
-    const _id = toObjectId(blogId);
-    if (!_id) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-    const blogById = await blogQueryRepository.getBlogById(_id);
+postRouter.post('/', addPostBodyValidators, postController.createPostByBlogId.bind(postController));
 
-    if (!blogById) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
+postRouter.put('/:id', updatePostBodyValidators, postController.updatePost.bind(postController));
 
-    const newPostResult = await postService.addPost(req.body, blogById);
-
-    if (newPostResult.status !== ResultStatus.Success) {
-      res.sendStatus(resultCodeToHttpException(newPostResult.status));
-      return;
-    }
-    const createdPostForOutput = await postQueryRepository.getPostById(
-      newPostResult.data as ObjectId,
-    );
-
-    if (!createdPostForOutput) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-
-    res.status(HttpStatuses.Created).json(createdPostForOutput);
-  },
-);
-
-postRouter.put(
-  '/:id',
-  updatePostBodyValidators,
-  async (req: Request<{ id: string }, AddUpdatePostRequiredInputData>, res: Response<any>) => {
-    const queryIdForUpdate = req.params.id;
-    const newDataForPostToUpdate = req.body;
-    const _id = toObjectId(queryIdForUpdate);
-
-    if (!_id) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-
-    const postById = await postQueryRepository.getPostById(_id);
-    const postBlogId = toObjectId(newDataForPostToUpdate.blogId);
-
-    if (!postById || !postBlogId) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-    const blogById = await blogQueryRepository.getBlogById(postBlogId);
-
-    if (!blogById) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-    const isBlogUpdatedResult = await postService.updatePost(_id, blogById, newDataForPostToUpdate);
-
-    if (isBlogUpdatedResult.status !== ResultStatus.Success) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-    res.sendStatus(HttpStatuses.NoContent);
-  },
-);
-
-postRouter.delete(
-  '/:id',
-  deletePostValidators,
-  async (req: Request<{ id: string }>, res: Response<any>) => {
-    const queryId = req.params.id;
-    const result = await postService.deletePost(queryId);
-    if (result.status !== ResultStatus.Success) {
-      res.sendStatus(resultCodeToHttpException(result.status));
-      return;
-    }
-    res.sendStatus(HttpStatuses.NoContent);
-  },
-);
+postRouter.delete('/:id', deletePostValidators, postController.deletePost.bind(postController));

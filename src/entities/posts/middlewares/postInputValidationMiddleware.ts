@@ -7,8 +7,12 @@ import {
 } from '../../../common/middlewares/commonValidationMiddlewares';
 import { authMiddleware } from '../../../application/auth/guards/base.auth.guard';
 import { accessTokenGuard } from '../../../application/auth/guards/access.token.guard';
-import { blogService } from '../../blogs/service/blogService';
+import { BlogService } from '../../blogs/service/blogService';
 import { ResultStatus } from '../../../common/result/resultCode';
+import { BlogRepository } from '../../blogs/repository/blogRepository';
+
+const blogRepository = new BlogRepository();
+const blogService = new BlogService(blogRepository);
 
 const postTitleErrors: ErrorMessages = {
   required: 'title field is required',

@@ -3,9 +3,11 @@ import { inputValidationMiddleware } from '../../../common/middlewares/commonVal
 import { accessTokenGuard } from '../guards/access.token.guard';
 import { ValidationChain } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
-import { authRepository } from '../repository/authRepository';
 import { createAttemptLimitMiddleware } from '../../../common/middlewares/attemptLimitMiddleware';
 import { checkRefreshToken } from '../guards/refreshToken.guard';
+import { AuthRepository } from '../repository/authRepository';
+
+const authRepository = new AuthRepository();
 
 const loginOrEmailErrors: ErrorMessages = {
   required: 'loginOrEmail field is required',

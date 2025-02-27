@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { usersRepository } from '../repository/usersRepository';
+import { UsersRepository } from '../repository/usersRepository';
 import { AddUserDto, AddUserRequiredInputData } from '../types/types';
 import { bcryptService } from '../../../common/adapters/bcrypt.service';
 import { toObjectId } from '../../../common/helpers/helper';
@@ -7,14 +7,15 @@ import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { User } from './user.entity';
 
-class UsersService {
+export class UsersService {
+  constructor(protected usersRepository: UsersRepository) {}
   async addUser({
     login,
     password,
     email,
   }: AddUserRequiredInputData): Promise<Result<ObjectId | null>> {
-    const isLoginUnique = await usersRepository.isFieldValueUnique('login', login);
-    const isEmailUnique = await usersRepository.isFieldValueUnique('email', email);
+    const isLoginUnique = await this.usersRepository.isFieldValueUnique('login', login);
+    const isEmailUnique = await this.usersRepository.isFieldValueUnique('email', email);
 
     if (!isLoginUnique) {
       return {
@@ -53,7 +54,7 @@ class UsersService {
       isConfirmed: true,
     });
 
-    const createdUserId = await usersRepository.addUser(newUser);
+    const createdUserId = await this.usersRepository.addUser(newUser);
 
     if (!createdUserId) {
       return {
@@ -82,7 +83,7 @@ class UsersService {
       };
     }
 
-    const isUserDeleted = await usersRepository.deleteUser(_id);
+    const isUserDeleted = await this.usersRepository.deleteUser(_id);
     if (!isUserDeleted) {
       return {
         status: ResultStatus.NotFound,
@@ -99,5 +100,3 @@ class UsersService {
     };
   }
 }
-
-export const usersService = new UsersService();

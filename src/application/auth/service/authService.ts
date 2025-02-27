@@ -1,7 +1,6 @@
 import { bcryptService } from '../../../common/adapters/bcrypt.service';
 import { Result } from '../../../common/result/result.type';
 import { UserDBModel } from '../../../entities/users';
-import { usersRepository } from '../../../entities/users/repository/usersRepository';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { AuthLoginDto, SessionDto } from '../types/types';
 import { jwtService } from '../../../common/adapters/jwt.service';
@@ -11,10 +10,14 @@ import { nodemailerService } from '../../../common/adapters/nodemailer.service';
 import dayjs from 'dayjs';
 import { randomUUID } from 'crypto';
 import { User } from '../../../entities/users/service/user.entity';
-import { authRepository } from '../repository/authRepository';
 import { generateIsoStringFromSeconds } from '../../../common/helpers/helper';
+import { AuthRepository } from '../repository/authRepository';
+import { UsersRepository } from '../../../entities/users/repository/usersRepository';
 
-class AuthService {
+const usersRepository = new UsersRepository();
+
+export class AuthService {
+  constructor(protected authRepository: AuthRepository) {}
   async checkUserCredentials(
     loginOrEmail: string,
     password: string,
@@ -255,7 +258,7 @@ class AuthService {
     }
     const { iat, exp, device_id } = refreshTokenSessionBodyResult.data;
 
-    const result = await authRepository.updateRefreshTokenVersionByDeviceId({
+    const result = await this.authRepository.updateRefreshTokenVersionByDeviceId({
       device_id,
       newVersionIat: iat,
       newVersionExp: exp,
@@ -278,7 +281,10 @@ class AuthService {
   }
   async removeSession(iat: number, deviceId: string): Promise<Result<boolean>> {
     const refreshTokenIatIso = generateIsoStringFromSeconds(iat);
-    const removeSessionResult = await authRepository.removeSession(deviceId, refreshTokenIatIso);
+    const removeSessionResult = await this.authRepository.removeSession(
+      deviceId,
+      refreshTokenIatIso,
+    );
     if (!removeSessionResult) {
       return {
         status: ResultStatus.ServerError,
@@ -331,7 +337,7 @@ class AuthService {
     };
   }
   async initializeSession(sessionBody: SessionDto): Promise<Result<string | null>> {
-    const sessionId = await authRepository.addSession(sessionBody);
+    const sessionId = await this.authRepository.addSession(sessionBody);
     if (!sessionId) {
       return {
         status: ResultStatus.ServerError,
@@ -340,7 +346,7 @@ class AuthService {
         extensions: [],
       };
     }
-    const createdSession = await authRepository.getSessionById(sessionId);
+    const createdSession = await this.authRepository.getSessionById(sessionId);
     if (!createdSession) {
       return {
         status: ResultStatus.ServerError,
@@ -449,5 +455,3 @@ class AuthService {
     };
   }
 }
-
-export const authService = new AuthService();

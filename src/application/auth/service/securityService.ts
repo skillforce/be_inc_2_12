@@ -1,14 +1,15 @@
 import { Result } from '../../../common/result/result.type';
-import { authService } from './authService';
 import { ResultStatus } from '../../../common/result/resultCode';
-import { authRepository } from '../repository/authRepository';
+import { AuthRepository } from '../repository/authRepository';
 
-class SecurityService {
+export class SecurityService {
+  constructor(protected authRepository: AuthRepository) {}
+
   async removeAllUserSessionsExceptCurrentOne(
     userId: string,
     deviceId: string,
   ): Promise<Result<boolean>> {
-    const removeResult = await authRepository.removeAllUserSessionsExceptCurrentOne(
+    const removeResult = await this.authRepository.removeAllUserSessionsExceptCurrentOne(
       userId,
       deviceId,
     );
@@ -27,7 +28,7 @@ class SecurityService {
     };
   }
   async removeSessionByDeviceId(userId: string, deviceId: string): Promise<Result<boolean>> {
-    const sessionByDeviceId = await authRepository.getSessionByDeviceId(deviceId);
+    const sessionByDeviceId = await this.authRepository.getSessionByDeviceId(deviceId);
 
     if (!sessionByDeviceId) {
       return {
@@ -47,7 +48,7 @@ class SecurityService {
       };
     }
 
-    const removeSessionResult = await authRepository.removeSessionByDeviceId(deviceId);
+    const removeSessionResult = await this.authRepository.removeSessionByDeviceId(deviceId);
 
     if (!removeSessionResult) {
       return {
@@ -63,5 +64,3 @@ class SecurityService {
     };
   }
 }
-
-export const securityService = new SecurityService();
