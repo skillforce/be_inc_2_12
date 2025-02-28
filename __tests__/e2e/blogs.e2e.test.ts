@@ -2,11 +2,11 @@ import { cleanDB, req } from '../utils/test-helpers';
 import { AddUpdateBlogRequiredInputData, BlogDbModel } from '../../src/entities/blogs/types/types';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PATHS } from '../../src/common/paths/paths';
-import { db } from '../../src/db/mongo-db';
 import { BlogService } from '../../src/entities/blogs/service/blogService';
 import { BlogRepository } from '../../src/entities/blogs/repository/blogRepository';
+import { db } from '../../src/db/composition-root';
 
-const blogRepository = new BlogRepository();
+const blogRepository = new BlogRepository(db);
 const blogService = new BlogService(blogRepository);
 
 describe('/blogs', () => {

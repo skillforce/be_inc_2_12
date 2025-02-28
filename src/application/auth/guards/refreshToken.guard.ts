@@ -4,8 +4,9 @@ import { NextFunction, Request, Response } from 'express';
 import { jwtService } from '../../../common/adapters/jwt.service';
 import { generateIsoStringFromSeconds } from '../../../common/helpers/helper';
 import { AuthRepository } from '../repository/authRepository';
+import { db } from '../../../db/composition-root';
 
-const authRepository = new AuthRepository();
+const authRepository = new AuthRepository(db);
 
 export const checkRefreshToken = async (req: Request, res: Response, next: NextFunction) => {
   const refreshToken = cookieHandler.getRefreshToken(req);

@@ -1,17 +1,18 @@
-import { CommentDBModel, AddUpdateCommentInputData } from '../types/types';
+import { AddUpdateCommentInputData, CommentDBModel } from '../types/types';
 import { ObjectId } from 'mongodb';
-import { db } from '../../../db/mongo-db';
+import { DataBase } from '../../../db/mongo-db';
 
 export class CommentsRepository {
+  constructor(protected database: DataBase) {}
   async addComment(newCommentData: Omit<CommentDBModel, '_id'>): Promise<ObjectId> {
-    const result = await db
+    const result = await this.database
       .getCollections()
       .commentsCollection.insertOne(newCommentData as CommentDBModel);
     return result.insertedId;
   }
 
   async updateComment(_id: ObjectId, dataForUpdate: AddUpdateCommentInputData): Promise<boolean> {
-    const result = await db.getCollections().commentsCollection.updateOne(
+    const result = await this.database.getCollections().commentsCollection.updateOne(
       { _id },
       {
         $set: {
@@ -23,12 +24,12 @@ export class CommentsRepository {
   }
 
   async deleteComment(_id: ObjectId): Promise<boolean> {
-    const result = await db.getCollections().commentsCollection.deleteOne({ _id });
+    const result = await this.database.getCollections().commentsCollection.deleteOne({ _id });
     return result.deletedCount === 1;
   }
 
   async getCommentById(_id: ObjectId): Promise<CommentDBModel | null> {
-    const commentById = await db.getCollections().commentsCollection.findOne({ _id });
+    const commentById = await this.database.getCollections().commentsCollection.findOne({ _id });
 
     if (!commentById) {
       return null;

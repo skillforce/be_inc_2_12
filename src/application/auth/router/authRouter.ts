@@ -8,7 +8,7 @@ import {
   registrationBodyValidators,
   resendRegistrationEmailBodyValidators,
 } from '../middlewares/authInputValidationMiddleware';
-import { authController } from '../auth-composition-root';
+import { authController } from '../composition-root/auth-composition-root';
 
 export const authRouter = Router({});
 

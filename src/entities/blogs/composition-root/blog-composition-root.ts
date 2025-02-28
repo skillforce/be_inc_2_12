@@ -5,12 +5,13 @@ import { BlogService } from '../service/blogService';
 import { PostQueryRepository } from '../../posts/repository/postQueryRepository';
 import { PostRepository } from '../../posts/repository/postRepository';
 import { BlogRepository } from '../repository/blogRepository';
+import { db } from '../../../db/composition-root';
 
-const postQueryRepository = new PostQueryRepository();
-const postRepository = new PostRepository();
+const postQueryRepository = new PostQueryRepository(db);
+const postRepository = new PostRepository(db);
 
-const blogQueryRepository = new BlogQueryRepository();
-const blogRepository = new BlogRepository();
+const blogQueryRepository = new BlogQueryRepository(db);
+const blogRepository = new BlogRepository(db);
 
 const postService = new PostService(postRepository);
 const blogService = new BlogService(blogRepository);

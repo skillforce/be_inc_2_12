@@ -1,20 +1,21 @@
-import { db } from '../../../db/mongo-db';
+import { DataBase } from '../../../db/mongo-db';
 import { SessionDto } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
 
 export class AuthRepository {
+  constructor(protected database: DataBase) {}
   async addSession(sessionBody: SessionDto) {
-    const result = await db
+    const result = await this.database
       .getCollections()
       .authMetaCollection.insertOne(sessionBody as WithId<SessionDto>);
 
     return result.insertedId;
   }
   async getSessionById(_id: ObjectId) {
-    return await db.getCollections().authMetaCollection.findOne({ _id });
+    return await this.database.getCollections().authMetaCollection.findOne({ _id });
   }
   async getSessionByDeviceId(device_id: string) {
-    return await db.getCollections().authMetaCollection.findOne({ device_id });
+    return await this.database.getCollections().authMetaCollection.findOne({ device_id });
   }
   async updateRefreshTokenVersionByDeviceId({
     device_id,
@@ -25,7 +26,7 @@ export class AuthRepository {
     newVersionIat: string;
     newVersionExp: string;
   }) {
-    const result = await db
+    const result = await this.database
       .getCollections()
       .authMetaCollection.updateOne(
         { device_id },
@@ -35,14 +36,14 @@ export class AuthRepository {
     return result.matchedCount;
   }
   async removeSession(device_id: string, refreshTokenIatIso: string) {
-    const result = await db
+    const result = await this.database
       .getCollections()
       .authMetaCollection.deleteOne({ device_id, iat: refreshTokenIatIso });
     return result.deletedCount === 1;
   }
   async removeAllUserSessionsExceptCurrentOne(userId: string, device_id: string): Promise<boolean> {
     try {
-      await db
+      await this.database
         .getCollections()
         .authMetaCollection.deleteMany({ user_id: userId, device_id: { $ne: device_id } });
       return true;
@@ -51,7 +52,7 @@ export class AuthRepository {
     }
   }
   async removeSessionByDeviceId(device_id: string): Promise<boolean> {
-    const result = await db.getCollections().authMetaCollection.deleteOne({ device_id });
+    const result = await this.database.getCollections().authMetaCollection.deleteOne({ device_id });
     return result.deletedCount === 1;
   }
 }

@@ -1,10 +1,10 @@
 import { delay, req } from '../utils/test-helpers';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PATHS } from '../../src/common/paths/paths';
-import { db } from '../../src/db/mongo-db';
 import { createAndLoginUser, createUser } from '../utils/userHelpers';
 import { UserDto } from '../utils/testingDtosCreator';
 import { HttpStatuses } from '../../src/common/types/httpStatuses';
+import { db } from '../../src/db/composition-root';
 
 const newUser = {
   email: 'testo@gmail.com',

@@ -1,13 +1,14 @@
 import { ObjectId, WithId } from 'mongodb';
-import { db } from '../../../db/mongo-db';
-import { CommentViewModel, CommentDBModel } from '../types/types';
+import { DataBase } from '../../../db/mongo-db';
+import { CommentDBModel, CommentViewModel } from '../types/types';
 import { PaginatedData } from '../../../common/types/pagination';
 import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
 export class CommentsQueryRepository {
+  constructor(protected database: DataBase) {}
   async getCommentById(_id: ObjectId): Promise<CommentViewModel | null> {
-    const commentById = await db.getCollections().commentsCollection.findOne({ _id });
+    const commentById = await this.database.getCollections().commentsCollection.findOne({ _id });
 
     if (!commentById) {
       return null;
@@ -25,7 +26,7 @@ export class CommentsQueryRepository {
 
     const filter = { postId };
 
-    const allCommentsFromDb = await db
+    const allCommentsFromDb = await this.database
       .getCollections()
       .commentsCollection.find(filter)
       .sort({ [sortBy]: sortDirection })
@@ -45,7 +46,7 @@ export class CommentsQueryRepository {
     };
   }
   async countComments(filter: Record<string, any>): Promise<number> {
-    return db.getCollections().commentsCollection.countDocuments(filter);
+    return this.database.getCollections().commentsCollection.countDocuments(filter);
   }
 
   mapCommentToOutput(comment: WithId<CommentDBModel>): CommentViewModel {

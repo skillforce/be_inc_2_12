@@ -4,7 +4,7 @@ import {
   removeSessionsByDeviceIdRequestValidators,
   removeSessionsRequestValidators,
 } from '../middlewares/authInputValidationMiddleware';
-import { securityController } from '../security-composition-root';
+import { securityController } from '../composition-root/security-composition-root';
 
 export const securityRouter = Router({});
 

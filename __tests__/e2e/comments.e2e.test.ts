@@ -1,7 +1,6 @@
 import { cleanDB, req } from '../utils/test-helpers';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { db } from '../../src/db/mongo-db';
-import { UserDBModel, UserViewModel } from '../../src/entities/users/types/types';
+import { UserViewModel } from '../../src/entities/users/types/types';
 import { PATHS } from '../../src/common/paths/paths';
 import { createBlog } from '../utils/createBlog';
 import { createPost } from '../utils/createPost';
@@ -11,6 +10,7 @@ import { loginUser } from '../utils/login';
 import { CommentViewModel } from '../../src/entities/comments/types/types';
 import { PostViewModel } from '../../src/entities/posts/types/types';
 import { ADMIN_AUTH_HEADER } from '../../src/application/auth/guards/base.auth.guard';
+import { db } from '../../src/db/composition-root';
 
 const firstUser = {
   email: 'testo@gmail.com',

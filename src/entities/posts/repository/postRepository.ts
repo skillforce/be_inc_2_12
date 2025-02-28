@@ -1,10 +1,11 @@
 import { AddBlogDto, AddUpdatePostRequiredInputData } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
-import { db } from '../../../db/mongo-db';
+import { DataBase } from '../../../db/mongo-db';
 
 export class PostRepository {
+  constructor(protected database: DataBase) {}
   async addPost(newPostData: AddBlogDto): Promise<ObjectId | null> {
-    const result = await db
+    const result = await this.database
       .getCollections()
       .postCollection.insertOne(newPostData as WithId<AddBlogDto>);
 
@@ -19,7 +20,7 @@ export class PostRepository {
     _id: ObjectId,
     postDataForUpdates: AddUpdatePostRequiredInputData,
   ): Promise<boolean> {
-    const result = await db.getCollections().postCollection.updateOne(
+    const result = await this.database.getCollections().postCollection.updateOne(
       { _id },
       {
         $set: {
@@ -33,7 +34,7 @@ export class PostRepository {
   }
 
   async deletePost(_id: ObjectId): Promise<boolean> {
-    const result = await db.getCollections().postCollection.deleteOne({ _id });
+    const result = await this.database.getCollections().postCollection.deleteOne({ _id });
     return result.deletedCount === 1;
   }
 }

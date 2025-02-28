@@ -10,8 +10,9 @@ import { accessTokenGuard } from '../../../application/auth/guards/access.token.
 import { BlogService } from '../../blogs/service/blogService';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { BlogRepository } from '../../blogs/repository/blogRepository';
+import { db } from '../../../db/composition-root';
 
-const blogRepository = new BlogRepository();
+const blogRepository = new BlogRepository(db);
 const blogService = new BlogService(blogRepository);
 
 const postTitleErrors: ErrorMessages = {

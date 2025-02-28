@@ -2,7 +2,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { db } from '../../src/db/mongo-db';
 import { createUser, insertUser } from '../utils/userHelpers';
 import { testingDtosCreator } from '../utils/testingDtosCreator';
-import { nodemailerService } from '../../src/common/adapters/nodemailer.service';
+import { mailService } from '../../src/common/adapters/mail.service';
 import { emailServiceMock } from './mock/emailSendServiceMock';
 import { authService } from '../../src/application/auth/service/authService';
 import { ResultStatus } from '../../src/common/result/resultCode';
@@ -20,7 +20,7 @@ describe('/auth', () => {
   });
 
   beforeEach(async () => {
-    nodemailerService.sendEmail = jest.fn().mockImplementation(emailServiceMock.sendEmail);
+    mailService.sendEmail = jest.fn().mockImplementation(emailServiceMock.sendEmail);
   });
 
   it('should send email after user creation', async () => {
@@ -33,8 +33,8 @@ describe('/auth', () => {
     });
 
     expect(res.status).toBe(ResultStatus.Success);
-    expect(nodemailerService.sendEmail).toBeCalled();
-    expect(nodemailerService.sendEmail).toBeCalledTimes(1);
+    expect(mailService.sendEmail).toBeCalled();
+    expect(mailService.sendEmail).toBeCalledTimes(1);
   });
   it("should't resend email if user exists and already confirm his email", async () => {
     const user = await createUser({});
@@ -42,7 +42,7 @@ describe('/auth', () => {
     const res = await authService.resendConfirmationEmail(user.email);
 
     expect(res.status).toBe(ResultStatus.BadRequest);
-    expect(nodemailerService.sendEmail).not.toBeCalled();
+    expect(mailService.sendEmail).not.toBeCalled();
   });
   it("should resend email if user exists and didn't confirm his email", async () => {
     const userDto = testingDtosCreator.createUserDto({});
@@ -55,16 +55,16 @@ describe('/auth', () => {
       })
       .expect(HttpStatuses.NoContent);
 
-    expect(nodemailerService.sendEmail).toBeCalled();
-    expect(nodemailerService.sendEmail).toBeCalledTimes(1);
+    expect(mailService.sendEmail).toBeCalled();
+    expect(mailService.sendEmail).toBeCalledTimes(1);
 
     await req
       .post(PATHS.AUTH.REGISTRATION_EMAIL_RESENDING)
       .send({ email: userDto.email })
       .expect(HttpStatuses.NoContent);
 
-    expect(nodemailerService.sendEmail).toBeCalled();
-    expect(nodemailerService.sendEmail).toBeCalledTimes(2);
+    expect(mailService.sendEmail).toBeCalled();
+    expect(mailService.sendEmail).toBeCalledTimes(2);
   });
   it("should't resend email if user already confirmed it", async () => {
     const userDto = testingDtosCreator.createUserDto({});

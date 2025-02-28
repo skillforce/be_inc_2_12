@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { db } from '../../../db/mongo-db';
+import { db } from '../../../db/composition-root';
 
 export const testingRouter = Router({});
 

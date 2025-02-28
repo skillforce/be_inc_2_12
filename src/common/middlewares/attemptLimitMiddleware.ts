@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
-import { db } from '../../db/mongo-db';
+
 import { TriggerAttemptsCollectionDBModel } from '../types/types';
 import { HttpStatuses } from '../types/httpStatuses';
+import { db } from '../../db/composition-root';
 
 export function createAttemptLimitMiddleware(routeName: string, limit = 5, windowSec = 10) {
   return async function attemptLimitMiddleware(req: Request, res: Response, next: NextFunction) {

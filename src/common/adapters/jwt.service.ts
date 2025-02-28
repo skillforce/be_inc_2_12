@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { APP_CONFIG, AppConfig } from '../../app_config';
+import { APP_CONFIG } from '../../app_config';
 
 interface CustomJwtPayload extends JwtPayload {
   userId: string;
@@ -9,10 +9,9 @@ interface CustomJwtPayload extends JwtPayload {
 }
 
 export class JwtService {
-  constructor(protected appConfig: AppConfig) {}
   async createAccessToken(userId: string): Promise<string> {
     return jwt.sign({ userId, internalId: uuidv4() }, APP_CONFIG.AC_SECRET, {
-      expiresIn: this.appConfig.AC_TIME as unknown as number,
+      expiresIn: APP_CONFIG.AC_TIME as unknown as number,
     });
   }
   async createRefreshToken(userId: string, deviceId?: string): Promise<string> {
@@ -20,7 +19,7 @@ export class JwtService {
       { userId, deviceId: deviceId ?? uuidv4(), internalId: uuidv4() },
       APP_CONFIG.RT_SECRET,
       {
-        expiresIn: this.appConfig.RT_TIME as unknown as number,
+        expiresIn: APP_CONFIG.RT_TIME as unknown as number,
       },
     );
   }
@@ -46,7 +45,10 @@ export class JwtService {
   }
   async verifyAccessToken(token: string): Promise<{ userId: string; internalId: string } | null> {
     try {
-      return jwt.verify(token, this.appConfig.AC_SECRET) as { userId: string; internalId: string };
+      return jwt.verify(token, APP_CONFIG.AC_SECRET) as {
+        userId: string;
+        internalId: string;
+      };
     } catch (error) {
       console.error('Token verify some error');
       return null;
@@ -56,7 +58,7 @@ export class JwtService {
     token: string,
   ): Promise<{ userId: string; deviceId: string; internalId: string } | null> {
     try {
-      return jwt.verify(token, this.appConfig.RT_SECRET) as {
+      return jwt.verify(token, APP_CONFIG.RT_SECRET) as {
         userId: string;
         deviceId: string;
         internalId: string;
@@ -68,4 +70,4 @@ export class JwtService {
   }
 }
 
-export const jwtService = new JwtService(new AppConfig(process.env));
+export const jwtService = new JwtService();

@@ -7,16 +7,17 @@ import { CommentsService } from '../../comments/service/commentsService';
 import { UsersRepository } from '../../users/repository/usersRepository';
 import { CommentsRepository } from '../../comments/repository/commentsRepository';
 import { CommentsQueryRepository } from '../../comments/repository/commentsQueryRepository';
+import { db } from '../../../db/composition-root';
 
-const postRepository = new PostRepository();
-const postQueryRepository = new PostQueryRepository();
+const postRepository = new PostRepository(db);
+const postQueryRepository = new PostQueryRepository(db);
 const postService = new PostService(postRepository);
 
-const blogQueryRepository = new BlogQueryRepository();
+const blogQueryRepository = new BlogQueryRepository(db);
 
-const usersRepository = new UsersRepository();
-const commentsRepository = new CommentsRepository();
-const commentsQueryRepository = new CommentsQueryRepository();
+const usersRepository = new UsersRepository(db);
+const commentsRepository = new CommentsRepository(db);
+const commentsQueryRepository = new CommentsQueryRepository(db);
 
 const commentsService = new CommentsService(usersRepository, commentsRepository);
 

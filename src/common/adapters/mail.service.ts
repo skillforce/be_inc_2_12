@@ -1,7 +1,7 @@
 import { APP_CONFIG } from '../../app_config';
 import nodemailer from 'nodemailer';
 
-export const nodemailerService = {
+class MailService {
   async sendEmail(email: string, emailLayout: string): Promise<boolean> {
     let transporter = nodemailer.createTransport({
       service: APP_CONFIG.EMAIL_SERVICE,
@@ -26,5 +26,7 @@ export const nodemailerService = {
       console.error('Error sending email:', error);
       throw error;
     }
-  },
-};
+  }
+}
+
+export const mailService = new MailService();

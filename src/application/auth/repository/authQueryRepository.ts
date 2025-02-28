@@ -1,9 +1,10 @@
-import { db } from '../../../db/mongo-db';
+import { DataBase } from '../../../db/mongo-db';
 import { AuthMetaDBModel, SessionsViewModel } from '../types/types';
 
 export class AuthQueryRepository {
+  constructor(protected database: DataBase) {}
   async getAllSessionsForCurrentUser({ userId }: { userId: string }): Promise<SessionsViewModel[]> {
-    const allSessionsFromDb = await db
+    const allSessionsFromDb = await this.database
       .getCollections()
       .authMetaCollection.find({ user_id: userId })
       .toArray();

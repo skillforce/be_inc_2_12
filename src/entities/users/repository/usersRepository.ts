@@ -1,25 +1,25 @@
-import { db } from '../../../db/mongo-db';
-import { Filter, ObjectId, WithId } from 'mongodb';
-import { AddUserDto, UserViewModel, UserDBModel } from '../types/types';
-import { LoginFilterSchema } from '../../../application/auth/types/types';
+import { DataBase } from '../../../db/mongo-db';
+import { ObjectId, WithId } from 'mongodb';
+import { AddUserDto, UserDBModel } from '../types/types';
 
 export class UsersRepository {
+  constructor(protected database: DataBase) {}
   async addUser(newUserData: AddUserDto): Promise<ObjectId> {
-    const result = await db
+    const result = await this.database
       .getCollections()
       .usersCollection.insertOne(newUserData as WithId<AddUserDto>);
     return result.insertedId;
   }
   async isFieldValueUnique(field: string, value: string): Promise<boolean> {
-    const result = await db.getCollections().usersCollection.findOne({ [field]: value });
+    const result = await this.database.getCollections().usersCollection.findOne({ [field]: value });
     return !result;
   }
   async deleteUser(_id: ObjectId): Promise<boolean> {
-    const result = await db.getCollections().usersCollection.deleteOne({ _id });
+    const result = await this.database.getCollections().usersCollection.deleteOne({ _id });
     return result.deletedCount === 1;
   }
   async getUserById(_id: ObjectId): Promise<UserDBModel | null> {
-    const userById = await db.getCollections().usersCollection.findOne({ _id });
+    const userById = await this.database.getCollections().usersCollection.findOne({ _id });
 
     if (!userById) {
       return null;
@@ -31,7 +31,7 @@ export class UsersRepository {
     newExpirationDate: string,
     newCode: string,
   ): Promise<boolean> {
-    const updateResult = await db.getCollections().usersCollection.updateOne(
+    const updateResult = await this.database.getCollections().usersCollection.updateOne(
       { _id },
       {
         $set: {
@@ -44,7 +44,7 @@ export class UsersRepository {
     return updateResult.modifiedCount === 1;
   }
   async getUserByRegistrationCode(code: string): Promise<UserDBModel | null> {
-    const userByCode = await db
+    const userByCode = await this.database
       .getCollections()
       .usersCollection.findOne({ 'emailConfirmation.confirmationCode': code });
     if (!userByCode) {
@@ -53,18 +53,18 @@ export class UsersRepository {
     return userByCode;
   }
   async confirmUserEmailById(_id: ObjectId): Promise<boolean> {
-    const updateResult = await db
+    const updateResult = await this.database
       .getCollections()
       .usersCollection.updateOne({ _id }, { $set: { 'emailConfirmation.isConfirmed': true } });
 
     return updateResult.matchedCount === 1;
   }
   async doesExistById(_id: ObjectId) {
-    const countById = await db.getCollections().usersCollection.countDocuments({ _id });
+    const countById = await this.database.getCollections().usersCollection.countDocuments({ _id });
     return countById === 1;
   }
   async findByLoginOrEmail(loginOrEmail: string): Promise<WithId<UserDBModel> | null> {
-    return db.getCollections().usersCollection.findOne({
+    return this.database.getCollections().usersCollection.findOne({
       $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
     });
   }

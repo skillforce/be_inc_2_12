@@ -6,15 +6,16 @@ import { AuthLoginDto, SessionDto } from '../types/types';
 import { jwtService } from '../../../common/adapters/jwt.service';
 import { AddUserDto, AddUserRequiredInputData } from '../../../entities/users/types/types';
 import { authEmails } from '../../../common/layout/authEmails';
-import { nodemailerService } from '../../../common/adapters/nodemailer.service';
+import { mailService } from '../../../common/adapters/mail.service';
 import dayjs from 'dayjs';
 import { randomUUID } from 'crypto';
 import { User } from '../../../entities/users/service/user.entity';
 import { generateIsoStringFromSeconds } from '../../../common/helpers/helper';
 import { AuthRepository } from '../repository/authRepository';
 import { UsersRepository } from '../../../entities/users/repository/usersRepository';
+import { db } from '../../../db/composition-root';
 
-const usersRepository = new UsersRepository();
+const usersRepository = new UsersRepository(db);
 
 export class AuthService {
   constructor(protected authRepository: AuthRepository) {}
@@ -121,7 +122,7 @@ export class AuthService {
   }
   sendConfirmationEmail(email: string, code: string): void {
     const emailLayout = authEmails.registrationEmail(code);
-    nodemailerService
+    mailService
       .sendEmail(email, emailLayout)
       .then()
       .catch((e) => console.log(e));

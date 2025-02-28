@@ -2,20 +2,21 @@ import { ObjectId, WithId } from 'mongodb';
 import {
   GetPaginatedUsersQueryInterface,
   UserAuthViewModel,
-  UserViewModel,
   UserDBModel,
   UsersOutputMapEnum,
+  UserViewModel,
 } from '../types/types';
-import { db } from '../../../db/mongo-db';
+import { DataBase } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
 export class UsersQueryRepository {
+  constructor(protected database: DataBase) {}
   async getUserById(
     _id: ObjectId,
     mapType: UsersOutputMapEnum = UsersOutputMapEnum.VIEW,
   ): Promise<UserViewModel | UserAuthViewModel | null> {
-    const userById = await db.getCollections().usersCollection.findOne({ _id });
+    const userById = await this.database.getCollections().usersCollection.findOne({ _id });
 
     if (!userById) {
       return null;
@@ -55,7 +56,7 @@ export class UsersQueryRepository {
           }
         : {};
 
-    const itemsFromDb = await db
+    const itemsFromDb = await this.database
       .getCollections()
       .usersCollection.find(filter)
       .sort({ [sortBy]: sortDirection })
@@ -76,7 +77,7 @@ export class UsersQueryRepository {
   }
 
   async countUsers(filter: Record<string, any>): Promise<number> {
-    return db.getCollections().usersCollection.countDocuments(filter);
+    return this.database.getCollections().usersCollection.countDocuments(filter);
   }
 
   mapUsersToOutput(user: WithId<UserDBModel>): UserViewModel {

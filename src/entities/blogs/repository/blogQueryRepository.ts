@@ -1,10 +1,12 @@
-import { BlogViewModel, BlogDbModel } from '../types/types';
+import { BlogDbModel, BlogViewModel } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
-import { db } from '../../../db/mongo-db';
+import { DataBase } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 
 export class BlogQueryRepository {
+  constructor(protected database: DataBase) {}
+
   async getPaginatedBlogs(
     query: Record<string, string | undefined>,
     additionalFilters: Record<string, any> = {},
@@ -16,7 +18,7 @@ export class BlogQueryRepository {
     const searchText = searchNameTerm ? { name: { $regex: searchNameTerm, $options: 'i' } } : {};
     const filter = { ...searchText, ...additionalFilters };
 
-    const itemsFromDb = await db
+    const itemsFromDb = await this.database
       .getCollections()
       .blogCollection.find(filter)
       .sort({ [sortBy]: sortDirection })
@@ -37,7 +39,7 @@ export class BlogQueryRepository {
   }
 
   async getBlogById(_id: ObjectId): Promise<BlogViewModel | null> {
-    const blogById = await db.getCollections().blogCollection.findOne({ _id });
+    const blogById = await this.database.getCollections().blogCollection.findOne({ _id });
 
     if (!blogById) {
       return null;
@@ -46,7 +48,7 @@ export class BlogQueryRepository {
   }
 
   async countBlogs(filter: Record<string, any>): Promise<number> {
-    return db.getCollections().blogCollection.countDocuments(filter);
+    return this.database.getCollections().blogCollection.countDocuments(filter);
   }
   mapBlogToOutput(blog: WithId<BlogDbModel>): BlogViewModel {
     return {

@@ -5,10 +5,10 @@ import { req } from './test-helpers';
 import { HttpStatuses } from '../../src/common/types/httpStatuses';
 import { UserDBModel } from '../../src/entities/users';
 import { User } from '../../src/entities/users/service/user.entity';
-import { db } from '../../src/db/mongo-db';
 import { WithId } from 'mongodb';
 import { UserViewModel } from '../../src/entities/users/types/types';
 import { Response } from 'supertest';
+import { db } from '../../src/db/composition-root';
 
 type CreateUserParams = {
   userDto?: UserDto;
