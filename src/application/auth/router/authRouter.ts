@@ -4,6 +4,8 @@ import {
   loginBodyValidators,
   logoutRequestValidators,
   meRequestValidators,
+  newPasswordBodyValidators,
+  recoverPasswordBodyValidators,
   refreshTokenGuard,
   registrationBodyValidators,
   resendRegistrationEmailBodyValidators,
@@ -13,6 +15,8 @@ import { authController } from '../composition-root/auth-composition-root';
 export const authRouter = Router({});
 
 authRouter.post('/login', loginBodyValidators, authController.loginUser.bind(authController));
+
+authRouter.get('/me', meRequestValidators, authController.getMe.bind(authController));
 
 authRouter.post(
   '/refresh-token',
@@ -40,4 +44,13 @@ authRouter.post(
   authController.resendRegistrationEmail.bind(authController),
 );
 
-authRouter.get('/me', meRequestValidators, authController.getMe.bind(authController));
+authRouter.post(
+  '/password-recovery',
+  recoverPasswordBodyValidators,
+  authController.sendRecoveryPasswordEmail.bind(authController),
+);
+authRouter.post(
+  '/new-password',
+  newPasswordBodyValidators,
+  authController.setNewPasswordByRecoveryCode.bind(authController),
+);

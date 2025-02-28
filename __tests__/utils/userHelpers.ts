@@ -5,7 +5,7 @@ import { req } from './test-helpers';
 import { HttpStatuses } from '../../src/common/types/httpStatuses';
 import { UserDBModel } from '../../src/entities/users';
 import { User } from '../../src/entities/users/service/user.entity';
-import { WithId } from 'mongodb';
+import { ObjectId, WithId } from 'mongodb';
 import { UserViewModel } from '../../src/entities/users/types/types';
 import { Response } from 'supertest';
 import { db } from '../../src/db/composition-root';
@@ -48,12 +48,24 @@ export const insertUser = async ({
     emailConfirmation: {
       ...emailConfirmation,
     },
+    recoverPasswordEmailConfirmation: null,
   };
   const res = await db.getCollections().usersCollection.insertOne({ ...(newUser as WithId<User>) });
   return {
     id: res.insertedId.toString(),
     ...newUser,
   };
+};
+
+export const getUserFromDBByEmail = async ({
+  email,
+}: {
+  email: string;
+}): Promise<UserDBModel | null> => {
+  const res = await db.getCollections().usersCollection.findOne({ email });
+  if (!res) return null;
+
+  return res;
 };
 
 export const createAndLoginUser = async (userDto?: UserDto): Promise<Response> => {

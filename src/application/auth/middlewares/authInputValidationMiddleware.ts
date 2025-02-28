@@ -30,6 +30,15 @@ const passwordErrors: ErrorMessages = {
   isString: 'password should be provided as a string',
   length: 'password field length should be between 6 and 20 symbols',
 };
+const newPasswordErrors: ErrorMessages = {
+  required: 'new password field is required',
+  isString: 'new password should be provided as a string',
+  length: 'new password field length should be between 6 and 20 symbols',
+};
+const recoveryCodeErrors: ErrorMessages = {
+  required: 'recovery code field is required',
+  isString: 'recovery code should be provided as a string',
+};
 const codeErrors: ErrorMessages = {
   required: 'code field is required',
   isString: 'code should be provided as a string',
@@ -96,6 +105,17 @@ export const passwordRegistrationBodyValidationMiddleware = basicStringFieldMidd
   minLength: 6,
 });
 
+export const newPasswordBodyValidationMiddleware = basicStringFieldMiddlewareGenerator({
+  fieldName: 'newPassword',
+  errorMessages: newPasswordErrors,
+  maxLength: 20,
+  minLength: 6,
+});
+export const RecoveryCodeBodyValidationMiddleware = basicStringFieldMiddlewareGenerator({
+  fieldName: 'recoveryCode',
+  errorMessages: recoveryCodeErrors,
+});
+
 export const loginBodyValidators = [
   loginOrEmailBodyValidationMiddleware,
   passwordLoginBodyValidationMiddleware,
@@ -119,6 +139,17 @@ export const confirmRegistrationBodyValidators = [
 export const resendRegistrationEmailBodyValidators = [
   emailBodyRegistrationValidationMiddleware,
   createAttemptLimitMiddleware('resendConfirmation'),
+  inputValidationMiddleware,
+];
+export const recoverPasswordBodyValidators = [
+  emailBodyRegistrationValidationMiddleware,
+  createAttemptLimitMiddleware('recoveryPassword'),
+  inputValidationMiddleware,
+];
+export const newPasswordBodyValidators = [
+  newPasswordBodyValidationMiddleware,
+  RecoveryCodeBodyValidationMiddleware,
+  createAttemptLimitMiddleware('newPassword'),
   inputValidationMiddleware,
 ];
 

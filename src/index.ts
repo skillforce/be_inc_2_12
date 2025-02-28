@@ -1,6 +1,6 @@
 import { initApp } from './app';
 import { APP_CONFIG } from './app_config';
-import { db } from './db/mongo-db';
+import { db } from './db/composition-root';
 
 const app = initApp();
 

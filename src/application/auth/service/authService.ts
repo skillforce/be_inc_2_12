@@ -17,6 +17,11 @@ import { db } from '../../../db/composition-root';
 
 const usersRepository = new UsersRepository(db);
 
+enum EmailType {
+  CONFIRM_EMAIL = 'confirmEmail',
+  RECOVERY_PASSWORD = 'recoveryPassword',
+}
+
 export class AuthService {
   constructor(protected authRepository: AuthRepository) {}
   async checkUserCredentials(
@@ -57,6 +62,88 @@ export class AuthService {
     return {
       status: ResultStatus.Success,
       data: user,
+      extensions: [],
+    };
+  }
+
+  async setNewPasswordByRecoveryCode(recoveryCode: string, newPassword: string) {
+    const user = await usersRepository.findByRecoveryCode(recoveryCode); //check is expired
+
+    if (user?.recoverPasswordEmailConfirmation) {
+      const { expirationDate, isConfirmed } = user.recoverPasswordEmailConfirmation;
+
+      if (dayjs(expirationDate!).isBefore(dayjs()) || isConfirmed) {
+        return {
+          status: ResultStatus.BadRequest,
+          errorMessage: 'Bad Request',
+          data: null,
+          extensions: [{ field: 'code', message: 'Provided code is expired' }],
+        };
+      }
+
+      const hashedPassword = await bcryptService.generateHash(newPassword);
+
+      const isPasswordChanged = await usersRepository.changePasswordByRecoveryCode(
+        recoveryCode,
+        hashedPassword,
+      );
+
+      if (!isPasswordChanged) {
+        return {
+          status: ResultStatus.ServerError,
+          errorMessage: 'Internal server error occurred',
+          data: null,
+          extensions: [],
+        };
+      }
+
+      return {
+        status: ResultStatus.Success,
+        data: null,
+        extensions: [],
+      };
+    }
+    return {
+      status: ResultStatus.NotFound,
+      data: null,
+      errorMessage: 'User not found',
+      extensions: [],
+    };
+  }
+
+  async sendRecoveryPasswordEmail(email: string): Promise<Result> {
+    const user = await usersRepository.findByLoginOrEmail(email);
+
+    if (!user) {
+      return {
+        status: ResultStatus.NotFound,
+        data: null,
+        errorMessage: 'User not found',
+        extensions: [],
+      };
+    }
+    const newExpDate = dayjs().add(30, 'minute').toISOString();
+    const newCode = randomUUID();
+
+    const isRecoverPasswordFeatureInitialized = await usersRepository.initializeRecoverPassword(
+      user._id,
+      newExpDate,
+      newCode,
+    );
+
+    if (!isRecoverPasswordFeatureInitialized) {
+      return {
+        status: ResultStatus.ServerError,
+        data: null,
+        errorMessage: 'Internal server error occurred',
+        extensions: [],
+      };
+    }
+
+    this.sendConfirmationEmail(user.email, newCode, EmailType.RECOVERY_PASSWORD);
+    return {
+      status: ResultStatus.Success,
+      data: null,
       extensions: [],
     };
   }
@@ -112,7 +199,11 @@ export class AuthService {
       };
     }
 
-    this.sendConfirmationEmail(newUser.email, newUser.emailConfirmation.confirmationCode);
+    this.sendConfirmationEmail(
+      newUser.email,
+      newUser.emailConfirmation.confirmationCode,
+      EmailType.CONFIRM_EMAIL,
+    );
 
     return {
       status: ResultStatus.Success,
@@ -120,8 +211,11 @@ export class AuthService {
       extensions: [],
     };
   }
-  sendConfirmationEmail(email: string, code: string): void {
-    const emailLayout = authEmails.registrationEmail(code);
+  sendConfirmationEmail(email: string, code: string, type: EmailType): void {
+    const emailLayout =
+      type === 'confirmEmail'
+        ? authEmails.registrationEmail(code)
+        : authEmails.passwordRecoveryEmail(code);
     mailService
       .sendEmail(email, emailLayout)
       .then()
@@ -162,7 +256,7 @@ export class AuthService {
       };
     }
 
-    this.sendConfirmationEmail(user.email, newCode);
+    this.sendConfirmationEmail(user.email, newCode, EmailType.CONFIRM_EMAIL);
     return {
       status: ResultStatus.Success,
       data: null,
@@ -227,6 +321,7 @@ export class AuthService {
       extensions: [],
     };
   }
+
   async generateTokens({
     userId,
     deviceId,

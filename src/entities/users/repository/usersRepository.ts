@@ -43,10 +43,52 @@ export class UsersRepository {
 
     return updateResult.modifiedCount === 1;
   }
+  async initializeRecoverPassword(
+    _id: ObjectId,
+    newExpirationDate: string,
+    newCode: string,
+  ): Promise<boolean> {
+    const updateResult = await this.database.getCollections().usersCollection.updateOne(
+      { _id },
+      {
+        $set: {
+          recoverPasswordEmailConfirmation: {
+            expirationDate: newExpirationDate,
+            confirmationCode: newCode,
+            isConfirmed: false,
+          },
+        },
+      },
+    );
+
+    return updateResult.modifiedCount === 1;
+  }
+
+  async changePasswordByRecoveryCode(code: string, newPassword: string): Promise<boolean> {
+    const updateResult = await this.database.getCollections().usersCollection.updateOne(
+      { 'recoverPasswordEmailConfirmation.confirmationCode': code },
+      {
+        $set: {
+          password: newPassword,
+          recoverPasswordEmailConfirmation: null,
+        },
+      },
+    );
+    return updateResult.modifiedCount === 1;
+  }
   async getUserByRegistrationCode(code: string): Promise<UserDBModel | null> {
     const userByCode = await this.database
       .getCollections()
       .usersCollection.findOne({ 'emailConfirmation.confirmationCode': code });
+    if (!userByCode) {
+      return null;
+    }
+    return userByCode;
+  }
+  async findByRecoveryCode(code: string): Promise<UserDBModel | null> {
+    const userByCode = await this.database
+      .getCollections()
+      .usersCollection.findOne({ 'recoverPasswordEmailConfirmation.confirmationCode': code });
     if (!userByCode) {
       return null;
     }

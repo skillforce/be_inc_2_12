@@ -1,15 +1,19 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { db } from '../../src/db/mongo-db';
-import { createUser, insertUser } from '../utils/userHelpers';
+import { createUser, getUserFromDBByEmail, insertUser } from '../utils/userHelpers';
 import { testingDtosCreator } from '../utils/testingDtosCreator';
 import { mailService } from '../../src/common/adapters/mail.service';
 import { emailServiceMock } from './mock/emailSendServiceMock';
-import { authService } from '../../src/application/auth/service/authService';
+import { AuthService } from '../../src/application/auth/service/authService';
 import { ResultStatus } from '../../src/common/result/resultCode';
 import { req } from '../utils/test-helpers';
 import { PATHS } from '../../src/common/paths/paths';
 import { HttpStatuses } from '../../src/common/types/httpStatuses';
 import { User } from '../../src/entities/users/service/user.entity';
+import { db } from '../../src/db/composition-root';
+import { AuthRepository } from '../../src/application/auth/repository/authRepository';
+
+const authRepository = new AuthRepository(db);
+const authService = new AuthService(authRepository);
 
 describe('/auth', () => {
   beforeAll(async () => {
@@ -86,5 +90,56 @@ describe('/auth', () => {
       .post(PATHS.AUTH.REGISTRATION_EMAIL_RESENDING)
       .send({ email: userDto.email })
       .expect(HttpStatuses.BadRequest);
+  });
+  it('should send recover password email', async () => {
+    const userDto = testingDtosCreator.createUserDto({});
+
+    const mockUser = new User({
+      login: userDto.login,
+      email: userDto.email,
+      hash: userDto.pass,
+    });
+
+    const userFromDB = await insertUser(mockUser);
+
+    await req
+      .post(PATHS.AUTH.PASSWORD_RECOVERY)
+      .send({ email: userFromDB.email })
+      .expect(HttpStatuses.NoContent);
+
+    expect(mailService.sendEmail).toBeCalled();
+    expect(mailService.sendEmail).toBeCalledTimes(1);
+
+    const userFromDBAfterSendEmail = await getUserFromDBByEmail({ email: userFromDB.email });
+    expect(userFromDBAfterSendEmail!.recoverPasswordEmailConfirmation).toBeDefined();
+
+    await req
+      .post(PATHS.AUTH.NEW_PASSWORD)
+      .send({
+        recoveryCode: userFromDBAfterSendEmail!.recoverPasswordEmailConfirmation!.confirmationCode,
+        newPassword: 'newPassword',
+      })
+      .expect(HttpStatuses.NoContent);
+
+    const userFromDBAfterPasswordRecovery = await getUserFromDBByEmail({ email: userFromDB.email });
+    expect(userFromDBAfterPasswordRecovery!.password).not.toBe(userFromDBAfterSendEmail!.password);
+  });
+  it("shouldn't send email if email doesn't exist", async () => {
+    const userDto = testingDtosCreator.createUserDto({});
+
+    const mockUser = new User({
+      login: userDto.login,
+      email: userDto.email,
+      hash: userDto.pass,
+    });
+
+    const userFromDB = await insertUser(mockUser);
+
+    await req
+      .post(PATHS.AUTH.PASSWORD_RECOVERY)
+      .send({ email: 'fake@mail.ru' })
+      .expect(HttpStatuses.NoContent);
+
+    expect(mailService.sendEmail).not.toBeCalled();
   });
 });

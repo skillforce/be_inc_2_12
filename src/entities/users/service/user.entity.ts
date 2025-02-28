@@ -11,6 +11,7 @@ export class User {
     expirationDate: string;
     isConfirmed: boolean;
   };
+  recoverPasswordEmailConfirmation: null;
 
   constructor({
     login,
@@ -32,5 +33,6 @@ export class User {
       confirmationCode: randomUUID(),
       isConfirmed,
     };
+    this.recoverPasswordEmailConfirmation = null;
   }
 }

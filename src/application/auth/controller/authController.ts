@@ -103,6 +103,35 @@ export class AuthController {
 
     res.sendStatus(HttpStatuses.NoContent);
   }
+  async sendRecoveryPasswordEmail(req: RequestWithBody<{ email: string }>, res: Response) {
+    const { email } = req.body;
+
+    const result = await this.authService.sendRecoveryPasswordEmail(email);
+
+    if (result.status !== ResultStatus.Success && result.status !== ResultStatus.NotFound) {
+      const errorResponse = createErrorObject(result.extensions);
+      res.status(HttpStatuses.BadRequest).send(errorResponse);
+      return;
+    }
+
+    res.sendStatus(HttpStatuses.NoContent);
+  }
+  async setNewPasswordByRecoveryCode(
+    req: RequestWithBody<{ recoveryCode: string; newPassword: string }>,
+    res: Response,
+  ) {
+    const { recoveryCode, newPassword } = req.body;
+
+    const result = await this.authService.setNewPasswordByRecoveryCode(recoveryCode, newPassword);
+
+    if (result.status !== ResultStatus.Success) {
+      const errorResponse = createErrorObject(result.extensions);
+      res.status(HttpStatuses.BadRequest).send(errorResponse);
+      return;
+    }
+
+    res.sendStatus(HttpStatuses.NoContent);
+  }
 
   async getMe(req: RequestWithUserId<IdType>, res: Response) {
     const userId = req.user?.id;

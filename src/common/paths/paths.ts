@@ -14,6 +14,8 @@ export const PATHS = {
     CONFIRM_REGISTRATION: '/auth/registration-confirmation',
     REGISTRATION_EMAIL_RESENDING: '/auth/registration-email-resending',
     REFRESH_TOKEN: '/auth/refresh-token',
+    PASSWORD_RECOVERY: '/auth/password-recovery',
+    NEW_PASSWORD: '/auth/new-password',
     ME: '/auth/me',
   },
 };

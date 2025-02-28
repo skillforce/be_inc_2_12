@@ -14,7 +14,7 @@ export interface UserAuthViewModel {
   userId: string;
 }
 
-interface EmailConfirmation {
+interface CodeConfirmation {
   confirmationCode: string;
   expirationDate: string;
   isConfirmed: boolean;
@@ -26,7 +26,8 @@ export interface UserDBModel {
   email: string;
   password: string;
   createdAt: string;
-  emailConfirmation: EmailConfirmation;
+  emailConfirmation: CodeConfirmation;
+  recoverPasswordEmailConfirmation: CodeConfirmation | null;
 }
 
 export interface AddUserDto {
@@ -34,7 +35,8 @@ export interface AddUserDto {
   email: string;
   password: string;
   createdAt: string;
-  emailConfirmation: EmailConfirmation;
+  emailConfirmation: CodeConfirmation;
+  recoverPasswordEmailConfirmation: CodeConfirmation | null;
 }
 
 export interface AddUserRequiredInputData {
