@@ -107,7 +107,7 @@ export class AuthService {
       status: ResultStatus.NotFound,
       data: null,
       errorMessage: 'User not found',
-      extensions: [],
+      extensions: [{ field: 'recoveryCode', message: 'Provided recovery code is incorrect.' }],
     };
   }
 
