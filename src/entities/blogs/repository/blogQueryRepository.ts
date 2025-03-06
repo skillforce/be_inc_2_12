@@ -4,10 +4,11 @@ import { DataBase } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 import { inject, injectable } from 'inversify';
+import { BlogModel } from './BlogsSchema';
 
 @injectable()
 export class BlogQueryRepository {
-  constructor(@inject(DataBase) protected database: DataBase) {}
+  constructor() {}
 
   async getPaginatedBlogs(
     query: Record<string, string | undefined>,
@@ -20,13 +21,11 @@ export class BlogQueryRepository {
     const searchText = searchNameTerm ? { name: { $regex: searchNameTerm, $options: 'i' } } : {};
     const filter = { ...searchText, ...additionalFilters };
 
-    const itemsFromDb = await this.database
-      .getCollections()
-      .blogCollection.find(filter)
+    const itemsFromDb = await BlogModel.find(filter)
       .sort({ [sortBy]: sortDirection })
       .skip(skip)
       .limit(pageSize)
-      .toArray();
+      .lean();
 
     const totalCount = await this.countBlogs(filter);
     const itemsForOutput = itemsFromDb.map(this.mapBlogToOutput);
@@ -41,7 +40,7 @@ export class BlogQueryRepository {
   }
 
   async getBlogById(_id: ObjectId): Promise<BlogViewModel | null> {
-    const blogById = await this.database.getCollections().blogCollection.findOne({ _id });
+    const blogById = await BlogModel.findOne({ _id });
 
     if (!blogById) {
       return null;
@@ -50,7 +49,7 @@ export class BlogQueryRepository {
   }
 
   async countBlogs(filter: Record<string, any>): Promise<number> {
-    return this.database.getCollections().blogCollection.countDocuments(filter);
+    return BlogModel.countDocuments(filter);
   }
   mapBlogToOutput(blog: WithId<BlogDbModel>): BlogViewModel {
     return {

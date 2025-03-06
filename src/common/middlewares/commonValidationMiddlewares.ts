@@ -3,9 +3,8 @@ import { NextFunction, Request, Response } from 'express';
 
 import { toObjectId } from '../helpers/helper';
 import { BlogQueryRepository } from '../../entities/blogs/repository/blogQueryRepository';
-import { db } from '../../db/composition-root';
 
-const blogQueryRepository = new BlogQueryRepository(db);
+const blogQueryRepository = new BlogQueryRepository();
 
 export const inputValidationMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);

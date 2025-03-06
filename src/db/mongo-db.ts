@@ -1,67 +1,57 @@
-import { Db, MongoClient } from 'mongodb';
-import { PostDBModel } from '../entities/posts';
-import { BlogDbModel } from '../entities/blogs';
-import { UserDBModel } from '../entities/users';
+import { PostModel } from '../entities/posts';
+import { BlogModel } from '../entities/blogs';
+import { UserModel } from '../entities/users';
 import { AppConfig } from '../app_config';
-import { CommentDBModel } from '../entities/comments';
-import { AuthMetaDBModel } from '../application/auth/types/types';
-import { TriggerAttemptsCollectionDBModel } from '../common/types/types';
+import { CommentModel } from '../entities/comments';
 import { injectable } from 'inversify';
+import * as mongoose from 'mongoose';
+import { AuthMetaModel, TriggerAttemptsModel } from '../application/auth';
 
 @injectable()
 export class DataBase {
-  constructor(
-    protected client: MongoClient,
-    protected appConfig: AppConfig,
-  ) {}
-  getDbName(): Db {
-    return this.client.db(this.appConfig.DB_NAME);
-  }
-  async run(url: string) {
-    try {
-      this.client = new MongoClient(url);
-      await this.client.connect();
-      await this.getDbName().command({ ping: 1 });
-      console.log('Connected successfully to mongo server');
-    } catch (e: unknown) {
-      console.error("Can't connect to mongo server", e);
-      await this.client.close();
-    }
-  }
-  async stop() {
-    await this.client.close();
-    console.log('Connection successful closed');
-  }
-  async drop() {
-    try {
-      //await this.getDbName().dropDatabase()
-      const collections = await this.getDbName().listCollections().toArray();
+  public client?: mongoose.Mongoose;
 
-      for (const collection of collections) {
-        const collectionName = collection.name;
-        await this.getDbName().collection(collectionName).deleteMany({});
-      }
-    } catch (e: unknown) {
-      console.error('Error in drop db:', e);
-      await this.stop();
+  constructor(protected appConfig: AppConfig) {}
+
+  async connect(url: string) {
+    try {
+      this.client = await mongoose.connect(url, {
+        dbName: this.appConfig.DB_NAME,
+      } as mongoose.ConnectOptions);
+
+      console.log('✅ Connected to MongoDB using Mongoose');
+    } catch (error) {
+      console.error('❌ MongoDB connection error:', error);
+      await this.disconnect();
     }
   }
-  getCollections() {
+
+  async disconnect() {
+    if (this.client) {
+      await this.client.disconnect();
+      console.log('🔴 Disconnected from MongoDB');
+    } else {
+      console.log('🔴 No active connection to disconnect.');
+    }
+  }
+
+  async clearDatabase() {
+    try {
+      await this.client?.connection.db?.dropDatabase();
+      console.log('🗑️ Database cleared');
+    } catch (error) {
+      console.error('⚠️ Error clearing database:', error);
+    }
+  }
+
+  getModels() {
     return {
-      usersCollection: this.getDbName().collection<UserDBModel>(
-        this.appConfig.USERS_COLLECTION_NAME,
-      ),
-      postCollection: this.getDbName().collection<PostDBModel>(this.appConfig.POST_COLLECTION_NAME),
-      blogCollection: this.getDbName().collection<BlogDbModel>(this.appConfig.BLOG_COLLECTION_NAME),
-      authMetaCollection: this.getDbName().collection<AuthMetaDBModel>(
-        this.appConfig.AUTH_META_COLLECTION_NAME,
-      ),
-      triggerAttemptsCollection: this.getDbName().collection<TriggerAttemptsCollectionDBModel>(
-        this.appConfig.TRIGGER_ATTEMPTS_COLLECTION,
-      ),
-      commentsCollection: this.getDbName().collection<CommentDBModel>(
-        this.appConfig.COMMENTS_COLLECTION_NAME,
-      ),
+      users: UserModel,
+      posts: PostModel,
+      blogs: BlogModel,
+      comments: CommentModel,
+      authMeta: AuthMetaModel,
+      triggerAttempts: TriggerAttemptsModel,
     };
   }
 }

@@ -6,9 +6,8 @@ import { NextFunction, Request, Response } from 'express';
 import { createAttemptLimitMiddleware } from '../../../common/middlewares/attemptLimitMiddleware';
 import { checkRefreshToken } from '../guards/refreshToken.guard';
 import { AuthRepository } from '../repository/authRepository';
-import { db } from '../../../db/composition-root';
 
-const authRepository = new AuthRepository(db);
+const authRepository = new AuthRepository();
 
 const loginOrEmailErrors: ErrorMessages = {
   required: 'loginOrEmail field is required',

@@ -3,7 +3,7 @@ import { PATHS } from '../../src/common/paths/paths';
 import { ADMIN_AUTH_HEADER } from '../../src/application/auth/guards/base.auth.guard';
 import { req } from './test-helpers';
 import { HttpStatuses } from '../../src/common/types/httpStatuses';
-import { UserDBModel } from '../../src/entities/users';
+import { UserDBModel, UserModel } from '../../src/entities/users';
 import { User } from '../../src/entities/users/service/user.entity';
 import { ObjectId, WithId } from 'mongodb';
 import { UserViewModel } from '../../src/entities/users/types/types';
@@ -50,9 +50,9 @@ export const insertUser = async ({
     },
     recoverPasswordEmailConfirmation: null,
   };
-  const res = await db.getCollections().usersCollection.insertOne({ ...(newUser as WithId<User>) });
+  const res = await UserModel.create(newUser);
   return {
-    id: res.insertedId.toString(),
+    id: res._id.toString(),
     ...newUser,
   };
 };
@@ -62,7 +62,7 @@ export const getUserFromDBByEmail = async ({
 }: {
   email: string;
 }): Promise<UserDBModel | null> => {
-  const res = await db.getCollections().usersCollection.findOne({ email });
+  const res = await db.getModels().users.findOne({ email });
   if (!res) return null;
 
   return res;

@@ -3,13 +3,10 @@ import { CommentsQueryRepository } from '../repository/commentsQueryRepository';
 import { CommentsService } from '../service/commentsService';
 import { UsersRepository } from '../../users/repository/usersRepository';
 import { CommentsRepository } from '../repository/commentsRepository';
-import { db } from '../../../db/composition-root';
 import { Container } from 'inversify';
-import { DataBase } from '../../../db/mongo-db';
 
 const container = new Container();
 
-container.bind(DataBase).toConstantValue(db);
 container.bind(UsersRepository).to(UsersRepository);
 container.bind(CommentsRepository).to(CommentsRepository);
 container.bind(CommentsQueryRepository).to(CommentsQueryRepository);

@@ -12,7 +12,7 @@ export function createAttemptLimitMiddleware(routeName: string, limit = 5, windo
         return res.status(HttpStatuses.Forbidden);
       }
 
-      const attemptsCollection = db.getCollections().triggerAttemptsCollection;
+      const attemptsCollection = db.getModels().triggerAttempts;
 
       const windowStart = new Date(Date.now() - windowSec * 1000);
 

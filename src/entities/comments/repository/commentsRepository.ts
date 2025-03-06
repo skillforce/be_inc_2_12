@@ -1,20 +1,18 @@
 import { AddUpdateCommentInputData, CommentDBModel } from '../types/types';
 import { ObjectId } from 'mongodb';
-import { DataBase } from '../../../db/mongo-db';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
+import { CommentModel } from './CommentSchema';
 
 @injectable()
 export class CommentsRepository {
-  constructor(@inject(DataBase) protected database: DataBase) {}
+  constructor() {}
   async addComment(newCommentData: Omit<CommentDBModel, '_id'>): Promise<ObjectId> {
-    const result = await this.database
-      .getCollections()
-      .commentsCollection.insertOne(newCommentData as CommentDBModel);
-    return result.insertedId;
+    const result = await CommentModel.create(newCommentData);
+    return result._id;
   }
 
   async updateComment(_id: ObjectId, dataForUpdate: AddUpdateCommentInputData): Promise<boolean> {
-    const result = await this.database.getCollections().commentsCollection.updateOne(
+    const result = await CommentModel.updateOne(
       { _id },
       {
         $set: {
@@ -26,12 +24,12 @@ export class CommentsRepository {
   }
 
   async deleteComment(_id: ObjectId): Promise<boolean> {
-    const result = await this.database.getCollections().commentsCollection.deleteOne({ _id });
+    const result = await CommentModel.deleteOne({ _id });
     return result.deletedCount === 1;
   }
 
   async getCommentById(_id: ObjectId): Promise<CommentDBModel | null> {
-    const commentById = await this.database.getCollections().commentsCollection.findOne({ _id });
+    const commentById = await CommentModel.findOne({ _id });
 
     if (!commentById) {
       return null;

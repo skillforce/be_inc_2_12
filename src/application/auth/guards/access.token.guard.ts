@@ -4,9 +4,8 @@ import { IdType } from '../../../common/types/id';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { toObjectId } from '../../../common/helpers/helper';
 import { UsersRepository } from '../../../entities/users/repository/usersRepository';
-import { db } from '../../../db/composition-root';
 
-const usersRepository = new UsersRepository(db);
+const usersRepository = new UsersRepository();
 
 export const accessTokenGuard = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.headers.authorization) {

@@ -5,13 +5,10 @@ import { BlogService } from '../service/blogService';
 import { PostQueryRepository } from '../../posts/repository/postQueryRepository';
 import { PostRepository } from '../../posts/repository/postRepository';
 import { BlogRepository } from '../repository/blogRepository';
-import { db } from '../../../db/composition-root';
 import { Container } from 'inversify';
-import { DataBase } from '../../../db/mongo-db';
 
 const container = new Container();
 
-container.bind(DataBase).toConstantValue(db);
 container.bind(PostQueryRepository).to(PostQueryRepository);
 container.bind(PostRepository).to(PostRepository);
 container.bind(BlogQueryRepository).to(BlogQueryRepository);

@@ -16,8 +16,8 @@ describe('auth', () => {
   beforeAll(async () => {
     const dbServer = await MongoMemoryServer.create();
     const uri = dbServer.getUri();
-    await db.run(uri);
-    await db.drop();
+    await db.connect(uri);
+    await db.clearDatabase();
   }, 10000);
 
   it('should return error code 400 if there is incorrect login request body', async () => {
@@ -106,7 +106,7 @@ describe('auth', () => {
     expect(res.body.errorsMessages[0].field).toBe('code');
   });
   it('should refresh tokens', async () => {
-    await db.drop();
+    await db.clearDatabase();
     await createUser({ userDto: newUser });
 
     const loginResponse = await req
@@ -133,7 +133,7 @@ describe('auth', () => {
     );
   });
   it("shouldn't return user info if accessToken is expired", async () => {
-    await db.drop();
+    await db.clearDatabase();
     await createUser({ userDto: newUser });
 
     const loginResponse = await req
@@ -150,7 +150,7 @@ describe('auth', () => {
       .expect(401);
   }, 12000);
   it('should return error when try to logout with invalid refresh token', async () => {
-    await db.drop();
+    await db.clearDatabase();
     await createUser({ userDto: newUser });
 
     const loginResponse = await req
@@ -174,7 +174,7 @@ describe('auth', () => {
       .expect(HttpStatuses.Unauthorized);
   });
   it('should return error when try to logout with invalid refresh token', async () => {
-    await db.drop();
+    await db.clearDatabase();
     await createUser({ userDto: newUser });
 
     const loginResponse = await req
@@ -191,7 +191,7 @@ describe('auth', () => {
       .expect(HttpStatuses.Success);
   });
   it('should login user from different devices', async () => {
-    await db.drop();
+    await db.clearDatabase();
     await createUser({ userDto: newUser });
 
     const loginResponseFirst = await req
@@ -229,7 +229,7 @@ describe('auth', () => {
     expect(result.body.length).toBe(3);
   });
   it('should return 429 error when there was more than 5 attempts to login from one IP', async () => {
-    await db.drop();
+    await db.clearDatabase();
     await createAndLoginUser();
     await delay(500);
     await createAndLoginUser();
@@ -251,7 +251,7 @@ describe('auth', () => {
       .expect(429);
   });
   it('should return error when user tries to remove not his own session ', async () => {
-    await db.drop();
+    await db.clearDatabase();
     const firstUser = await createAndLoginUser();
     const secondUser = await createAndLoginUser();
 
@@ -268,7 +268,7 @@ describe('auth', () => {
       .expect(403);
   });
   it('should remove session info when logout properly ', async () => {
-    await db.drop();
+    await db.clearDatabase();
     const firstUser = await createAndLoginUser();
     const secondUser = await createAndLoginUser();
     await createAndLoginUser();
@@ -301,7 +301,7 @@ describe('auth', () => {
       .expect(HttpStatuses.Unauthorized);
   });
   it('should refresh session iat and exp when refresh token', async () => {
-    await db.drop();
+    await db.clearDatabase();
     const firstUser = await createAndLoginUser();
     const secondUser = await createAndLoginUser();
     await createAndLoginUser();
@@ -330,7 +330,7 @@ describe('auth', () => {
     expect(activeSessionsAfterRefresh.body.length).toBe(1);
   });
   it('should remove session from db list', async () => {
-    await db.drop();
+    await db.clearDatabase();
     const firstUser = await createAndLoginUser();
     const secondUser = await createAndLoginUser();
 
@@ -361,7 +361,7 @@ describe('auth', () => {
       .expect(HttpStatuses.Unauthorized);
   });
   it('should return error when user logout with expired refresh token', async () => {
-    await db.drop();
+    await db.clearDatabase();
     const firstUser = await createAndLoginUser();
     const secondUser = await createAndLoginUser();
 

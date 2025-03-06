@@ -6,14 +6,14 @@ import { BlogService } from '../../src/entities/blogs/service/blogService';
 import { BlogRepository } from '../../src/entities/blogs/repository/blogRepository';
 import { db } from '../../src/db/composition-root';
 
-const blogRepository = new BlogRepository(db);
+const blogRepository = new BlogRepository();
 const blogService = new BlogService(blogRepository);
 
 describe('/blogs', () => {
   beforeAll(async () => {
     const dbServer = await MongoMemoryServer.create();
     const uri = dbServer.getUri();
-    await db.run(uri);
+    await db.connect(uri);
     await cleanDB();
   }, 10000);
 
@@ -51,7 +51,7 @@ describe('/blogs', () => {
     expect(res.body).toMatchObject(blogData);
   });
   it('should create new post and apply blog id that has been sent', async () => {
-    const blogFromDb = await db.getCollections().blogCollection.find().toArray();
+    const blogFromDb = await db.getModels().blogs.find().lean();
     const blogId = blogFromDb[0]._id;
 
     const postData = {
@@ -67,7 +67,7 @@ describe('/blogs', () => {
     expect(res.body).toMatchObject(postData);
   });
   it('should return post items with appropriate blog id', async () => {
-    const blogFromDb = await db.getCollections().blogCollection.find().toArray();
+    const blogFromDb = await db.getModels().blogs.find().lean();
     const blogId = blogFromDb[0]._id;
 
     const postData = {
@@ -81,10 +81,7 @@ describe('/blogs', () => {
     expect(res.body.items[0]).toMatchObject(postData);
   });
   it('should update blog object and return 204 status to client', async () => {
-    const blogCollectionArray = (await db
-      .getCollections()
-      .blogCollection.find()
-      .toArray()) as BlogDbModel[];
+    const blogCollectionArray = (await db.getModels().blogs.find().lean()) as BlogDbModel[];
     const idToUpdate = blogCollectionArray[0]._id;
     const blogData = {
       name: 'Video Name123',
@@ -98,10 +95,7 @@ describe('/blogs', () => {
       .expect(204);
   });
   it('should return 400 when body properties is incorrect', async () => {
-    const blogCollectionArray = (await db
-      .getCollections()
-      .blogCollection.find()
-      .toArray()) as BlogDbModel[];
+    const blogCollectionArray = (await db.getModels().blogs.find().lean()) as BlogDbModel[];
     const idToUpdate = blogCollectionArray[0]._id;
     const blogData = {
       name: '',
@@ -115,10 +109,7 @@ describe('/blogs', () => {
       .expect(400);
   });
   it('should remove video by id', async () => {
-    const blogCollectionArray = (await db
-      .getCollections()
-      .blogCollection.find()
-      .toArray()) as BlogDbModel[];
+    const blogCollectionArray = (await db.getModels().blogs.find().lean()) as BlogDbModel[];
     const idToUpdate = blogCollectionArray[0]._id;
     const res = await req
       .delete(`${PATHS.BLOGS}/${idToUpdate}`)

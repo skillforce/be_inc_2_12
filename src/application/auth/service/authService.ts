@@ -13,10 +13,7 @@ import { User } from '../../../entities/users/service/user.entity';
 import { generateIsoStringFromSeconds } from '../../../common/helpers/helper';
 import { AuthRepository } from '../repository/authRepository';
 import { UsersRepository } from '../../../entities/users/repository/usersRepository';
-import { db } from '../../../db/composition-root';
 import { inject } from 'inversify';
-
-const usersRepository = new UsersRepository(db);
 
 enum EmailType {
   CONFIRM_EMAIL = 'confirmEmail',
@@ -24,12 +21,15 @@ enum EmailType {
 }
 
 export class AuthService {
-  constructor(@inject(AuthRepository) protected authRepository: AuthRepository) {}
+  constructor(
+    @inject(AuthRepository) protected authRepository: AuthRepository,
+    @inject(UsersRepository) protected usersRepository: UsersRepository,
+  ) {}
   async checkUserCredentials(
     loginOrEmail: string,
     password: string,
   ): Promise<Result<UserDBModel | null>> {
-    const user = await usersRepository.findByLoginOrEmail(loginOrEmail);
+    const user = await this.usersRepository.findByLoginOrEmail(loginOrEmail);
     if (!user) {
       return {
         status: ResultStatus.NotFound,
@@ -68,7 +68,7 @@ export class AuthService {
   }
 
   async setNewPasswordByRecoveryCode(recoveryCode: string, newPassword: string) {
-    const user = await usersRepository.findByRecoveryCode(recoveryCode); //check is expired
+    const user = await this.usersRepository.findByRecoveryCode(recoveryCode); //check is expired
 
     if (user?.recoverPasswordEmailConfirmation) {
       const { expirationDate, isConfirmed } = user.recoverPasswordEmailConfirmation;
@@ -84,7 +84,7 @@ export class AuthService {
 
       const hashedPassword = await bcryptService.generateHash(newPassword);
 
-      const isPasswordChanged = await usersRepository.changePasswordByRecoveryCode(
+      const isPasswordChanged = await this.usersRepository.changePasswordByRecoveryCode(
         recoveryCode,
         hashedPassword,
       );
@@ -113,7 +113,7 @@ export class AuthService {
   }
 
   async sendRecoveryPasswordEmail(email: string): Promise<Result> {
-    const user = await usersRepository.findByLoginOrEmail(email);
+    const user = await this.usersRepository.findByLoginOrEmail(email);
 
     if (!user) {
       return {
@@ -126,11 +126,8 @@ export class AuthService {
     const newExpDate = dayjs().add(30, 'minute').toISOString();
     const newCode = randomUUID();
 
-    const isRecoverPasswordFeatureInitialized = await usersRepository.initializeRecoverPassword(
-      user._id,
-      newExpDate,
-      newCode,
-    );
+    const isRecoverPasswordFeatureInitialized =
+      await this.usersRepository.initializeRecoverPassword(user._id, newExpDate, newCode);
 
     if (!isRecoverPasswordFeatureInitialized) {
       return {
@@ -150,8 +147,8 @@ export class AuthService {
   }
 
   async registerUser({ login, email, password }: AddUserRequiredInputData): Promise<Result> {
-    const isLoginUnique = await usersRepository.isFieldValueUnique('login', login);
-    const isEmailUnique = await usersRepository.isFieldValueUnique('email', email);
+    const isLoginUnique = await this.usersRepository.isFieldValueUnique('login', login);
+    const isEmailUnique = await this.usersRepository.isFieldValueUnique('email', email);
 
     if (!isLoginUnique) {
       return {
@@ -189,7 +186,7 @@ export class AuthService {
       hash: hashedPassword,
     });
 
-    const createdUserId = await usersRepository.addUser(newUser);
+    const createdUserId = await this.usersRepository.addUser(newUser);
 
     if (!createdUserId) {
       return {
@@ -223,7 +220,7 @@ export class AuthService {
       .catch((e) => console.log(e));
   }
   async resendConfirmationEmail(email: string): Promise<Result> {
-    const user = await usersRepository.findByLoginOrEmail(email);
+    const user = await this.usersRepository.findByLoginOrEmail(email);
 
     if (!user) {
       return {
@@ -246,7 +243,11 @@ export class AuthService {
     const newExpDate = dayjs().add(30, 'minute').toISOString();
     const newCode = randomUUID();
 
-    const isCodeSent = await usersRepository.renewVerificationData(user._id, newExpDate, newCode);
+    const isCodeSent = await this.usersRepository.renewVerificationData(
+      user._id,
+      newExpDate,
+      newCode,
+    );
 
     if (!isCodeSent) {
       return {
@@ -279,7 +280,7 @@ export class AuthService {
       };
     }
 
-    const userByCodeResult = await usersRepository.getUserByRegistrationCode(code);
+    const userByCodeResult = await this.usersRepository.getUserByRegistrationCode(code);
 
     if (!userByCodeResult) {
       return {
@@ -304,7 +305,7 @@ export class AuthService {
       };
     }
 
-    const isCodeConfirmed = await usersRepository.confirmUserEmailById(_id);
+    const isCodeConfirmed = await this.usersRepository.confirmUserEmailById(_id);
 
     if (!isCodeConfirmed) {
       return {

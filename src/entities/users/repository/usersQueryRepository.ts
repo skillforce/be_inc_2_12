@@ -6,19 +6,19 @@ import {
   UsersOutputMapEnum,
   UserViewModel,
 } from '../types/types';
-import { DataBase } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
+import { UserModel } from './UserSchema';
 
 @injectable()
 export class UsersQueryRepository {
-  constructor(@inject(DataBase) protected database: DataBase) {}
+  constructor() {}
   async getUserById(
     _id: ObjectId,
     mapType: UsersOutputMapEnum = UsersOutputMapEnum.VIEW,
   ): Promise<UserViewModel | UserAuthViewModel | null> {
-    const userById = await this.database.getCollections().usersCollection.findOne({ _id });
+    const userById = await UserModel.findOne({ _id });
 
     if (!userById) {
       return null;
@@ -58,13 +58,10 @@ export class UsersQueryRepository {
           }
         : {};
 
-    const itemsFromDb = await this.database
-      .getCollections()
-      .usersCollection.find(filter)
+    const itemsFromDb = await UserModel.find(filter)
       .sort({ [sortBy]: sortDirection })
       .skip(skip)
-      .limit(pageSize)
-      .toArray();
+      .limit(pageSize);
 
     const totalCount = await this.countUsers(filter);
     const itemsForOutput = itemsFromDb.map(this.mapUsersToOutput);
@@ -79,7 +76,7 @@ export class UsersQueryRepository {
   }
 
   async countUsers(filter: Record<string, any>): Promise<number> {
-    return this.database.getCollections().usersCollection.countDocuments(filter);
+    return UserModel.countDocuments(filter);
   }
 
   mapUsersToOutput(user: WithId<UserDBModel>): UserViewModel {

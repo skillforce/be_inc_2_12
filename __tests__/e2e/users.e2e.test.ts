@@ -21,7 +21,7 @@ describe('/users', () => {
     const dbServer = await MongoMemoryServer.create();
     const uri = dbServer.getUri();
 
-    await db.run(uri);
+    await db.connect(uri);
     await cleanDB();
   }, 10000);
 

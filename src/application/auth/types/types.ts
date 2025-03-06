@@ -12,12 +12,6 @@ export interface RegisterUserDto {
   email: string;
 }
 
-export interface LoginFilterSchema {
-  email: string;
-  login: string;
-  password: string;
-}
-
 export interface AuthMetaDBModel {
   _id: ObjectId;
   iat: string;

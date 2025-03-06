@@ -7,13 +7,10 @@ import { CommentsService } from '../../comments/service/commentsService';
 import { UsersRepository } from '../../users/repository/usersRepository';
 import { CommentsRepository } from '../../comments/repository/commentsRepository';
 import { CommentsQueryRepository } from '../../comments/repository/commentsQueryRepository';
-import { db } from '../../../db/composition-root';
 import { Container } from 'inversify';
-import { DataBase } from '../../../db/mongo-db';
 
 const container = new Container();
 
-container.bind(DataBase).toConstantValue(db);
 container.bind(PostRepository).to(PostRepository);
 container.bind(PostQueryRepository).to(PostQueryRepository);
 container.bind(PostService).to(PostService);

@@ -4,10 +4,11 @@ import { DataBase } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 import { inject, injectable } from 'inversify';
+import { PostModel } from './PostScheme';
 
 @injectable()
 export class PostQueryRepository {
-  constructor(@inject(DataBase) protected database: DataBase) {}
+  constructor() {}
   async getPaginatedPosts(
     query: Record<string, string | undefined>,
     filter: Record<string, any> = {},
@@ -17,13 +18,11 @@ export class PostQueryRepository {
     const { pageNumber, pageSize, sortBy, sortDirection } = sanitizedQuery;
     const skip = (pageNumber - 1) * pageSize;
 
-    const allPostsFromDb = await this.database
-      .getCollections()
-      .postCollection.find(filter)
+    const allPostsFromDb = await PostModel.find(filter)
       .sort({ [sortBy]: sortDirection })
       .skip(skip)
       .limit(pageSize)
-      .toArray();
+      .lean();
 
     const totalCount = await this.countPosts(filter);
     const itemsForOutput = allPostsFromDb.map(this.mapPostToOutput);
@@ -37,14 +36,14 @@ export class PostQueryRepository {
     };
   }
   async getPostById(_id: ObjectId): Promise<PostViewModel | null> {
-    const postById = await this.database.getCollections().postCollection.findOne({ _id });
+    const postById = await PostModel.findOne({ _id });
     if (!postById) {
       return null;
     }
     return this.mapPostToOutput(postById);
   }
   async countPosts(filter: Record<string, any>): Promise<number> {
-    return this.database.getCollections().postCollection.countDocuments(filter);
+    return PostModel.countDocuments(filter);
   }
 
   mapPostToOutput(post: PostDBModel): PostViewModel {

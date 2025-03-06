@@ -2,13 +2,12 @@ import { AuthRepository } from '../repository/authRepository';
 import { UsersQueryRepository } from '../../../entities/users/repository/usersQueryRepository';
 import { AuthService } from '../service/authService';
 import { AuthController } from '../controller/authController';
-import { db } from '../../../db/composition-root';
 import { Container } from 'inversify';
-import { DataBase } from '../../../db/mongo-db';
+import { UsersRepository } from '../../../entities/users/repository/usersRepository';
 
 const container = new Container();
 
-container.bind(DataBase).toConstantValue(db);
+container.bind(UsersRepository).to(UsersRepository);
 container.bind(AuthRepository).to(AuthRepository);
 container.bind(UsersQueryRepository).to(UsersQueryRepository);
 container.bind(AuthService).to(AuthService);

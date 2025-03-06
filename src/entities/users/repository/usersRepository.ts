@@ -1,27 +1,29 @@
 import { DataBase } from '../../../db/mongo-db';
 import { ObjectId, WithId } from 'mongodb';
-import { AddUserDto, UserDBModel } from '../types/types';
+import { AddUserDto, UserDBModel, UserDocument } from '../types/types';
 import { inject, injectable } from 'inversify';
+import { UserModel } from './UserSchema';
 
 @injectable()
 export class UsersRepository {
-  constructor(@inject(DataBase) protected database: DataBase) {}
-  async addUser(newUserData: AddUserDto): Promise<ObjectId> {
-    const result = await this.database
-      .getCollections()
-      .usersCollection.insertOne(newUserData as WithId<AddUserDto>);
-    return result.insertedId;
+  constructor() {}
+  async addUser(newUserData: AddUserDto): Promise<ObjectId | null> {
+    const newUser = await UserModel.create(newUserData);
+    if (!newUser._id) {
+      return null;
+    }
+    return newUser._id;
   }
   async isFieldValueUnique(field: string, value: string): Promise<boolean> {
-    const result = await this.database.getCollections().usersCollection.findOne({ [field]: value });
+    const result = await UserModel.findOne({ [field]: value });
     return !result;
   }
   async deleteUser(_id: ObjectId): Promise<boolean> {
-    const result = await this.database.getCollections().usersCollection.deleteOne({ _id });
+    const result = await UserModel.deleteOne({ _id });
     return result.deletedCount === 1;
   }
   async getUserById(_id: ObjectId): Promise<UserDBModel | null> {
-    const userById = await this.database.getCollections().usersCollection.findOne({ _id });
+    const userById = await UserModel.findOne({ _id });
 
     if (!userById) {
       return null;
@@ -33,7 +35,7 @@ export class UsersRepository {
     newExpirationDate: string,
     newCode: string,
   ): Promise<boolean> {
-    const updateResult = await this.database.getCollections().usersCollection.updateOne(
+    const updateResult = await UserModel.updateOne(
       { _id },
       {
         $set: {
@@ -50,7 +52,7 @@ export class UsersRepository {
     newExpirationDate: string,
     newCode: string,
   ): Promise<boolean> {
-    const updateResult = await this.database.getCollections().usersCollection.updateOne(
+    const updateResult = await UserModel.updateOne(
       { _id },
       {
         $set: {
@@ -67,7 +69,7 @@ export class UsersRepository {
   }
 
   async changePasswordByRecoveryCode(code: string, newPassword: string): Promise<boolean> {
-    const updateResult = await this.database.getCollections().usersCollection.updateOne(
+    const updateResult = await UserModel.updateOne(
       { 'recoverPasswordEmailConfirmation.confirmationCode': code },
       {
         $set: {
@@ -79,36 +81,35 @@ export class UsersRepository {
     return updateResult.modifiedCount === 1;
   }
   async getUserByRegistrationCode(code: string): Promise<UserDBModel | null> {
-    const userByCode = await this.database
-      .getCollections()
-      .usersCollection.findOne({ 'emailConfirmation.confirmationCode': code });
+    const userByCode = await UserModel.findOne({ 'emailConfirmation.confirmationCode': code });
     if (!userByCode) {
       return null;
     }
     return userByCode;
   }
   async findByRecoveryCode(code: string): Promise<UserDBModel | null> {
-    const userByCode = await this.database
-      .getCollections()
-      .usersCollection.findOne({ 'recoverPasswordEmailConfirmation.confirmationCode': code });
+    const userByCode = await UserModel.findOne({
+      'recoverPasswordEmailConfirmation.confirmationCode': code,
+    });
     if (!userByCode) {
       return null;
     }
     return userByCode;
   }
   async confirmUserEmailById(_id: ObjectId): Promise<boolean> {
-    const updateResult = await this.database
-      .getCollections()
-      .usersCollection.updateOne({ _id }, { $set: { 'emailConfirmation.isConfirmed': true } });
+    const updateResult = await UserModel.updateOne(
+      { _id },
+      { $set: { 'emailConfirmation.isConfirmed': true } },
+    );
 
     return updateResult.matchedCount === 1;
   }
   async doesExistById(_id: ObjectId) {
-    const countById = await this.database.getCollections().usersCollection.countDocuments({ _id });
+    const countById = await UserModel.countDocuments({ _id });
     return countById === 1;
   }
   async findByLoginOrEmail(loginOrEmail: string): Promise<WithId<UserDBModel> | null> {
-    return this.database.getCollections().usersCollection.findOne({
+    return UserModel.findOne({
       $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
     });
   }

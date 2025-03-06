@@ -37,7 +37,7 @@ describe('/comments', () => {
     const dbServer = await MongoMemoryServer.create();
     const uri = dbServer.getUri();
 
-    await db.run(uri);
+    await db.connect(uri);
     await cleanDB();
 
     createdFirstUser = await createUser({

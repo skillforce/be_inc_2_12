@@ -1,28 +1,26 @@
 import { AddBlogDto, AddUpdatePostRequiredInputData } from '../types/types';
-import { ObjectId, WithId } from 'mongodb';
-import { DataBase } from '../../../db/mongo-db';
-import { inject, injectable } from 'inversify';
+import { ObjectId } from 'mongodb';
+import { injectable } from 'inversify';
+import { PostModel } from './PostScheme';
 
 @injectable()
 export class PostRepository {
-  constructor(@inject(DataBase) protected database: DataBase) {}
+  constructor() {}
   async addPost(newPostData: AddBlogDto): Promise<ObjectId | null> {
-    const result = await this.database
-      .getCollections()
-      .postCollection.insertOne(newPostData as WithId<AddBlogDto>);
+    const newPost = await PostModel.create(newPostData);
 
-    if (!result.insertedId) {
+    if (!newPost._id) {
       return null;
     }
 
-    return result.insertedId;
+    return newPost._id;
   }
 
   async updatePost(
     _id: ObjectId,
     postDataForUpdates: AddUpdatePostRequiredInputData,
   ): Promise<boolean> {
-    const result = await this.database.getCollections().postCollection.updateOne(
+    const result = await PostModel.updateOne(
       { _id },
       {
         $set: {
@@ -36,7 +34,7 @@ export class PostRepository {
   }
 
   async deletePost(_id: ObjectId): Promise<boolean> {
-    const result = await this.database.getCollections().postCollection.deleteOne({ _id });
+    const result = await PostModel.deleteOne({ _id });
     return result.deletedCount === 1;
   }
 }
