@@ -6,19 +6,18 @@ import { PostQueryRepository } from '../../posts/repository/postQueryRepository'
 import { PostRepository } from '../../posts/repository/postRepository';
 import { BlogRepository } from '../repository/blogRepository';
 import { db } from '../../../db/composition-root';
+import { Container } from 'inversify';
+import { DataBase } from '../../../db/mongo-db';
 
-const postQueryRepository = new PostQueryRepository(db);
-const postRepository = new PostRepository(db);
+const container = new Container();
 
-const blogQueryRepository = new BlogQueryRepository(db);
-const blogRepository = new BlogRepository(db);
+container.bind(DataBase).toConstantValue(db);
+container.bind(PostQueryRepository).to(PostQueryRepository);
+container.bind(PostRepository).to(PostRepository);
+container.bind(BlogQueryRepository).to(BlogQueryRepository);
+container.bind(BlogRepository).to(BlogRepository);
+container.bind(PostService).to(PostService);
+container.bind(BlogService).to(BlogService);
+container.bind(BlogsController).to(BlogsController);
 
-const postService = new PostService(postRepository);
-const blogService = new BlogService(blogRepository);
-
-export const blogController = new BlogsController(
-  postService,
-  blogService,
-  postQueryRepository,
-  blogQueryRepository,
-);
+export const blogController = container.get(BlogsController);

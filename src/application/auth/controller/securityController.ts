@@ -4,11 +4,12 @@ import { Request, Response } from 'express';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
+import { inject } from 'inversify';
 
 export class SecurityController {
   constructor(
-    protected authQueryRepository: AuthQueryRepository,
-    protected securityService: SecurityService,
+    @inject(AuthQueryRepository) protected authQueryRepository: AuthQueryRepository,
+    @inject(SecurityService) protected securityService: SecurityService,
   ) {}
   async getDevices(req: Request, res: Response) {
     const { sessionData } = req;

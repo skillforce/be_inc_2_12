@@ -1,8 +1,10 @@
 import { DataBase } from '../../../db/mongo-db';
 import { AuthMetaDBModel, SessionsViewModel } from '../types/types';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class AuthQueryRepository {
-  constructor(protected database: DataBase) {}
+  constructor(@inject(DataBase) protected database: DataBase) {}
   async getAllSessionsForCurrentUser({ userId }: { userId: string }): Promise<SessionsViewModel[]> {
     const allSessionsFromDb = await this.database
       .getCollections()

@@ -11,11 +11,12 @@ import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { createErrorObject, toObjectId } from '../../../common/helpers/helper';
 import { IdType } from '../../../common/types/id';
 import { UsersOutputMapEnum } from '../../../entities/users';
+import { inject } from 'inversify';
 
 export class AuthController {
   constructor(
-    protected usersQueryRepository: UsersQueryRepository,
-    protected authService: AuthService,
+    @inject(UsersQueryRepository) protected usersQueryRepository: UsersQueryRepository,
+    @inject(AuthService) protected authService: AuthService,
   ) {}
   async loginUser(req: RequestWithBody<AuthLoginDto>, res: Response) {
     const { loginOrEmail, password } = req.body;

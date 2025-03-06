@@ -5,9 +5,11 @@ import { BlogViewModel } from '../../blogs/types/types';
 import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class PostService {
-  constructor(protected postRepository: PostRepository) {}
+  constructor(@inject(PostRepository) protected postRepository: PostRepository) {}
   async addPost(
     { title, content, shortDescription }: Omit<AddUpdatePostRequiredInputData, 'blogId'>,
     blog: BlogViewModel,

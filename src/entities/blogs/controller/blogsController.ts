@@ -10,13 +10,14 @@ import { PostQueryRepository } from '../../posts/repository/postQueryRepository'
 import { BlogService } from '../service/blogService';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { PostService } from '../../posts/service/postService';
+import { inject } from 'inversify';
 
 export class BlogsController {
   constructor(
-    protected postService: PostService,
-    protected blogService: BlogService,
-    protected postQueryRepository: PostQueryRepository,
-    protected blogQueryRepository: BlogQueryRepository,
+    @inject(PostService) protected postService: PostService,
+    @inject(BlogService) protected blogService: BlogService,
+    @inject(PostQueryRepository) protected postQueryRepository: PostQueryRepository,
+    @inject(BlogQueryRepository) protected blogQueryRepository: BlogQueryRepository,
   ) {}
   async getBlogs(req: Request, res: Response<PaginatedData<BlogViewModel[]>>) {
     const queryObj = req.query;

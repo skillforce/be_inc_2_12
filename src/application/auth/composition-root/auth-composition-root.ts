@@ -3,11 +3,15 @@ import { UsersQueryRepository } from '../../../entities/users/repository/usersQu
 import { AuthService } from '../service/authService';
 import { AuthController } from '../controller/authController';
 import { db } from '../../../db/composition-root';
+import { Container } from 'inversify';
+import { DataBase } from '../../../db/mongo-db';
 
-const authRepository = new AuthRepository(db);
+const container = new Container();
 
-const usersQueryRepository = new UsersQueryRepository(db);
+container.bind(DataBase).toConstantValue(db);
+container.bind(AuthRepository).to(AuthRepository);
+container.bind(UsersQueryRepository).to(UsersQueryRepository);
+container.bind(AuthService).to(AuthService);
+container.bind(AuthController).to(AuthController);
 
-const authService = new AuthService(authRepository);
-
-export const authController = new AuthController(usersQueryRepository, authService);
+export const authController: AuthController = container.get(AuthController);

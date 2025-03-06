@@ -8,23 +8,20 @@ import { UsersRepository } from '../../users/repository/usersRepository';
 import { CommentsRepository } from '../../comments/repository/commentsRepository';
 import { CommentsQueryRepository } from '../../comments/repository/commentsQueryRepository';
 import { db } from '../../../db/composition-root';
+import { Container } from 'inversify';
+import { DataBase } from '../../../db/mongo-db';
 
-const postRepository = new PostRepository(db);
-const postQueryRepository = new PostQueryRepository(db);
-const postService = new PostService(postRepository);
+const container = new Container();
 
-const blogQueryRepository = new BlogQueryRepository(db);
+container.bind(DataBase).toConstantValue(db);
+container.bind(PostRepository).to(PostRepository);
+container.bind(PostQueryRepository).to(PostQueryRepository);
+container.bind(PostService).to(PostService);
+container.bind(BlogQueryRepository).to(BlogQueryRepository);
+container.bind(UsersRepository).to(UsersRepository);
+container.bind(CommentsRepository).to(CommentsRepository);
+container.bind(CommentsQueryRepository).to(CommentsQueryRepository);
+container.bind(CommentsService).to(CommentsService);
+container.bind(PostController).to(PostController);
 
-const usersRepository = new UsersRepository(db);
-const commentsRepository = new CommentsRepository(db);
-const commentsQueryRepository = new CommentsQueryRepository(db);
-
-const commentsService = new CommentsService(usersRepository, commentsRepository);
-
-export const postController = new PostController(
-  postService,
-  postQueryRepository,
-  blogQueryRepository,
-  commentsService,
-  commentsQueryRepository,
-);
+export const postController = container.get(PostController);

@@ -1,4 +1,4 @@
-import { Db, MongoClient, ObjectId } from 'mongodb';
+import { Db, MongoClient } from 'mongodb';
 import { PostDBModel } from '../entities/posts';
 import { BlogDbModel } from '../entities/blogs';
 import { UserDBModel } from '../entities/users';
@@ -6,7 +6,9 @@ import { AppConfig } from '../app_config';
 import { CommentDBModel } from '../entities/comments';
 import { AuthMetaDBModel } from '../application/auth/types/types';
 import { TriggerAttemptsCollectionDBModel } from '../common/types/types';
+import { injectable } from 'inversify';
 
+@injectable()
 export class DataBase {
   constructor(
     protected client: MongoClient,

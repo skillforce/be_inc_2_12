@@ -18,14 +18,15 @@ import { CommentsService } from '../../comments/service/commentsService';
 import { ObjectId } from 'mongodb';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
+import { inject } from 'inversify';
 
 export class PostController {
   constructor(
-    protected postService: PostService,
-    protected postQueryRepository: PostQueryRepository,
-    protected blogQueryRepository: BlogQueryRepository,
-    protected commentsService: CommentsService,
-    protected commentsQueryRepository: CommentsQueryRepository,
+    @inject(PostService) protected postService: PostService,
+    @inject(PostQueryRepository) protected postQueryRepository: PostQueryRepository,
+    @inject(BlogQueryRepository) protected blogQueryRepository: BlogQueryRepository,
+    @inject(CommentsService) protected commentsService: CommentsService,
+    @inject(CommentsQueryRepository) protected commentsQueryRepository: CommentsQueryRepository,
   ) {}
   async getPosts(req: Request, res: Response<PaginatedData<PostViewModel[]>>) {
     const queryObj = req.query;

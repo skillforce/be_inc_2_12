@@ -14,6 +14,7 @@ import { generateIsoStringFromSeconds } from '../../../common/helpers/helper';
 import { AuthRepository } from '../repository/authRepository';
 import { UsersRepository } from '../../../entities/users/repository/usersRepository';
 import { db } from '../../../db/composition-root';
+import { inject } from 'inversify';
 
 const usersRepository = new UsersRepository(db);
 
@@ -23,7 +24,7 @@ enum EmailType {
 }
 
 export class AuthService {
-  constructor(protected authRepository: AuthRepository) {}
+  constructor(@inject(AuthRepository) protected authRepository: AuthRepository) {}
   async checkUserCredentials(
     loginOrEmail: string,
     password: string,

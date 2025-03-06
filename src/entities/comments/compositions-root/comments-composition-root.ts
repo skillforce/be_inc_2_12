@@ -4,12 +4,16 @@ import { CommentsService } from '../service/commentsService';
 import { UsersRepository } from '../../users/repository/usersRepository';
 import { CommentsRepository } from '../repository/commentsRepository';
 import { db } from '../../../db/composition-root';
+import { Container } from 'inversify';
+import { DataBase } from '../../../db/mongo-db';
 
-const usersRepository = new UsersRepository(db);
+const container = new Container();
 
-const commentsRepository = new CommentsRepository(db);
-const commentsQueryRepository = new CommentsQueryRepository(db);
+container.bind(DataBase).toConstantValue(db);
+container.bind(UsersRepository).to(UsersRepository);
+container.bind(CommentsRepository).to(CommentsRepository);
+container.bind(CommentsQueryRepository).to(CommentsQueryRepository);
+container.bind(CommentsService).to(CommentsService);
+container.bind(CommentsController).to(CommentsController);
 
-const commentsService = new CommentsService(usersRepository, commentsRepository);
-
-export const commentsController = new CommentsController(commentsQueryRepository, commentsService);
+export const commentsController = container.get(CommentsController);

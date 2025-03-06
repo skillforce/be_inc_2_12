@@ -11,11 +11,13 @@ import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { UserDBModel } from '../../users';
 import { toObjectId } from '../../../common/helpers/helper';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class CommentsService {
   constructor(
-    protected usersRepository: UsersRepository,
-    protected commentsRepository: CommentsRepository,
+    @inject(UsersRepository) protected usersRepository: UsersRepository,
+    @inject(CommentsRepository) protected commentsRepository: CommentsRepository,
   ) {}
   async createComment({
     userId,

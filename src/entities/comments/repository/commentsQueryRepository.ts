@@ -4,9 +4,11 @@ import { CommentDBModel, CommentViewModel } from '../types/types';
 import { PaginatedData } from '../../../common/types/pagination';
 import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class CommentsQueryRepository {
-  constructor(protected database: DataBase) {}
+  constructor(@inject(DataBase) protected database: DataBase) {}
   async getCommentById(_id: ObjectId): Promise<CommentViewModel | null> {
     const commentById = await this.database.getCollections().commentsCollection.findOne({ _id });
 

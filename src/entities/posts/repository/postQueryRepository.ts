@@ -3,9 +3,11 @@ import { ObjectId } from 'mongodb';
 import { DataBase } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class PostQueryRepository {
-  constructor(protected database: DataBase) {}
+  constructor(@inject(DataBase) protected database: DataBase) {}
   async getPaginatedPosts(
     query: Record<string, string | undefined>,
     filter: Record<string, any> = {},

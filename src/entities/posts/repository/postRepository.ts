@@ -1,9 +1,11 @@
 import { AddBlogDto, AddUpdatePostRequiredInputData } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
 import { DataBase } from '../../../db/mongo-db';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class PostRepository {
-  constructor(protected database: DataBase) {}
+  constructor(@inject(DataBase) protected database: DataBase) {}
   async addPost(newPostData: AddBlogDto): Promise<ObjectId | null> {
     const result = await this.database
       .getCollections()

@@ -9,9 +9,11 @@ import {
 import { DataBase } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class UsersQueryRepository {
-  constructor(protected database: DataBase) {}
+  constructor(@inject(DataBase) protected database: DataBase) {}
   async getUserById(
     _id: ObjectId,
     mapType: UsersOutputMapEnum = UsersOutputMapEnum.VIEW,

@@ -13,11 +13,12 @@ import { ErrorResponseObject } from '../../../common/helpers/helper';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
 import { ObjectId } from 'mongodb';
+import { inject } from 'inversify';
 
 export class UsersController {
   constructor(
-    protected usersService: UsersService,
-    protected usersQueryRepository: UsersQueryRepository,
+    @inject(UsersService) protected usersService: UsersService,
+    @inject(UsersQueryRepository) protected usersQueryRepository: UsersQueryRepository,
   ) {}
   async getUsers(
     req: RequestWithParams<GetPaginatedUsersQueryInterface>,

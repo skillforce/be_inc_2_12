@@ -1,9 +1,11 @@
 import { AddUpdateCommentInputData, CommentDBModel } from '../types/types';
 import { ObjectId } from 'mongodb';
 import { DataBase } from '../../../db/mongo-db';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class CommentsRepository {
-  constructor(protected database: DataBase) {}
+  constructor(@inject(DataBase) protected database: DataBase) {}
   async addComment(newCommentData: Omit<CommentDBModel, '_id'>): Promise<ObjectId> {
     const result = await this.database
       .getCollections()

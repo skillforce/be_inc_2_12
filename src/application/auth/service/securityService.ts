@@ -1,9 +1,11 @@
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { AuthRepository } from '../repository/authRepository';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class SecurityService {
-  constructor(protected authRepository: AuthRepository) {}
+  constructor(@inject(AuthRepository) protected authRepository: AuthRepository) {}
 
   async removeAllUserSessionsExceptCurrentOne(
     userId: string,

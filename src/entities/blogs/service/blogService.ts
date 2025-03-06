@@ -5,9 +5,11 @@ import { ObjectId } from 'mongodb';
 import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class BlogService {
-  constructor(protected blogRepository: BlogRepository) {}
+  constructor(@inject(BlogRepository) protected blogRepository: BlogRepository) {}
   async addBlog({
     name,
     websiteUrl,

@@ -12,11 +12,12 @@ import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { ObjectId } from 'mongodb';
 import { IdType } from '../../../common/types/id';
 import { ResultStatus } from '../../../common/result/resultCode';
+import { inject } from 'inversify';
 
 export class CommentsController {
   constructor(
-    protected commentsQueryRepository: CommentsQueryRepository,
-    protected commentsService: CommentsService,
+    @inject(CommentsQueryRepository) protected commentsQueryRepository: CommentsQueryRepository,
+    @inject(CommentsService) protected commentsService: CommentsService,
   ) {}
 
   async getComments(req: RequestWithParams<{ id: string }>, res: Response<CommentViewModel>) {

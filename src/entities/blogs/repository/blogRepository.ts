@@ -1,9 +1,11 @@
 import { AddBlogDto, AddUpdateBlogRequiredInputData } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
 import { DataBase } from '../../../db/mongo-db';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class BlogRepository {
-  constructor(protected database: DataBase) {}
+  constructor(@inject(DataBase) protected database: DataBase) {}
 
   async addBlog(newBlogData: AddBlogDto): Promise<ObjectId> {
     const result = await this.database

@@ -1,9 +1,11 @@
 import { DataBase } from '../../../db/mongo-db';
 import { ObjectId, WithId } from 'mongodb';
 import { AddUserDto, UserDBModel } from '../types/types';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class UsersRepository {
-  constructor(protected database: DataBase) {}
+  constructor(@inject(DataBase) protected database: DataBase) {}
   async addUser(newUserData: AddUserDto): Promise<ObjectId> {
     const result = await this.database
       .getCollections()

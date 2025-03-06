@@ -6,9 +6,11 @@ import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { User } from './user.entity';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class UsersService {
-  constructor(protected usersRepository: UsersRepository) {}
+  constructor(@inject(UsersRepository) protected usersRepository: UsersRepository) {}
   async addUser({
     login,
     password,

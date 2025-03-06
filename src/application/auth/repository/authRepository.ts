@@ -1,9 +1,11 @@
 import { DataBase } from '../../../db/mongo-db';
 import { SessionDto } from '../types/types';
 import { ObjectId, WithId } from 'mongodb';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class AuthRepository {
-  constructor(protected database: DataBase) {}
+  constructor(@inject(DataBase) protected database: DataBase) {}
   async addSession(sessionBody: SessionDto) {
     const result = await this.database
       .getCollections()
