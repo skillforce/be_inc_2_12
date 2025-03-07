@@ -62,7 +62,7 @@ export const getUserFromDBByEmail = async ({
 }: {
   email: string;
 }): Promise<UserDBModel | null> => {
-  const res = await db.getModels().users.findOne({ email });
+  const res = await UserModel.findOne({ email });
   if (!res) return null;
 
   return res;

@@ -4,6 +4,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PATHS } from '../../src/common/paths/paths';
 import { BlogService } from '../../src/entities/blogs/service/blogService';
 import { BlogRepository } from '../../src/entities/blogs/repository/blogRepository';
+import { BlogModel } from '../../src/entities/blogs';
 import { db } from '../../src/db/composition-root';
 
 const blogRepository = new BlogRepository();
@@ -51,7 +52,7 @@ describe('/blogs', () => {
     expect(res.body).toMatchObject(blogData);
   });
   it('should create new post and apply blog id that has been sent', async () => {
-    const blogFromDb = await db.getModels().blogs.find().lean();
+    const blogFromDb = await BlogModel.find().lean();
     const blogId = blogFromDb[0]._id;
 
     const postData = {
@@ -67,7 +68,7 @@ describe('/blogs', () => {
     expect(res.body).toMatchObject(postData);
   });
   it('should return post items with appropriate blog id', async () => {
-    const blogFromDb = await db.getModels().blogs.find().lean();
+    const blogFromDb = await BlogModel.find().lean();
     const blogId = blogFromDb[0]._id;
 
     const postData = {
@@ -81,7 +82,7 @@ describe('/blogs', () => {
     expect(res.body.items[0]).toMatchObject(postData);
   });
   it('should update blog object and return 204 status to client', async () => {
-    const blogCollectionArray = (await db.getModels().blogs.find().lean()) as BlogDbModel[];
+    const blogCollectionArray = (await BlogModel.find().lean()) as BlogDbModel[];
     const idToUpdate = blogCollectionArray[0]._id;
     const blogData = {
       name: 'Video Name123',
@@ -95,23 +96,23 @@ describe('/blogs', () => {
       .expect(204);
   });
   it('should return 400 when body properties is incorrect', async () => {
-    const blogCollectionArray = (await db.getModels().blogs.find().lean()) as BlogDbModel[];
+    const blogCollectionArray = (await BlogModel.find().lean()) as BlogDbModel[];
     const idToUpdate = blogCollectionArray[0]._id;
     const blogData = {
       name: '',
       websiteUrl: true,
       description: 123,
     };
-    const res = await req
+    await req
       .put(`${PATHS.BLOGS}/${idToUpdate}`)
       .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
       .send(blogData)
       .expect(400);
   });
   it('should remove video by id', async () => {
-    const blogCollectionArray = (await db.getModels().blogs.find().lean()) as BlogDbModel[];
+    const blogCollectionArray = (await BlogModel.find().lean()) as BlogDbModel[];
     const idToUpdate = blogCollectionArray[0]._id;
-    const res = await req
+    await req
       .delete(`${PATHS.BLOGS}/${idToUpdate}`)
       .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
       .expect(204);

@@ -7,7 +7,9 @@ const CodeConfirmationSchema = new Schema<CodeConfirmation>({
   isConfirmed: { type: Boolean, required: true },
 });
 
-const UserSchema = new Schema<UserDBModel>({
+export interface IUser extends UserDBModel, Document {}
+
+const UserSchema = new Schema<IUser>({
   login: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -16,4 +18,4 @@ const UserSchema = new Schema<UserDBModel>({
   recoverPasswordEmailConfirmation: { type: CodeConfirmationSchema, default: null },
 });
 
-export const UserModel = mongoose.model<UserDBModel>('User', UserSchema);
+export const UserModel = mongoose.model<IUser>('User', UserSchema);

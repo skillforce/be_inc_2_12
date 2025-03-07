@@ -1,11 +1,7 @@
-import { PostModel } from '../entities/posts';
-import { BlogModel } from '../entities/blogs';
-import { UserModel } from '../entities/users';
 import { AppConfig } from '../app_config';
-import { CommentModel } from '../entities/comments';
 import { injectable } from 'inversify';
+import 'reflect-metadata';
 import * as mongoose from 'mongoose';
-import { AuthMetaModel, TriggerAttemptsModel } from '../application/auth';
 
 @injectable()
 export class DataBase {
@@ -42,16 +38,5 @@ export class DataBase {
     } catch (error) {
       console.error('⚠️ Error clearing database:', error);
     }
-  }
-
-  getModels() {
-    return {
-      users: UserModel,
-      posts: PostModel,
-      blogs: BlogModel,
-      comments: CommentModel,
-      authMeta: AuthMetaModel,
-      triggerAttempts: TriggerAttemptsModel,
-    };
   }
 }

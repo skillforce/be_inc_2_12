@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { TriggerAttemptsCollectionDBModel } from '../types/types';
 import { HttpStatuses } from '../types/httpStatuses';
 import { db } from '../../db/composition-root';
+import { TriggerAttemptsModel } from '../../application/auth';
 
 export function createAttemptLimitMiddleware(routeName: string, limit = 5, windowSec = 10) {
   return async function attemptLimitMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -12,7 +13,7 @@ export function createAttemptLimitMiddleware(routeName: string, limit = 5, windo
         return res.status(HttpStatuses.Forbidden);
       }
 
-      const attemptsCollection = db.getModels().triggerAttempts;
+      const attemptsCollection = TriggerAttemptsModel;
 
       const windowStart = new Date(Date.now() - windowSec * 1000);
 
