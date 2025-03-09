@@ -1,7 +1,6 @@
 import { CommentsQueryRepository } from '../repository/commentsQueryRepository';
 import { CommentsService } from '../service/commentsService';
 import {
-  RequestWithParams,
   RequestWithParamsAndBodyAndUserId,
   RequestWithParamsAndUserId,
 } from '../../../common/types/request';
@@ -13,15 +12,24 @@ import { ObjectId } from 'mongodb';
 import { IdType } from '../../../common/types/id';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { inject } from 'inversify';
+import { CommentsLikesQueryRepository, LikeStatusEnum } from '../../likes';
+import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
 
 export class CommentsController {
   constructor(
     @inject(CommentsQueryRepository) protected commentsQueryRepository: CommentsQueryRepository,
     @inject(CommentsService) protected commentsService: CommentsService,
+    @inject(CommentsLikesQueryRepository)
+    protected commentsLikesQueryRepository: CommentsLikesQueryRepository,
   ) {}
 
-  async getComments(req: RequestWithParams<{ id: string }>, res: Response<CommentViewModel>) {
-    const _id = toObjectId(req.params.id);
+  async getCommentById(
+    req: RequestWithParamsAndUserId<{ id: string }, IdType>,
+    res: Response<CommentViewModel>,
+  ) {
+    const id = req.params.id;
+    const userId = req.user?.id;
+    const _id = toObjectId(id);
 
     if (!_id) {
       res.sendStatus(HttpStatuses.NotFound);
@@ -34,7 +42,15 @@ export class CommentsController {
       res.sendStatus(HttpStatuses.NotFound);
       return;
     }
-    res.status(HttpStatuses.Success).json(responseData);
+
+    const likesInfo = await this.commentsLikesQueryRepository.getCommentLikesInfo({
+      commentId: id,
+      userId: userId as string,
+    });
+
+    const commentWithLikesInfo = { ...responseData, likesInfo };
+
+    res.status(HttpStatuses.Success).json(commentWithLikesInfo);
   }
 
   async updateCommentById(
@@ -58,6 +74,27 @@ export class CommentsController {
 
     if (updateBlogResult.status !== ResultStatus.Success) {
       res.sendStatus(HttpStatuses.NotFound);
+      return;
+    }
+
+    res.sendStatus(HttpStatuses.NoContent);
+  }
+  async updateCommentLikeStatus(
+    req: RequestWithParamsAndBodyAndUserId<{ id: string }, { likeStatus: LikeStatusEnum }, IdType>,
+    res: Response<{}>,
+  ) {
+    const commentId = req.params.id;
+    const userId = req.user?.id as string;
+    const likeStatus = req.body.likeStatus;
+
+    const updateCommentLikeStatus = await this.commentsService.updateCommentLikeStatus(
+      commentId,
+      userId,
+      likeStatus,
+    );
+
+    if (updateCommentLikeStatus.status !== ResultStatus.Success) {
+      res.sendStatus(resultCodeToHttpException(updateCommentLikeStatus.status));
       return;
     }
 

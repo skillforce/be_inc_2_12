@@ -1,5 +1,6 @@
 import { basicStringFieldMiddlewareGenerator, ErrorMessages } from '../../../common/helpers/helper';
 import {
+  checkIfCommentWithProvidedQueryParamIdExists,
   inputValidationMiddleware,
   validateUrlParamId,
 } from '../../../common/middlewares/commonValidationMiddlewares';
@@ -10,6 +11,11 @@ const commentBodyContentErrors: ErrorMessages = {
   length: 'content should be between 20 and 300 symbols',
   isString: 'content should be provided as a string',
 };
+const commentBodyLikeStatusErrors: ErrorMessages = {
+  required: 'likeStatus field is required',
+  isString: 'likeStatus should be provided as a string',
+  invalidValue: 'likeStatus should be "None", "Like" or "Dislike"',
+};
 
 export const commentBodyContentValidationMiddleware = basicStringFieldMiddlewareGenerator({
   fieldName: 'content',
@@ -18,7 +24,17 @@ export const commentBodyContentValidationMiddleware = basicStringFieldMiddleware
   errorMessages: commentBodyContentErrors,
 });
 
-export const getCommentByIdValidators = [validateUrlParamId, inputValidationMiddleware];
+export const commentBodyLikeStatusValidationMiddleware = basicStringFieldMiddlewareGenerator({
+  fieldName: 'likeStatus',
+  allowedValues: ['None', 'Like', 'Dislike'],
+  errorMessages: commentBodyLikeStatusErrors,
+});
+
+export const getCommentByIdValidators = [
+  accessTokenGuard,
+  validateUrlParamId,
+  inputValidationMiddleware,
+];
 
 export const deleteCommentValidators = [
   accessTokenGuard,
@@ -30,5 +46,11 @@ export const updateCommentValidators = [
   accessTokenGuard,
   validateUrlParamId,
   commentBodyContentValidationMiddleware,
+  inputValidationMiddleware,
+];
+export const updateCommentLikeStatusValidators = [
+  accessTokenGuard,
+  checkIfCommentWithProvidedQueryParamIdExists,
+  commentBodyLikeStatusValidationMiddleware,
   inputValidationMiddleware,
 ];

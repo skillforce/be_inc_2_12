@@ -36,4 +36,15 @@ export class CommentsRepository {
     }
     return commentById;
   }
+  async getCommentsByPostId(_id: string): Promise<CommentDBModel[] | null> {
+    try {
+      const commentsByPostId = await CommentModel.find({ postId: _id });
+      if (!commentsByPostId) {
+        return [];
+      }
+      return commentsByPostId;
+    } catch (e) {
+      return null;
+    }
+  }
 }

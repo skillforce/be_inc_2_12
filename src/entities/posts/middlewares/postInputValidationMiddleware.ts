@@ -113,7 +113,7 @@ export const createPostByBlogIdValidators = [
 export const deletePostValidators = [authMiddleware, validateUrlParamId];
 export const updatePostBodyValidators = [...deletePostValidators, ...addPostBodyValidators];
 
-export const getCommentByPostIdValidators = [validateUrlParamId];
+export const getCommentByPostIdValidators = [accessTokenGuard, validateUrlParamId];
 export const createCommentByPostIdValidators = [
   accessTokenGuard,
   createCommentByPostIdBodyContentValidationMiddleware,

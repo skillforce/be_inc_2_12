@@ -5,7 +5,7 @@ import { PATHS } from '../../src/common/paths/paths';
 import { createBlog } from '../utils/createBlog';
 import { createPost } from '../utils/createPost';
 import { createUser } from '../utils/userHelpers';
-import { createComment } from '../utils/createComment';
+import { createComment, getComment, likeComment } from '../utils/createComment';
 import { loginUser } from '../utils/login';
 import { CommentViewModel } from '../../src/entities/comments/types/types';
 import { PostViewModel } from '../../src/entities/posts/types/types';
@@ -143,5 +143,113 @@ describe('/comments', () => {
     const comments = await req.get(`${PATHS.POSTS}/${createdPost.id}/comments`).expect(200);
 
     expect(comments.body.items.length).toBe(0);
+  });
+  it('should create comment and apply likes info', async () => {
+    const newBlog = await createBlog({});
+    createdPost = await createPost({ postDto: { blogId: newBlog.id } });
+    createdComment = await createComment({
+      postId: createdPost.id,
+      accessToken: createdFirstUserAccessToken,
+    });
+
+    expect(createdComment.commentatorInfo.userId).toBe(createdFirstUser.id);
+    expect(createdComment.likesInfo).toStrictEqual({
+      likesCount: 0,
+      dislikesCount: 0,
+      myStatus: 'None',
+    });
+  });
+  it('should increase likes count when user liked post also should change myStatus to appropriate value', async () => {
+    const newBlog = await createBlog({});
+    createdPost = await createPost({ postDto: { blogId: newBlog.id } });
+    createdComment = await createComment({
+      postId: createdPost.id,
+      accessToken: createdFirstUserAccessToken,
+    });
+
+    await likeComment({
+      commentId: createdComment.id,
+      accessToken: createdFirstUserAccessToken,
+    });
+    await likeComment({
+      commentId: createdComment.id,
+      accessToken: createdFirstUserAccessToken,
+    });
+
+    const updatedComment = await getComment({
+      commentId: createdComment.id,
+      accessToken: createdFirstUserAccessToken,
+    });
+
+    expect(updatedComment.likesInfo.likesCount).toBe(1);
+    expect(updatedComment.likesInfo.myStatus).toBe('Like');
+  });
+  it('should increase dislikes count when user disliked post also should change myStatus to appropriate value', async () => {
+    const newBlog = await createBlog({});
+    createdPost = await createPost({ postDto: { blogId: newBlog.id } });
+    createdComment = await createComment({
+      postId: createdPost.id,
+      accessToken: createdFirstUserAccessToken,
+    });
+
+    await likeComment({
+      commentId: createdComment.id,
+      accessToken: createdFirstUserAccessToken,
+    });
+    await likeComment({
+      commentId: createdComment.id,
+      accessToken: createdFirstUserAccessToken,
+      isDislike: true,
+    });
+    await likeComment({
+      commentId: createdComment.id,
+      accessToken: createdFirstUserAccessToken,
+      isDislike: true,
+    });
+
+    const updatedComment = await getComment({
+      commentId: createdComment.id,
+      accessToken: createdFirstUserAccessToken,
+    });
+    console.log(updatedComment);
+
+    expect(updatedComment.likesInfo.likesCount).toBe(0);
+    expect(updatedComment.likesInfo.dislikesCount).toBe(1);
+    expect(updatedComment.likesInfo.myStatus).toBe('Dislike');
+  });
+  it('should return paginated comments with appropriate likes info', async () => {
+    const newBlog = await createBlog({});
+    createdPost = await createPost({ postDto: { blogId: newBlog.id } });
+    createdComment = await createComment({
+      postId: createdPost.id,
+      accessToken: createdFirstUserAccessToken,
+    });
+    const oneMoreComment = await createComment({
+      postId: createdPost.id,
+      accessToken: createdFirstUserAccessToken,
+    });
+
+    await likeComment({
+      commentId: createdComment.id,
+      accessToken: createdFirstUserAccessToken,
+    });
+    await likeComment({
+      commentId: oneMoreComment.id,
+      accessToken: createdFirstUserAccessToken,
+      isDislike: true,
+    });
+
+    const comments = await req
+      .get(`${PATHS.POSTS}/${createdPost.id}/comments`)
+      .auth(createdFirstUserAccessToken, { type: 'bearer' })
+      .expect(200);
+
+    expect(comments.body.items.length).toBe(2);
+    expect(comments.body.items[1].likesInfo.likesCount).toBe(1);
+    expect(comments.body.items[1].likesInfo.dislikesCount).toBe(0);
+    expect(comments.body.items[1].likesInfo.myStatus).toBe('Like');
+    expect(comments.body.items[0].likesInfo.likesCount).toBe(0);
+    expect(comments.body.items[0].likesInfo.dislikesCount).toBe(1);
+    expect(comments.body.items[0].likesInfo.myStatus).toBe('Dislike');
   });
 });

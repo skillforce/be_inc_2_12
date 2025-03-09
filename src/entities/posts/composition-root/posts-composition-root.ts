@@ -8,9 +8,12 @@ import { UsersRepository } from '../../users/repository/usersRepository';
 import { CommentsRepository } from '../../comments/repository/commentsRepository';
 import { CommentsQueryRepository } from '../../comments/repository/commentsQueryRepository';
 import { Container } from 'inversify';
+import { CommentsLikesQueryRepository, CommentsLikesRepository } from '../../likes';
 
 const container = new Container();
 
+container.bind(CommentsLikesQueryRepository).to(CommentsLikesQueryRepository);
+container.bind(CommentsLikesRepository).to(CommentsLikesRepository);
 container.bind(PostRepository).to(PostRepository);
 container.bind(PostQueryRepository).to(PostQueryRepository);
 container.bind(PostService).to(PostService);

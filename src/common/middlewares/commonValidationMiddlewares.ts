@@ -3,8 +3,10 @@ import { NextFunction, Request, Response } from 'express';
 
 import { toObjectId } from '../helpers/helper';
 import { BlogQueryRepository } from '../../entities/blogs/repository/blogQueryRepository';
+import { CommentsRepository } from '../../entities/comments/repository/commentsRepository';
 
 const blogQueryRepository = new BlogQueryRepository();
+const commentRepository = new CommentsRepository();
 
 export const inputValidationMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
@@ -44,6 +46,30 @@ export const checkIfBlogWithProvidedQueryParamIdExists = async (
   }
   const isBlogExist = await blogQueryRepository.getBlogById(_id);
   if (!isBlogExist) {
+    res.sendStatus(404);
+    return;
+  }
+
+  return next();
+};
+
+export const checkIfCommentWithProvidedQueryParamIdExists = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const paramId = req.params.id;
+  if (!paramId) {
+    res.sendStatus(404);
+    return;
+  }
+  const _id = toObjectId(paramId);
+  if (!_id) {
+    res.sendStatus(404);
+    return;
+  }
+  const isCommentExist = await commentRepository.getCommentById(_id);
+  if (!isCommentExist) {
     res.sendStatus(404);
     return;
   }

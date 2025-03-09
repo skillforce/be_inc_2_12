@@ -12,12 +12,14 @@ import { ResultStatus } from '../../../common/result/resultCode';
 import { UserDBModel } from '../../users';
 import { toObjectId } from '../../../common/helpers/helper';
 import { inject, injectable } from 'inversify';
+import { CommentsLikesRepository, LikeStatusEnum } from '../../likes';
 
 @injectable()
 export class CommentsService {
   constructor(
     @inject(UsersRepository) protected usersRepository: UsersRepository,
     @inject(CommentsRepository) protected commentsRepository: CommentsRepository,
+    @inject(CommentsLikesRepository) protected commentsLikesRepository: CommentsLikesRepository,
   ) {}
   async createComment({
     userId,
@@ -114,6 +116,54 @@ export class CommentsService {
       extensions: [],
     };
   }
+  async updateCommentLikeStatus(
+    commentId: string,
+    userId: string,
+    likeStatus: LikeStatusEnum,
+  ): Promise<Result<boolean>> {
+    const commentObjectId = toObjectId(commentId);
+
+    if (!commentObjectId) {
+      return {
+        status: ResultStatus.NotFound,
+        data: false,
+        errorMessage: 'Comment not found',
+        extensions: [],
+      };
+    }
+    const comment = await this.commentsRepository.getCommentById(commentObjectId);
+
+    if (!comment) {
+      return {
+        status: ResultStatus.NotFound,
+        data: false,
+        errorMessage: 'Comment not found',
+        extensions: [],
+      };
+    }
+
+    const isLikeStatusUpdated = await this.commentsLikesRepository.updateLikeStatus({
+      commentId,
+      userId,
+      likeStatus,
+    });
+
+    if (!isLikeStatusUpdated) {
+      return {
+        status: ResultStatus.ServerError,
+        data: false,
+        errorMessage: 'Server error occurred',
+        extensions: [],
+      };
+    }
+
+    return {
+      status: ResultStatus.Success,
+      data: true,
+      errorMessage: '',
+      extensions: [],
+    };
+  }
   async checkIsUserOwnComment(commentId: ObjectId, userId: ObjectId): Promise<Result<boolean>> {
     const comment = await this.commentsRepository.getCommentById(commentId);
     const user = await this.usersRepository.getUserById(userId);
@@ -134,6 +184,29 @@ export class CommentsService {
         errorMessage: 'Comment not found',
         extensions: [],
       };
+    }
+
+    return {
+      status: ResultStatus.Success,
+      data: true,
+      errorMessage: '',
+      extensions: [],
+    };
+  }
+  async deleteCommentsLikesByPostId(postId: string): Promise<Result<boolean>> {
+    const commentsList = await this.commentsRepository.getCommentsByPostId(postId);
+
+    if (!commentsList) {
+      return {
+        status: ResultStatus.ServerError,
+        data: true,
+        errorMessage: 'Server error',
+        extensions: [],
+      };
+    }
+
+    for (const comment of commentsList) {
+      await this.commentsLikesRepository.deleteAllLikesByCommentId(comment._id.toString());
     }
 
     return {
@@ -164,8 +237,10 @@ export class CommentsService {
     }
 
     const isDeletedComment = await this.commentsRepository.deleteComment(commentObjectId);
+    const deleteAllCommentsLikesResult =
+      await this.commentsLikesRepository.deleteAllLikesByCommentId(commentId);
 
-    if (!isDeletedComment) {
+    if (!isDeletedComment || !deleteAllCommentsLikesResult) {
       return {
         status: ResultStatus.ServerError,
         data: false,
@@ -173,6 +248,7 @@ export class CommentsService {
         extensions: [],
       };
     }
+
     return {
       status: ResultStatus.Success,
       data: true,

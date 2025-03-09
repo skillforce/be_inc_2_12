@@ -279,6 +279,7 @@ describe('auth', () => {
       .auth(firstUser.body.accessToken, { type: 'bearer' })
       .set('Cookie', firstUser.headers['set-cookie'][0])
       .expect(HttpStatuses.Success);
+
     const activeSessionsForSecondUser = await req
       .get(`${PATHS.SECURITY}/devices`)
       .auth(secondUser.body.accessToken, { type: 'bearer' })

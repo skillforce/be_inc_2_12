@@ -9,7 +9,7 @@ import { CommentModel } from './CommentSchema';
 @injectable()
 export class CommentsQueryRepository {
   constructor() {}
-  async getCommentById(_id: ObjectId): Promise<CommentViewModel | null> {
+  async getCommentById(_id: ObjectId): Promise<Omit<CommentViewModel, 'likesInfo'> | null> {
     const commentById = await CommentModel.findOne({ _id });
 
     if (!commentById) {
@@ -20,7 +20,7 @@ export class CommentsQueryRepository {
   async getPaginatedCommentsByPostId(
     query: SortQueryFieldsType,
     postId: ObjectId,
-  ): Promise<PaginatedData<CommentViewModel[]>> {
+  ): Promise<PaginatedData<Omit<CommentViewModel, 'likesInfo'>[]>> {
     const sanitizedQuery = queryFilterGenerator(query as Record<string, string | undefined>);
 
     const { pageNumber, pageSize, sortBy, sortDirection } = sanitizedQuery;
@@ -49,7 +49,7 @@ export class CommentsQueryRepository {
     return CommentModel.countDocuments(filter);
   }
 
-  mapCommentToOutput(comment: WithId<CommentDBModel>): CommentViewModel {
+  mapCommentToOutput(comment: WithId<CommentDBModel>): Omit<CommentViewModel, 'likesInfo'> {
     return {
       id: comment._id.toString(),
       commentatorInfo: comment.commentatorInfo,

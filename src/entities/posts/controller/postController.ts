@@ -19,6 +19,7 @@ import { ObjectId } from 'mongodb';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
 import { inject } from 'inversify';
+import { CommentsLikesQueryRepository } from '../../likes';
 
 export class PostController {
   constructor(
@@ -27,6 +28,8 @@ export class PostController {
     @inject(BlogQueryRepository) protected blogQueryRepository: BlogQueryRepository,
     @inject(CommentsService) protected commentsService: CommentsService,
     @inject(CommentsQueryRepository) protected commentsQueryRepository: CommentsQueryRepository,
+    @inject(CommentsLikesQueryRepository)
+    protected commentsLikesQueryRepository: CommentsLikesQueryRepository,
   ) {}
   async getPosts(req: Request, res: Response<PaginatedData<PostViewModel[]>>) {
     const queryObj = req.query;
@@ -78,7 +81,22 @@ export class PostController {
       postId,
     );
 
-    res.status(HttpStatuses.Success).send(commentsList);
+    const commentsListWithLikesInfo = await Promise.all(
+      commentsList.items.map(async (comment) => {
+        const likesInfo = await this.commentsLikesQueryRepository.getCommentLikesInfo({
+          commentId: comment.id,
+          userId: req.user?.id as string,
+        });
+        return { ...comment, likesInfo };
+      }),
+    );
+
+    const paginatedCommentsList = {
+      ...commentsList,
+      items: commentsListWithLikesInfo,
+    };
+
+    res.status(HttpStatuses.Success).send(paginatedCommentsList);
   }
   async createCommentByPostId(
     req: RequestWithParamsAndBodyAndUserId<
@@ -126,7 +144,12 @@ export class PostController {
       return;
     }
 
-    res.status(HttpStatuses.Created).send(createdComment);
+    const likesInfo = await this.commentsLikesQueryRepository.getCommentLikesInfo({
+      commentId: createdComment.id,
+      userId: req.user?.id as string,
+    });
+
+    res.status(HttpStatuses.Created).send({ ...createdComment, likesInfo });
   }
   async createPostByBlogId(
     req: Request<any, AddUpdatePostRequiredInputData>,
@@ -200,13 +223,14 @@ export class PostController {
     }
     res.sendStatus(HttpStatuses.NoContent);
   }
-  async deletePost(req: Request<{ id: string }>, res: Response<any>) {
-    const queryId = req.params.id;
-    const result = await this.postService.deletePost(queryId);
+  async deletePost(req: Request<{ id: string }>, res: Response<void>) {
+    const postId = req.params.id;
+    const result = await this.postService.deletePost(postId);
     if (result.status !== ResultStatus.Success) {
       res.sendStatus(resultCodeToHttpException(result.status));
       return;
     }
+    await this.commentsService.deleteCommentsLikesByPostId(postId);
     res.sendStatus(HttpStatuses.NoContent);
   }
 }

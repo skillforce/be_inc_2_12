@@ -6,12 +6,8 @@ import dayjs from 'dayjs';
 export interface ErrorMessages {
   required: string;
   length?: string;
+  invalidValue?: string;
   isString: string;
-}
-
-export interface ObjectIdCheckingErrorMessages {
-  required: string;
-  isMongoId: string;
 }
 
 export interface BasicStringFieldMiddlewareGeneratorOptions {
@@ -19,6 +15,7 @@ export interface BasicStringFieldMiddlewareGeneratorOptions {
   minLength?: number;
   maxLength?: number;
   errorMessages: ErrorMessages;
+  allowedValues?: string[];
   extraValidations?: ((chain: ValidationChain) => ValidationChain)[];
 }
 
@@ -28,6 +25,7 @@ export const basicStringFieldMiddlewareGenerator = ({
   maxLength,
   errorMessages,
   extraValidations = [],
+  allowedValues,
 }: BasicStringFieldMiddlewareGeneratorOptions): ValidationChain => {
   let validationChain = body(fieldName)
     .exists({ checkFalsy: true })
@@ -42,6 +40,11 @@ export const basicStringFieldMiddlewareGenerator = ({
     validationChain = validationChain
       .isLength({ min: minLength, max: maxLength })
       .withMessage(errorMessages.length || '');
+  }
+  if (allowedValues && allowedValues.length > 0) {
+    validationChain = validationChain
+      .isIn(allowedValues)
+      .withMessage(errorMessages.invalidValue || 'Invalid value provided');
   }
 
   extraValidations.forEach((rule) => {

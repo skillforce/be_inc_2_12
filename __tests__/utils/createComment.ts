@@ -27,3 +27,35 @@ export const createComment = async ({
 
   return newPost.body;
 };
+
+export const likeComment = async ({
+  commentId,
+  accessToken,
+  isDislike = false,
+  expectedHttpStatus = HttpStatuses.NoContent,
+}: {
+  commentId: string;
+  accessToken: string;
+  isDislike?: boolean;
+  expectedHttpStatus?: HttpStatuses;
+}) => {
+  await req
+    .put(`${PATHS.COMMENTS}/${commentId}/like-status`)
+    .send({ likeStatus: isDislike ? 'Dislike' : 'Like' })
+    .auth(accessToken, { type: 'bearer' })
+    .expect(expectedHttpStatus);
+};
+
+export const getComment = async ({
+  commentId,
+  accessToken,
+}: {
+  commentId: string;
+  accessToken: string;
+}) => {
+  const comment = await req
+    .get(`${PATHS.COMMENTS}/${commentId}`)
+    .auth(accessToken, { type: 'bearer' })
+    .expect(HttpStatuses.Success);
+  return comment.body;
+};
