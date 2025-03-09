@@ -2,10 +2,13 @@ import mongoose, { Schema } from 'mongoose';
 import { CommentatorInfo, CommentDBModel } from '../types/types';
 import { ObjectId } from 'mongodb';
 
-const CommentatorInfoSchema = new Schema<CommentatorInfo>({
-  userId: { type: ObjectId, required: true },
-  userLogin: { type: String, required: true },
-});
+const CommentatorInfoSchema = new Schema<CommentatorInfo>(
+  {
+    userId: { type: ObjectId, required: true },
+    userLogin: { type: String, required: true },
+  },
+  { _id: false },
+);
 
 const CommentSchema = new Schema<CommentDBModel>({
   content: { type: String, required: true },

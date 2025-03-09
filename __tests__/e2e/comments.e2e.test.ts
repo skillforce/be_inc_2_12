@@ -151,7 +151,6 @@ describe('/comments', () => {
       postId: createdPost.id,
       accessToken: createdFirstUserAccessToken,
     });
-
     expect(createdComment.commentatorInfo.userId).toBe(createdFirstUser.id);
     expect(createdComment.likesInfo).toStrictEqual({
       likesCount: 0,
