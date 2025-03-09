@@ -20,21 +20,23 @@ export class PostRepository {
     _id: ObjectId,
     postDataForUpdates: AddUpdatePostRequiredInputData,
   ): Promise<boolean> {
-    const result = await PostModel.updateOne(
-      { _id },
-      {
-        $set: {
-          title: postDataForUpdates.title,
-          shortDescription: postDataForUpdates.shortDescription,
-          content: postDataForUpdates.content,
-        },
-      },
-    );
-    return result.matchedCount === 1;
+    const postToUpdate = await PostModel.findOne({ _id });
+    if (!postToUpdate) {
+      return false;
+    }
+    postToUpdate.title = postDataForUpdates.title;
+    postToUpdate.shortDescription = postDataForUpdates.shortDescription;
+    postToUpdate.content = postDataForUpdates.content;
+    await postToUpdate.save();
+    return true;
   }
 
   async deletePost(_id: ObjectId): Promise<boolean> {
-    const result = await PostModel.deleteOne({ _id });
-    return result.deletedCount === 1;
+    const postToDelete = await PostModel.findOne({ _id });
+    if (!postToDelete) {
+      return false;
+    }
+    await postToDelete.deleteOne();
+    return true;
   }
 }

@@ -19,8 +19,12 @@ export class UsersRepository {
     return !result;
   }
   async deleteUser(_id: ObjectId): Promise<boolean> {
-    const result = await UserModel.deleteOne({ _id });
-    return result.deletedCount === 1;
+    const userToDelete = UserModel.findOne({ _id });
+    if (!userToDelete) {
+      return false;
+    }
+    userToDelete.deleteOne();
+    return true;
   }
   async getUserById(_id: ObjectId): Promise<UserDBModel | null> {
     const userById = await UserModel.findOne({ _id });
@@ -35,23 +39,25 @@ export class UsersRepository {
     newExpirationDate: string,
     newCode: string,
   ): Promise<boolean> {
-    const updateResult = await UserModel.updateOne(
-      { _id },
-      {
-        $set: {
-          'emailConfirmation.expirationDate': newExpirationDate,
-          'emailConfirmation.confirmationCode': newCode,
-        },
-      },
-    );
+    const userToUpdate = await UserModel.findOne({ _id });
+    if (!userToUpdate) {
+      return false;
+    }
 
-    return updateResult.modifiedCount === 1;
+    userToUpdate.emailConfirmation.expirationDate = newExpirationDate;
+    userToUpdate.emailConfirmation.confirmationCode = newCode;
+    await userToUpdate.save();
+    return true;
   }
   async initializeRecoverPassword(
     _id: ObjectId,
     newExpirationDate: string,
     newCode: string,
   ): Promise<boolean> {
+    const userToUpdate = await UserModel.findOne({ _id });
+    if (!userToUpdate) {
+      return false;
+    }
     const updateResult = await UserModel.updateOne(
       { _id },
       {

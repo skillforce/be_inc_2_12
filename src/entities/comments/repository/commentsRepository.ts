@@ -12,20 +12,22 @@ export class CommentsRepository {
   }
 
   async updateComment(_id: ObjectId, dataForUpdate: AddUpdateCommentInputData): Promise<boolean> {
-    const result = await CommentModel.updateOne(
-      { _id },
-      {
-        $set: {
-          content: dataForUpdate.content,
-        },
-      },
-    );
-    return result.matchedCount === 1;
+    const commentToUpdate = await CommentModel.findOne({ _id });
+    if (!commentToUpdate) {
+      return false;
+    }
+    commentToUpdate.content = dataForUpdate.content;
+    await commentToUpdate.save();
+    return true;
   }
 
   async deleteComment(_id: ObjectId): Promise<boolean> {
-    const result = await CommentModel.deleteOne({ _id });
-    return result.deletedCount === 1;
+    const commentToDelete = await CommentModel.findOne({ _id });
+    if (!commentToDelete) {
+      return false;
+    }
+    await CommentModel.deleteOne({ _id });
+    return true;
   }
 
   async getCommentById(_id: ObjectId): Promise<CommentDBModel | null> {
