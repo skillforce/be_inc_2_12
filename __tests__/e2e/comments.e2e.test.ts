@@ -211,7 +211,6 @@ describe('/comments', () => {
       commentId: createdComment.id,
       accessToken: createdFirstUserAccessToken,
     });
-    console.log(updatedComment);
 
     expect(updatedComment.likesInfo.likesCount).toBe(0);
     expect(updatedComment.likesInfo.dislikesCount).toBe(1);
