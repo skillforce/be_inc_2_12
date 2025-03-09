@@ -4,9 +4,13 @@ import { NextFunction, Request, Response } from 'express';
 import { toObjectId } from '../helpers/helper';
 import { BlogQueryRepository } from '../../entities/blogs/repository/blogQueryRepository';
 import { CommentsRepository } from '../../entities/comments/repository/commentsRepository';
+import { jwtService } from '../adapters/jwt.service';
+import { IdType } from '../types/id';
+import { UsersRepository } from '../../entities/users/repository/usersRepository';
 
 const blogQueryRepository = new BlogQueryRepository();
 const commentRepository = new CommentsRepository();
+const usersRepository = new UsersRepository();
 
 export const inputValidationMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
@@ -75,4 +79,41 @@ export const checkIfCommentWithProvidedQueryParamIdExists = async (
   }
 
   return next();
+};
+
+export const accessTokenGuardNotStrict = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.headers.authorization) {
+    return next();
+  }
+
+  const [authType, token] = req.headers.authorization.split(' ');
+
+  if (authType !== 'Bearer') {
+    return next();
+  }
+
+  const payload = await jwtService.verifyAccessToken(token);
+  if (!payload) {
+    return next();
+  }
+
+  const { userId } = payload;
+  const userObjectId = toObjectId(userId);
+
+  if (!userObjectId) {
+    return next();
+  }
+
+  const doesUserExist = await usersRepository.doesExistById(userObjectId);
+  if (!doesUserExist) {
+    return next();
+  }
+
+  req.user = { id: userId } as IdType;
+
+  next();
 };

@@ -42,11 +42,13 @@ export class CommentsLikesQueryRepository {
     userId,
   }: {
     commentId: string;
-    userId: string;
+    userId?: string;
   }): Promise<CommentLikesInfoViewModel> {
     const likesCount = await this.getCommentLikesCount({ commentId });
     const dislikesCount = await this.getCommentDislikesCount({ commentId });
-    const likeStatus = await this.getUserLikeStatusForComment({ commentId, userId });
+    const likeStatus = userId
+      ? await this.getUserLikeStatusForComment({ commentId, userId })
+      : LikeStatusEnum.NONE;
     return {
       likesCount: Number(likesCount),
       dislikesCount: Number(dislikesCount),

@@ -85,7 +85,7 @@ export class PostController {
       commentsList.items.map(async (comment) => {
         const likesInfo = await this.commentsLikesQueryRepository.getCommentLikesInfo({
           commentId: comment.id,
-          userId: req.user?.id as string,
+          userId: req.user?.id,
         });
         return { ...comment, likesInfo };
       }),
@@ -146,7 +146,7 @@ export class PostController {
 
     const likesInfo = await this.commentsLikesQueryRepository.getCommentLikesInfo({
       commentId: createdComment.id,
-      userId: req.user?.id as string,
+      userId: req.user?.id,
     });
 
     res.status(HttpStatuses.Created).send({ ...createdComment, likesInfo });

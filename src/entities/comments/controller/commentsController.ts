@@ -45,7 +45,7 @@ export class CommentsController {
 
     const likesInfo = await this.commentsLikesQueryRepository.getCommentLikesInfo({
       commentId: id,
-      userId: userId as string,
+      userId,
     });
 
     const commentWithLikesInfo = { ...responseData, likesInfo };

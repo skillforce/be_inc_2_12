@@ -1,5 +1,6 @@
 import { basicStringFieldMiddlewareGenerator, ErrorMessages } from '../../../common/helpers/helper';
 import {
+  accessTokenGuardNotStrict,
   checkIfCommentWithProvidedQueryParamIdExists,
   inputValidationMiddleware,
   validateUrlParamId,
@@ -31,7 +32,7 @@ export const commentBodyLikeStatusValidationMiddleware = basicStringFieldMiddlew
 });
 
 export const getCommentByIdValidators = [
-  accessTokenGuard,
+  accessTokenGuardNotStrict,
   validateUrlParamId,
   inputValidationMiddleware,
 ];
