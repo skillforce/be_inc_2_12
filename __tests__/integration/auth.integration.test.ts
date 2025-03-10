@@ -9,18 +9,21 @@ import { req } from '../utils/test-helpers';
 import { PATHS } from '../../src/common/paths/paths';
 import { HttpStatuses } from '../../src/common/types/httpStatuses';
 import { User } from '../../src/entities/users/service/user.entity';
-import { db } from '../../src/db/composition-root';
-import { AuthRepository } from '../../src/application/auth/repository/authRepository';
 
-const authRepository = new AuthRepository(db);
-const authService = new AuthService(authRepository);
+import { AuthRepository } from '../../src/application/auth/repository/authRepository';
+import { UsersRepository } from '../../src/entities/users/repository/usersRepository';
+import { db } from '../../src/db/composition-root';
+
+const authRepository = new AuthRepository();
+const userRepository = new UsersRepository();
+const authService = new AuthService(authRepository, userRepository);
 
 describe('/auth', () => {
   beforeAll(async () => {
     const dbServer = await MongoMemoryServer.create();
     const uri = dbServer.getUri();
-    await db.run(uri);
-    await db.drop();
+    await db.connect(uri);
+    await db.clearDatabase();
   });
 
   beforeEach(async () => {

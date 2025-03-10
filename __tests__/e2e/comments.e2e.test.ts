@@ -79,7 +79,6 @@ describe('/comments', () => {
       postId: createdPost.id,
       accessToken: createdFirstUserAccessToken,
     });
-    console.log(createdFirstUser);
 
     expect(createdComment.commentatorInfo.userId).toBe(createdFirstUser.id);
   });

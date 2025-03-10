@@ -1,13 +1,17 @@
 import { jwtService } from '../../src/common/adapters/jwt.service';
 import { JwtPayload } from 'jsonwebtoken';
-import { authService } from '../../src/application/auth/service/authService';
+import { AuthService } from '../../src/application/auth/service/authService';
+import { AuthRepository } from '../../src/application/auth/repository/authRepository';
+import { UsersRepository } from '../../src/entities/users/repository/usersRepository';
+
+const authRepository = new AuthRepository();
+const userRepository = new UsersRepository();
+const authService = new AuthService(authRepository, userRepository);
 
 describe('authService,utils_check', () => {
   const userId = 'testId';
-  const accessTokenMock =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0SWQiLCJpZCI6ImFhMjRkMTE0LTAwNWMtNGUxMS04ZDU2LWM2ZDk1YTY0ZDk0YiIsImlhdCI6MTczOTc4MTc1NiwiZXhwIjoxNzM5NzgxNzY2fQ.n7aVKMDG7MT3r6OFsVa9KIarnWZ8jQm7fdVZAAnnNJI';
   const refreshTokenMock =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0SWQiLCJpZCI6ImUzMzExNmQ0LWQ5MWMtNDFjYy05MDRiLTYyOTg5ODYyOWY1MyIsImlhdCI6MTczOTc4MjU1OCwiZXhwIjoxNzM5NzgyNTc4fQ._zGKrQC5drpOEP0q-0HKC_FXhTr704jcjAFM7VhKCVg';
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0SWQiLCJkZXZpY2VJZCI6ImNmZDgxZjVkLWViNmQtNGE0MS04NDM1LTM2NjUwNjA4NGY0ZCIsImludGVybmFsSWQiOiIwOTViMzczZS03ODU2LTQwM2UtYjAyYi0xNDAzOThiNGMwNDAiLCJpYXQiOjE3NDE1OTQ2NjcsImV4cCI6MTc0MTU5NDY4N30.CqzDaDtSjILlJM5Sn6Y-X3hwLkTsPIVdW5QpfcUyLXQ';
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -16,6 +20,7 @@ describe('authService,utils_check', () => {
   it('should generate valid access and refresh tokens', async () => {
     const accessToken = await jwtService.createAccessToken(userId);
     const refreshToken = await jwtService.createRefreshToken(userId);
+    console.log(accessToken);
     const decodedAccessToken = (await jwtService.decodeToken(accessToken)) as JwtPayload;
     const decodedRefreshToken = (await jwtService.decodeToken(refreshToken)) as JwtPayload;
 
@@ -43,6 +48,5 @@ describe('authService,utils_check', () => {
     expect(sessionBody?.data?.device_id).not.toBeUndefined();
     expect(sessionBody?.data?.ip_address).not.toBeUndefined();
     expect(sessionBody?.data?.user_id).not.toBeUndefined();
-    console.log(sessionBody);
   });
 });
