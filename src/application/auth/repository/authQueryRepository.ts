@@ -1,6 +1,5 @@
-import { DataBase } from '../../../db/mongo-db';
 import { AuthMetaDBModel, SessionsViewModel } from '../types/types';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { AuthMetaModel } from './AuthMetaSchema';
 
 @injectable()

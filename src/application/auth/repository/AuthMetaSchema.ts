@@ -1,6 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
 import { AuthMetaDBModel } from '../types/types';
-import { injectable } from 'inversify';
 
 const AuthMetaSchema = new Schema<AuthMetaDBModel>({
   iat: { type: String, required: true },

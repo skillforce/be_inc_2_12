@@ -28,28 +28,39 @@ export class AuthRepository {
     device_id: string;
     newVersionIat: string;
     newVersionExp: string;
-  }) {
-    const result = await AuthMetaModel.updateOne(
-      { device_id },
-      { $set: { iat: newVersionIat, exp: newVersionExp } },
-    );
-
-    return result.matchedCount;
-  }
-  async removeSession(device_id: string, refreshTokenIatIso: string) {
-    const result = await AuthMetaModel.deleteOne({ device_id, iat: refreshTokenIatIso });
-    return result.deletedCount === 1;
-  }
-  async removeAllUserSessionsExceptCurrentOne(userId: string, device_id: string): Promise<boolean> {
-    try {
-      await AuthMetaModel.deleteMany({ user_id: userId, device_id: { $ne: device_id } });
-      return true;
-    } catch (e) {
+  }): Promise<boolean> {
+    const session = await AuthMetaModel.findOne({ device_id });
+    if (!session) {
       return false;
     }
+
+    session.iat = newVersionIat;
+    session.exp = newVersionExp;
+    await session.save();
+
+    return true;
+  }
+  async removeSession(device_id: string, refreshTokenIatIso: string): Promise<boolean> {
+    const sessionToRemove = await AuthMetaModel.findOne({ device_id, iat: refreshTokenIatIso });
+    if (!sessionToRemove) {
+      return false;
+    }
+    await sessionToRemove.deleteOne();
+    return true;
+  }
+  async removeAllUserSessionsExceptCurrentOne(userId: string, device_id: string): Promise<boolean> {
+    await AuthMetaModel.deleteMany({
+      user_id: userId,
+      device_id: { $ne: device_id },
+    });
+    return true;
   }
   async removeSessionByDeviceId(device_id: string): Promise<boolean> {
-    const result = await AuthMetaModel.deleteOne({ device_id });
-    return result.deletedCount === 1;
+    const sessionToDelete = await AuthMetaModel.findOne({ device_id });
+    if (!sessionToDelete) {
+      return false;
+    }
+    await sessionToDelete.deleteOne();
+    return true;
   }
 }

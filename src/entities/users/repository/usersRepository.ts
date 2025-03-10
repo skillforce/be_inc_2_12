@@ -1,7 +1,6 @@
-import { DataBase } from '../../../db/mongo-db';
 import { ObjectId, WithId } from 'mongodb';
-import { AddUserDto, UserDBModel, UserDocument } from '../types/types';
-import { inject, injectable } from 'inversify';
+import { AddUserDto, UserDBModel } from '../types/types';
+import { injectable } from 'inversify';
 import { UserModel } from './UserSchema';
 
 @injectable()
@@ -19,11 +18,11 @@ export class UsersRepository {
     return !result;
   }
   async deleteUser(_id: ObjectId): Promise<boolean> {
-    const userToDelete = UserModel.findOne({ _id });
+    const userToDelete = await UserModel.findOne({ _id });
     if (!userToDelete) {
       return false;
     }
-    userToDelete.deleteOne();
+    await userToDelete.deleteOne();
     return true;
   }
   async getUserById(_id: ObjectId): Promise<UserDBModel | null> {
@@ -54,37 +53,35 @@ export class UsersRepository {
     newExpirationDate: string,
     newCode: string,
   ): Promise<boolean> {
-    const userToUpdate = await UserModel.findOne({ _id });
-    if (!userToUpdate) {
+    const user = await UserModel.findById(_id);
+    if (!user) {
       return false;
     }
-    const updateResult = await UserModel.updateOne(
-      { _id },
-      {
-        $set: {
-          recoverPasswordEmailConfirmation: {
-            expirationDate: newExpirationDate,
-            confirmationCode: newCode,
-            isConfirmed: false,
-          },
-        },
-      },
-    );
 
-    return updateResult.modifiedCount === 1;
+    user.recoverPasswordEmailConfirmation = {
+      expirationDate: newExpirationDate,
+      confirmationCode: newCode,
+      isConfirmed: false,
+    };
+
+    await user.save();
+
+    return true;
   }
 
   async changePasswordByRecoveryCode(code: string, newPassword: string): Promise<boolean> {
-    const updateResult = await UserModel.updateOne(
-      { 'recoverPasswordEmailConfirmation.confirmationCode': code },
-      {
-        $set: {
-          password: newPassword,
-          recoverPasswordEmailConfirmation: null,
-        },
-      },
-    );
-    return updateResult.modifiedCount === 1;
+    const user = await UserModel.findOne({
+      'recoverPasswordEmailConfirmation.confirmationCode': code,
+    });
+
+    if (!user) return false;
+
+    user.password = newPassword;
+    user.recoverPasswordEmailConfirmation = null;
+
+    await user.save();
+
+    return true;
   }
   async getUserByRegistrationCode(code: string): Promise<UserDBModel | null> {
     const userByCode = await UserModel.findOne({ 'emailConfirmation.confirmationCode': code });
@@ -103,12 +100,12 @@ export class UsersRepository {
     return userByCode;
   }
   async confirmUserEmailById(_id: ObjectId): Promise<boolean> {
-    const updateResult = await UserModel.updateOne(
-      { _id },
-      { $set: { 'emailConfirmation.isConfirmed': true } },
-    );
+    const userToConfirm = await UserModel.findOne({ _id });
+    if (!userToConfirm) return false;
 
-    return updateResult.matchedCount === 1;
+    userToConfirm.emailConfirmation.isConfirmed = true;
+    await userToConfirm.save();
+    return true;
   }
   async doesExistById(_id: ObjectId) {
     const countById = await UserModel.countDocuments({ _id });
@@ -117,6 +114,6 @@ export class UsersRepository {
   async findByLoginOrEmail(loginOrEmail: string): Promise<WithId<UserDBModel> | null> {
     return UserModel.findOne({
       $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
-    });
+    }).exec();
   }
 }

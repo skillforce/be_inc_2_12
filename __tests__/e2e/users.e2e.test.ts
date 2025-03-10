@@ -79,6 +79,7 @@ describe('/users', () => {
       .get(PATHS.USERS)
       .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
       .expect(200);
+    console.log(res.body.items);
 
     expect(res.body.items.length).toBe(2);
   });
@@ -131,6 +132,9 @@ describe('/users', () => {
       .get(PATHS.USERS)
       .set('Authorization', 'Basic YWRtaW46cXdlcnR5')
       .expect(200);
+
+    console.log(newUserId);
+    console.log(res.body.items);
 
     expect(res.body.items.length).toBe(1);
   });
