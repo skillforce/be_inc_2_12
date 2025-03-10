@@ -4,7 +4,7 @@ import { DataBase } from '../../../db/mongo-db';
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 import { inject, injectable } from 'inversify';
-import { PostModel } from './PostScheme';
+import { PostModel } from '../domain/Post.entity';
 
 @injectable()
 export class PostQueryRepository {

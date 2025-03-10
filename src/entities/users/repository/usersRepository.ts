@@ -1,7 +1,7 @@
 import { ObjectId, WithId } from 'mongodb';
 import { AddUserDto, UserDBModel } from '../types/types';
 import { injectable } from 'inversify';
-import { UserModel } from './UserSchema';
+import { UserModel } from '../domain/User.entity';
 
 @injectable()
 export class UsersRepository {

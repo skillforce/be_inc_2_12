@@ -1,7 +1,7 @@
 import { AddBlogDto, AddUpdatePostRequiredInputData } from '../types/types';
 import { ObjectId } from 'mongodb';
 import { injectable } from 'inversify';
-import { PostModel } from './PostScheme';
+import { PostModel } from '../domain/Post.entity';
 
 @injectable()
 export class PostRepository {

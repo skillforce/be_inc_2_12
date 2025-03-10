@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import { TriggerAttemptsCollectionDBModel } from '../../../common/types/types';
 
-const TriggerAttemptsSchema = new Schema<TriggerAttemptsCollectionDBModel>({
+const TriggerAttemptsEntity = new Schema<TriggerAttemptsCollectionDBModel>({
   ip: { type: String, required: true },
   route: { type: String, required: true },
   timestamp: { type: Date, required: true, default: Date.now },
@@ -9,5 +9,5 @@ const TriggerAttemptsSchema = new Schema<TriggerAttemptsCollectionDBModel>({
 
 export const TriggerAttemptsModel = mongoose.model<TriggerAttemptsCollectionDBModel>(
   'TriggerAttempt',
-  TriggerAttemptsSchema,
+  TriggerAttemptsEntity,
 );

@@ -4,7 +4,7 @@ import { PaginatedData } from '../../../common/types/pagination';
 import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 import { injectable } from 'inversify';
-import { CommentModel } from './CommentSchema';
+import { CommentModel } from '../domain/Comment.entity';
 
 @injectable()
 export class CommentsQueryRepository {

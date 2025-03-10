@@ -9,7 +9,7 @@ import {
 import { PaginatedData } from '../../../common/types/pagination';
 import { queryFilterGenerator } from '../../../common/helpers/queryFilterGenerator';
 import { injectable } from 'inversify';
-import { UserModel } from './UserSchema';
+import { UserModel } from '../domain/User.entity';
 
 @injectable()
 export class UsersQueryRepository {

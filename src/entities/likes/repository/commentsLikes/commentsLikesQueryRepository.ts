@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { CommentLikesInfoViewModel, LikeStatusEnum } from '../../types/types';
-import { CommentLikeModel } from '../../Model/CommentLikeSchema';
+import { CommentLikeModel } from '../../domain/CommentLike.entity';
 
 @injectable()
 export class CommentsLikesQueryRepository {

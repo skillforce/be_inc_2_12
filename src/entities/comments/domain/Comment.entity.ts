@@ -10,11 +10,11 @@ const CommentatorInfoSchema = new Schema<CommentatorInfo>(
   { _id: false },
 );
 
-const CommentSchema = new Schema<CommentDBModel>({
+const CommentEntity = new Schema<CommentDBModel>({
   content: { type: String, required: true },
   commentatorInfo: { type: CommentatorInfoSchema, required: true },
   createdAt: { type: String, required: true, default: Date.now.toString() },
   postId: { type: ObjectId, required: true, ref: 'Post' },
 });
 
-export const CommentModel = mongoose.model<CommentDBModel>('Comment', CommentSchema);
+export const CommentModel = mongoose.model<CommentDBModel>('Comment', CommentEntity);

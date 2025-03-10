@@ -1,6 +1,6 @@
 import { AuthMetaDBModel, SessionsViewModel } from '../types/types';
 import { injectable } from 'inversify';
-import { AuthMetaModel } from './AuthMetaSchema';
+import { AuthMetaModel } from '../domain/AuthMeta.entity';
 
 @injectable()
 export class AuthQueryRepository {

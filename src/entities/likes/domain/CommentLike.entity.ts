@@ -1,7 +1,7 @@
 import mongoose, { Model, Schema } from 'mongoose';
 import { CommentLikeDBModel, LikeStatusEnum } from '../types/types';
 
-const CommentLikeSchema = new Schema<CommentLikeDBModel>(
+const CommentLikeEntity = new Schema<CommentLikeDBModel>(
   {
     userId: { type: String, required: true },
     commentId: { type: String, required: true },
@@ -16,5 +16,5 @@ const CommentLikeSchema = new Schema<CommentLikeDBModel>(
 
 export const CommentLikeModel: Model<CommentLikeDBModel> = mongoose.model<CommentLikeDBModel>(
   'CommentLike',
-  CommentLikeSchema,
+  CommentLikeEntity,
 );

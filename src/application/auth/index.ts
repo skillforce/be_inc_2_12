@@ -1,6 +1,6 @@
-export { TriggerAttemptsModel } from './repository/TriggerAttemptsSchema';
+export { TriggerAttemptsModel } from './domain/TriggerAttempts.entity';
 
-export { AuthMetaModel } from './repository/AuthMetaSchema';
+export { AuthMetaModel } from './domain/AuthMeta.entity';
 
 export { securityRouter } from './router/securityRouter';
 

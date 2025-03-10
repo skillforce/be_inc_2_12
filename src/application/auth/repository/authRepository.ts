@@ -1,7 +1,7 @@
 import { SessionDto } from '../types/types';
 import { ObjectId } from 'mongodb';
 import { injectable } from 'inversify';
-import { AuthMetaModel } from './AuthMetaSchema';
+import { AuthMetaModel } from '../domain/AuthMeta.entity';
 
 @injectable()
 export class AuthRepository {

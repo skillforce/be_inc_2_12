@@ -1,7 +1,7 @@
 import { AddUpdateCommentInputData, CommentDBModel } from '../types/types';
 import { ObjectId } from 'mongodb';
 import { injectable } from 'inversify';
-import { CommentModel } from './CommentSchema';
+import { CommentModel } from '../domain/Comment.entity';
 
 @injectable()
 export class CommentsRepository {
