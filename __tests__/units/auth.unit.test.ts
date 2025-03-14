@@ -20,7 +20,7 @@ describe('authService,utils_check', () => {
   it('should generate valid access and refresh tokens', async () => {
     const accessToken = await jwtService.createAccessToken(userId);
     const refreshToken = await jwtService.createRefreshToken(userId);
-    console.log(accessToken);
+
     const decodedAccessToken = (await jwtService.decodeToken(accessToken)) as JwtPayload;
     const decodedRefreshToken = (await jwtService.decodeToken(refreshToken)) as JwtPayload;
 

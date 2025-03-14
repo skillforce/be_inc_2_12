@@ -143,7 +143,7 @@ export class CommentsService {
     }
 
     const isLikeStatusUpdated = await this.commentsLikesRepository.updateLikeStatus({
-      commentId,
+      parentId: commentId,
       userId,
       likeStatus,
     });
@@ -204,10 +204,8 @@ export class CommentsService {
         extensions: [],
       };
     }
-
-    for (const comment of commentsList) {
-      await this.commentsLikesRepository.deleteAllLikesByCommentId(comment._id.toString());
-    }
+    const commentsIds = commentsList.map((comment) => comment._id.toString());
+    await this.commentsLikesRepository.deleteAllLikesByCommentsId(commentsIds);
 
     return {
       status: ResultStatus.Success,

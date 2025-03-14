@@ -240,7 +240,7 @@ describe('/comments', () => {
       .get(`${PATHS.POSTS}/${createdPost.id}/comments`)
       .auth(createdFirstUserAccessToken, { type: 'bearer' })
       .expect(200);
-
+    console.log(comments.body.items);
     expect(comments.body.items.length).toBe(2);
     expect(comments.body.items[1].likesInfo.likesCount).toBe(1);
     expect(comments.body.items[1].likesInfo.dislikesCount).toBe(0);

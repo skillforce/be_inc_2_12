@@ -5,16 +5,16 @@ import { CommentLikeModel } from '../../domain/CommentLike.entity';
 @injectable()
 export class CommentsLikesRepository {
   constructor() {}
-  async updateLikeStatus({ likeStatus, commentId, userId }: CommentLikeDBModel): Promise<boolean> {
+  async updateLikeStatus({ likeStatus, parentId, userId }: CommentLikeDBModel): Promise<boolean> {
     try {
       const previousLikeStatus = await CommentLikeModel.findOne({
-        commentId,
+        parentId,
         userId,
       });
 
       if (!previousLikeStatus) {
         const newLike = new CommentLikeModel({
-          commentId,
+          parentId,
           userId,
           likeStatus,
         });
@@ -36,7 +36,15 @@ export class CommentsLikesRepository {
   }
   async deleteAllLikesByCommentId(commentId: string): Promise<boolean> {
     try {
-      await CommentLikeModel.deleteMany({ commentId });
+      await CommentLikeModel.deleteMany({ parentId: commentId });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  async deleteAllLikesByCommentsId(commentsId: string[]): Promise<boolean> {
+    try {
+      await CommentLikeModel.deleteMany({ parentId: { $in: commentsId } });
       return true;
     } catch (e) {
       return false;

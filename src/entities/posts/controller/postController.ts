@@ -81,15 +81,16 @@ export class PostController {
       postId,
     );
 
-    const commentsListWithLikesInfo = await Promise.all(
-      commentsList.items.map(async (comment) => {
-        const likesInfo = await this.commentsLikesQueryRepository.getCommentLikesInfo({
-          commentId: comment.id,
-          userId: req.user?.id,
-        });
-        return { ...comment, likesInfo };
-      }),
-    );
+    const commentIds = commentsList.items.map(comment => comment.id);
+    const likesInfoMap = await this.commentsLikesQueryRepository.getBulkCommentLikesInfo({
+      commentIds,
+      userId: req.user?.id,
+    });
+
+    const commentsListWithLikesInfo = commentsList.items.map(comment => ({
+      ...comment,
+      likesInfo: likesInfoMap[comment.id]
+    }));
 
     const paginatedCommentsList = {
       ...commentsList,

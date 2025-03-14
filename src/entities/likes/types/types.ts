@@ -5,7 +5,7 @@ export enum LikeStatusEnum {
 }
 export interface CommentLikeDBModel {
   userId: string;
-  commentId: string;
+  parentId: string;
   likeStatus: LikeStatusEnum;
 }
 
