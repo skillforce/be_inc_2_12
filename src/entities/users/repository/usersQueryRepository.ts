@@ -41,29 +41,24 @@ export class UsersQueryRepository {
       sanitizedQuery;
     const skip = (pageNumber - 1) * pageSize;
 
-    const searchByEmailQuery = searchEmailTerm
-      ? { email: { $regex: searchEmailTerm, $options: 'i' } }
-      : null;
-    const searchByLoginQuery = searchLoginTerm
-      ? { login: { $regex: searchLoginTerm, $options: 'i' } }
-      : null;
+    const searchFilter = UserModel.find();
 
-    const filter =
-      searchByEmailQuery || searchByLoginQuery
-        ? {
-            $or: [
-              ...(searchByEmailQuery ? [searchByEmailQuery] : []),
-              ...(searchByLoginQuery ? [searchByLoginQuery] : []),
-            ],
-          }
-        : {};
+    if (searchEmailTerm || searchLoginTerm) {
+      const orConditions = [];
+      if (searchEmailTerm) orConditions.push({ email: { $regex: searchEmailTerm, $options: 'i' } });
+      if (searchLoginTerm) orConditions.push({ login: { $regex: searchLoginTerm, $options: 'i' } });
+      searchFilter.or(orConditions);
+    }
 
-    const itemsFromDb = await UserModel.find(filter)
-      .sort({ [sortBy]: sortDirection })
-      .skip(skip)
-      .limit(pageSize);
+    const [itemsFromDb, totalCount] = await Promise.all([
+      searchFilter
+        .sort({ [sortBy]: sortDirection })
+        .skip(skip)
+        .limit(pageSize)
+        .lean(),
+      UserModel.countDocuments(searchFilter.getFilter()),
+    ]);
 
-    const totalCount = await this.countUsers(filter);
     const itemsForOutput = itemsFromDb.map(this.mapUsersToOutput);
 
     return {

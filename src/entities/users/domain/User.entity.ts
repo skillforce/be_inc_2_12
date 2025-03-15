@@ -2,7 +2,6 @@ import mongoose, { HydratedDocument, Model, Schema } from 'mongoose';
 import { CodeConfirmation, CreateUserDto, UserDBModel } from '../types/types';
 import dayjs from 'dayjs';
 import { randomUUID } from 'crypto';
-import { ObjectId } from 'mongodb';
 
 const CodeConfirmationSchema = new Schema<CodeConfirmation>({
   confirmationCode: { type: String, default: null },
