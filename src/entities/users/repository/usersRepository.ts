@@ -1,17 +1,17 @@
 import { ObjectId, WithId } from 'mongodb';
 import { AddUserDto, UserDBModel } from '../types/types';
 import { injectable } from 'inversify';
-import { UserModel } from '../domain/User.entity';
+import { UserDocument, UserModel } from '../domain/User.entity';
 
 @injectable()
 export class UsersRepository {
   constructor() {}
-  async addUser(newUserData: AddUserDto): Promise<ObjectId | null> {
-    const newUser = await UserModel.create(newUserData);
-    if (!newUser._id) {
-      return null;
-    }
-    return newUser._id;
+  async saveUser(user: UserDocument) {
+    await user.save();
+  }
+
+  async findById(id: string): Promise<UserDocument | null> {
+    return UserModel.findOne({ _id: id });
   }
   async isFieldValueUnique(field: string, value: string): Promise<boolean> {
     const result = await UserModel.findOne({ [field]: value });

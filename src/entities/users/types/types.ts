@@ -16,8 +16,8 @@ export interface UserAuthViewModel {
 }
 
 export interface CodeConfirmation {
-  confirmationCode: string;
-  expirationDate: string;
+  confirmationCode: string | null;
+  expirationDate: string | null;
   isConfirmed: boolean;
 }
 
@@ -31,8 +31,6 @@ export interface UserDBModel {
   recoverPasswordEmailConfirmation: CodeConfirmation | null;
 }
 
-export type UserDocument = HydratedDocument<UserDBModel>;
-
 export interface AddUserDto {
   login: string;
   email: string;
@@ -42,10 +40,11 @@ export interface AddUserDto {
   recoverPasswordEmailConfirmation: CodeConfirmation | null;
 }
 
-export interface AddUserRequiredInputData {
+export interface CreateUserDto {
   login: string;
   email: string;
   password: string;
+  isConfirmed?: boolean;
 }
 
 export enum UsersOutputMapEnum {

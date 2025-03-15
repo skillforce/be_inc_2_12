@@ -1,10 +1,10 @@
 import { bcryptService } from '../../../common/adapters/bcrypt.service';
 import { Result } from '../../../common/result/result.type';
-import { UserDBModel } from '../../../entities/users';
+import { UserDBModel, UserModel } from '../../../entities/users';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { AuthLoginDto, SessionDto } from '../types/types';
 import { jwtService } from '../../../common/adapters/jwt.service';
-import { AddUserDto, AddUserRequiredInputData } from '../../../entities/users/types/types';
+import { AddUserDto, CreateUserDto } from '../../../entities/users/types/types';
 import { authEmails } from '../../../common/layout/authEmails';
 import { mailService } from '../../../common/adapters/mail.service';
 import dayjs from 'dayjs';
@@ -146,7 +146,7 @@ export class AuthService {
     };
   }
 
-  async registerUser({ login, email, password }: AddUserRequiredInputData): Promise<Result> {
+  async registerUser({ login, email, password }: CreateUserDto): Promise<Result> {
     const isLoginUnique = await this.usersRepository.isFieldValueUnique('login', login);
     const isEmailUnique = await this.usersRepository.isFieldValueUnique('email', email);
 
@@ -179,27 +179,13 @@ export class AuthService {
     }
 
     const hashedPassword = await bcryptService.generateHash(password);
+    const newUser = UserModel.createUser({ password: hashedPassword, login, email });
 
-    const newUser: AddUserDto = new User({
-      login: login,
-      email: email,
-      hash: hashedPassword,
-    });
-
-    const createdUserId = await this.usersRepository.addUser(newUser);
-
-    if (!createdUserId) {
-      return {
-        status: ResultStatus.ServerError,
-        errorMessage: 'Internal server error occurred',
-        data: null,
-        extensions: [],
-      };
-    }
+    await this.usersRepository.saveUser(newUser);
 
     this.sendConfirmationEmail(
       newUser.email,
-      newUser.emailConfirmation.confirmationCode,
+      newUser.emailConfirmation.confirmationCode!,
       EmailType.CONFIRM_EMAIL,
     );
 

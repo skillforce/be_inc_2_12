@@ -1,11 +1,7 @@
 import { UsersService } from '../service/usersService';
 import { UsersQueryRepository } from '../repository/usersQueryRepository';
 import { RequestWithBody, RequestWithParams } from '../../../common/types/request';
-import {
-  AddUserRequiredInputData,
-  GetPaginatedUsersQueryInterface,
-  UserViewModel,
-} from '../types/types';
+import { CreateUserDto, GetPaginatedUsersQueryInterface, UserViewModel } from '../types/types';
 import { Request, Response } from 'express';
 import { PaginatedData } from '../../../common/types/pagination';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
@@ -30,7 +26,7 @@ export class UsersController {
     res.status(HttpStatuses.Success).json(responseData);
   }
   async createUser(
-    req: RequestWithBody<AddUserRequiredInputData>,
+    req: RequestWithBody<CreateUserDto>,
     res: Response<UserViewModel | ErrorResponseObject>,
   ) {
     const { login, password, email } = req.body;

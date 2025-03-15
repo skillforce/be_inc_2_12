@@ -6,7 +6,7 @@ import { CommentsRepository } from '../repository/commentsRepository';
 import { Container } from 'inversify';
 import { CommentsLikesQueryRepository, CommentsLikesRepository } from '../../likes';
 
-const container = new Container();
+const container = new Container({ defaultScope: 'Singleton' });
 
 container.bind(CommentsLikesRepository).to(CommentsLikesRepository);
 container.bind(CommentsLikesQueryRepository).to(CommentsLikesQueryRepository);

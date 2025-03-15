@@ -6,7 +6,7 @@ import { HttpStatuses } from '../../src/common/types/httpStatuses';
 import { UserDBModel, UserModel } from '../../src/entities/users';
 import { User } from '../../src/entities/users/service/user.entity';
 import { ObjectId, WithId } from 'mongodb';
-import { UserViewModel } from '../../src/entities/users/types/types';
+import { CodeConfirmation, UserViewModel } from '../../src/entities/users/types/types';
 import { Response } from 'supertest';
 import { db } from '../../src/db/composition-root';
 
@@ -39,7 +39,13 @@ export const insertUser = async ({
   email,
   createdAt,
   login,
-}: User): Promise<Omit<UserDBModel, '_id'> & { id: string }> => {
+}: {
+  emailConfirmation: CodeConfirmation;
+  password: string;
+  email: string;
+  createdAt: string;
+  login: string;
+}): Promise<Omit<UserDBModel, '_id'> & { id: string }> => {
   const newUser = {
     login,
     email,

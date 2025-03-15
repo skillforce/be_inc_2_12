@@ -1,21 +1,18 @@
 import { ObjectId } from 'mongodb';
 import { UsersRepository } from '../repository/usersRepository';
-import { AddUserDto, AddUserRequiredInputData } from '../types/types';
+import { AddUserDto, CreateUserDto } from '../types/types';
 import { bcryptService } from '../../../common/adapters/bcrypt.service';
 import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { User } from './user.entity';
 import { inject, injectable } from 'inversify';
+import { UserModel } from '../domain/User.entity';
 
 @injectable()
 export class UsersService {
   constructor(@inject(UsersRepository) protected usersRepository: UsersRepository) {}
-  async addUser({
-    login,
-    password,
-    email,
-  }: AddUserRequiredInputData): Promise<Result<ObjectId | null>> {
+  async addUser({ login, password, email }: CreateUserDto): Promise<Result<ObjectId | null>> {
     const isLoginUnique = await this.usersRepository.isFieldValueUnique('login', login);
     const isEmailUnique = await this.usersRepository.isFieldValueUnique('email', email);
 
@@ -49,27 +46,18 @@ export class UsersService {
 
     const hashedPassword = await bcryptService.generateHash(password);
 
-    const newUser: AddUserDto = new User({
+    const newUser = UserModel.createUser({
       login: login,
       email: email,
-      hash: hashedPassword,
+      password: hashedPassword,
       isConfirmed: true,
     });
 
-    const createdUserId = await this.usersRepository.addUser(newUser);
-
-    if (!createdUserId) {
-      return {
-        status: ResultStatus.ServerError,
-        errorMessage: 'Internal server error occurred',
-        data: null,
-        extensions: [],
-      };
-    }
+    await this.usersRepository.saveUser(newUser);
 
     return {
       status: ResultStatus.Success,
-      data: createdUserId,
+      data: newUser._id,
       extensions: [],
     };
   }
