@@ -10,7 +10,7 @@ import { authMiddleware } from '../../../application/auth/guards/base.auth.guard
 import { accessTokenGuard } from '../../../application/auth/guards/access.token.guard';
 import { BlogService } from '../../blogs/service/blogService';
 import { ResultStatus } from '../../../common/result/resultCode';
-import { BlogRepository } from '../../blogs/repository/blogRepository';
+import { BlogRepository } from '../../blogs/infrastructure/blogRepository';
 
 const blogRepository = new BlogRepository();
 const blogService = new BlogService(blogRepository);

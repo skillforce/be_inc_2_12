@@ -2,11 +2,11 @@ import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 
 import { toObjectId } from '../helpers/helper';
-import { BlogQueryRepository } from '../../entities/blogs/repository/blogQueryRepository';
-import { CommentsRepository } from '../../entities/comments/repository/commentsRepository';
+import { BlogQueryRepository } from '../../entities/blogs/infrastructure/blogQueryRepository';
+import { CommentsRepository } from '../../entities/comments/infrastructure/commentsRepository';
 import { jwtService } from '../adapters/jwt.service';
 import { IdType } from '../types/id';
-import { UsersRepository } from '../../entities/users/repository/usersRepository';
+import { UsersRepository } from '../../entities/users/infrastructure/usersRepository';
 
 const blogQueryRepository = new BlogQueryRepository();
 const commentRepository = new CommentsRepository();

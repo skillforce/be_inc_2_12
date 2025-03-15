@@ -2,7 +2,7 @@ import { jwtService } from '../../src/common/adapters/jwt.service';
 import { JwtPayload } from 'jsonwebtoken';
 import { AuthService } from '../../src/application/auth/service/authService';
 import { AuthRepository } from '../../src/application/auth/repository/authRepository';
-import { UsersRepository } from '../../src/entities/users/repository/usersRepository';
+import { UsersRepository } from '../../src/entities/users/infrastructure/usersRepository';
 
 const authRepository = new AuthRepository();
 const userRepository = new UsersRepository();

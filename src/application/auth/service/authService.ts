@@ -11,7 +11,7 @@ import dayjs from 'dayjs';
 import { randomUUID } from 'crypto';
 import { generateIsoStringFromSeconds } from '../../../common/helpers/helper';
 import { AuthRepository } from '../repository/authRepository';
-import { UsersRepository } from '../../../entities/users/repository/usersRepository';
+import { UsersRepository } from '../../../entities/users/infrastructure/usersRepository';
 import { inject } from 'inversify';
 
 enum EmailType {
@@ -206,7 +206,7 @@ export class AuthService {
       };
     }
 
-    if (user.isUserVerifiedByEmail()) {
+    if (user.emailConfirmation.isConfirmed) {
       return {
         status: ResultStatus.BadRequest,
         data: null,

@@ -1,4 +1,4 @@
-import { CommentsQueryRepository } from '../repository/commentsQueryRepository';
+import { CommentsQueryRepository } from '../infrastructure/commentsQueryRepository';
 import { CommentsService } from '../service/commentsService';
 import {
   RequestWithParamsAndBodyAndUserId,

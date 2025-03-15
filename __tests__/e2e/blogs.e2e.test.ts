@@ -3,7 +3,7 @@ import { AddUpdateBlogRequiredInputData, BlogDbModel } from '../../src/entities/
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PATHS } from '../../src/common/paths/paths';
 import { BlogService } from '../../src/entities/blogs/service/blogService';
-import { BlogRepository } from '../../src/entities/blogs/repository/blogRepository';
+import { BlogRepository } from '../../src/entities/blogs/infrastructure/blogRepository';
 import { BlogModel } from '../../src/entities/blogs';
 import { db } from '../../src/db/composition-root';
 

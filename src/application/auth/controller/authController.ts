@@ -1,4 +1,4 @@
-import { UsersQueryRepository } from '../../../entities/users/repository/usersQueryRepository';
+import { UsersQueryRepository } from '../../../entities/users/infrastructure/usersQueryRepository';
 import { AuthService } from '../service/authService';
 import { RequestWithBody, RequestWithUserId } from '../../../common/types/request';
 import { AuthLoginDto, RegisterUserDto } from '../types/types';

@@ -1,6 +1,6 @@
 import { PostService } from '../service/postService';
-import { PostQueryRepository } from '../repository/postQueryRepository';
-import { BlogQueryRepository } from '../../blogs/repository/blogQueryRepository';
+import { PostQueryRepository } from '../infrastructure/postQueryRepository';
+import { BlogQueryRepository } from '../../blogs/infrastructure/blogQueryRepository';
 import { Request, Response } from 'express';
 import { PaginatedData } from '../../../common/types/pagination';
 import { AddUpdatePostRequiredInputData, PostViewModel } from '../types/types';
@@ -13,7 +13,7 @@ import {
 import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
 import { IdType } from '../../../common/types/id';
 import { AddUpdateCommentInputData, CommentViewModel } from '../../comments/types/types';
-import { CommentsQueryRepository } from '../../comments/repository/commentsQueryRepository';
+import { CommentsQueryRepository } from '../../comments/infrastructure/commentsQueryRepository';
 import { CommentsService } from '../../comments/service/commentsService';
 import { ObjectId } from 'mongodb';
 import { ResultStatus } from '../../../common/result/resultCode';

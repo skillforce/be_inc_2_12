@@ -4,9 +4,9 @@ import {
   CommentDBModel,
   AddUpdateCommentInputData,
 } from '../types/types';
-import { CommentsRepository } from '../repository/commentsRepository';
+import { CommentsRepository } from '../infrastructure/commentsRepository';
 import { ObjectId } from 'mongodb';
-import { UsersRepository } from '../../users/repository/usersRepository';
+import { UsersRepository } from '../../users/infrastructure/usersRepository';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { UserDBModel } from '../../users';

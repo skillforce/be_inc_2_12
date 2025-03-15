@@ -1,10 +1,10 @@
 import { BlogsController } from '../controller/blogsController';
-import { BlogQueryRepository } from '../repository/blogQueryRepository';
+import { BlogQueryRepository } from '../infrastructure/blogQueryRepository';
 import { PostService } from '../../posts/service/postService';
 import { BlogService } from '../service/blogService';
-import { PostQueryRepository } from '../../posts/repository/postQueryRepository';
-import { PostRepository } from '../../posts/repository/postRepository';
-import { BlogRepository } from '../repository/blogRepository';
+import { PostQueryRepository } from '../../posts/infrastructure/postQueryRepository';
+import { PostRepository } from '../../posts/infrastructure/postRepository';
+import { BlogRepository } from '../infrastructure/blogRepository';
 import { Container } from 'inversify';
 
 const container = new Container();

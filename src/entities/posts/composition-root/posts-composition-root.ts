@@ -1,12 +1,12 @@
 import { PostController } from '../controller/postController';
 import { PostService } from '../service/postService';
-import { PostQueryRepository } from '../repository/postQueryRepository';
-import { BlogQueryRepository } from '../../blogs/repository/blogQueryRepository';
-import { PostRepository } from '../repository/postRepository';
+import { PostQueryRepository } from '../infrastructure/postQueryRepository';
+import { BlogQueryRepository } from '../../blogs/infrastructure/blogQueryRepository';
+import { PostRepository } from '../infrastructure/postRepository';
 import { CommentsService } from '../../comments/service/commentsService';
-import { UsersRepository } from '../../users/repository/usersRepository';
-import { CommentsRepository } from '../../comments/repository/commentsRepository';
-import { CommentsQueryRepository } from '../../comments/repository/commentsQueryRepository';
+import { UsersRepository } from '../../users/infrastructure/usersRepository';
+import { CommentsRepository } from '../../comments/infrastructure/commentsRepository';
+import { CommentsQueryRepository } from '../../comments/infrastructure/commentsQueryRepository';
 import { Container } from 'inversify';
 import { CommentsLikesQueryRepository, CommentsLikesRepository } from '../../likes';
 

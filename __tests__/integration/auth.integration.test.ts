@@ -11,7 +11,7 @@ import { HttpStatuses } from '../../src/common/types/httpStatuses';
 import { User } from '../../src/entities/users/service/user.entity';
 
 import { AuthRepository } from '../../src/application/auth/repository/authRepository';
-import { UsersRepository } from '../../src/entities/users/repository/usersRepository';
+import { UsersRepository } from '../../src/entities/users/infrastructure/usersRepository';
 import { db } from '../../src/db/composition-root';
 
 const authRepository = new AuthRepository();

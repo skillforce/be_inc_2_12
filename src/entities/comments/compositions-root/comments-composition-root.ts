@@ -1,8 +1,8 @@
 import { CommentsController } from '../controller/commentsController';
-import { CommentsQueryRepository } from '../repository/commentsQueryRepository';
+import { CommentsQueryRepository } from '../infrastructure/commentsQueryRepository';
 import { CommentsService } from '../service/commentsService';
-import { UsersRepository } from '../../users/repository/usersRepository';
-import { CommentsRepository } from '../repository/commentsRepository';
+import { UsersRepository } from '../../users/infrastructure/usersRepository';
+import { CommentsRepository } from '../infrastructure/commentsRepository';
 import { Container } from 'inversify';
 import { CommentsLikesQueryRepository, CommentsLikesRepository } from '../../likes';
 

@@ -1,5 +1,5 @@
 import { AddBlogDto, AddUpdatePostRequiredInputData } from '../types/types';
-import { PostRepository } from '../repository/postRepository';
+import { PostRepository } from '../infrastructure/postRepository';
 import { ObjectId } from 'mongodb';
 import { BlogViewModel } from '../../blogs/types/types';
 import { toObjectId } from '../../../common/helpers/helper';

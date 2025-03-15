@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { UsersRepository } from '../repository/usersRepository';
+import { UsersRepository } from '../infrastructure/usersRepository';
 import { CreateUserDto } from '../types/types';
 import { bcryptService } from '../../../common/adapters/bcrypt.service';
 import { Result } from '../../../common/result/result.type';

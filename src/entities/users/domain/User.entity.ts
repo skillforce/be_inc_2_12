@@ -32,11 +32,6 @@ const userMethods = {
     user.emailConfirmation.confirmationCode = newCode;
     await user.save();
   },
-  isUserVerifiedByEmail(): boolean {
-    const user = this as unknown as UserDocument;
-
-    return user.emailConfirmation.isConfirmed;
-  },
   async initializeRecoverPassword(newExpirationDate: string, newCode: string): Promise<void> {
     const user = this as unknown as UserDocument;
 

@@ -1,9 +1,9 @@
 import { AuthRepository } from '../repository/authRepository';
-import { UsersQueryRepository } from '../../../entities/users/repository/usersQueryRepository';
+import { UsersQueryRepository } from '../../../entities/users/infrastructure/usersQueryRepository';
 import { AuthService } from '../service/authService';
 import { AuthController } from '../controller/authController';
 import { Container } from 'inversify';
-import { UsersRepository } from '../../../entities/users/repository/usersRepository';
+import { UsersRepository } from '../../../entities/users/infrastructure/usersRepository';
 
 const container = new Container();
 

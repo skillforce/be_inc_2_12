@@ -1,5 +1,5 @@
 import { UsersService } from '../service/usersService';
-import { UsersQueryRepository } from '../repository/usersQueryRepository';
+import { UsersQueryRepository } from '../infrastructure/usersQueryRepository';
 import { RequestWithBody, RequestWithParams } from '../../../common/types/request';
 import { CreateUserDto, GetPaginatedUsersQueryInterface, UserViewModel } from '../types/types';
 import { Request, Response } from 'express';
