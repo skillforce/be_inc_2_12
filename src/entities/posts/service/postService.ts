@@ -1,51 +1,38 @@
-import { AddBlogDto, AddUpdatePostRequiredInputData } from '../types/types';
+import { UpdatePostDTO } from '../types/types';
 import { PostRepository } from '../infrastructure/postRepository';
 import { ObjectId } from 'mongodb';
 import { BlogViewModel } from '../../blogs/types/types';
-import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { inject, injectable } from 'inversify';
+import { PostModel } from '../domain/Post.entity';
 
 @injectable()
 export class PostService {
   constructor(@inject(PostRepository) protected postRepository: PostRepository) {}
   async addPost(
-    { title, content, shortDescription }: Omit<AddUpdatePostRequiredInputData, 'blogId'>,
+    { title, content, shortDescription }: Omit<UpdatePostDTO, 'blogId'>,
     blog: BlogViewModel,
   ): Promise<Result<ObjectId | null>> {
-    const newPostData: AddBlogDto = {
+    const newPost = PostModel.createPost({
       title,
       shortDescription,
       content,
       blogId: blog.id,
       blogName: blog?.name,
-      createdAt: new Date().toISOString(),
-    };
+    });
 
-    const newPostId = await this.postRepository.addPost(newPostData);
+    await this.postRepository.savePost(newPost);
 
-    if (!newPostId) {
-      return {
-        status: ResultStatus.ServerError,
-        data: null,
-        errorMessage: 'Internal server error occurred',
-        extensions: [],
-      };
-    }
-
-    return { status: ResultStatus.Success, data: newPostId, extensions: [] };
+    return { status: ResultStatus.Success, data: newPost._id, extensions: [] };
   }
 
   async updatePost(
-    id: ObjectId,
-    blog: BlogViewModel,
-    videoDataForUpdate: AddUpdatePostRequiredInputData,
+    id: string,
+    updatePostDTO: UpdatePostDTO & { blogName: string },
   ): Promise<Result<boolean>> {
-    const updatePostData = { ...videoDataForUpdate, blogId: blog.id, blogName: blog.name };
-
-    const updatedPostId = await this.postRepository.updatePost(id, updatePostData);
-    if (!updatedPostId) {
+    const postToUpdate = await this.postRepository.findPostById(id);
+    if (!postToUpdate) {
       return {
         status: ResultStatus.NotFound,
         data: false,
@@ -53,6 +40,7 @@ export class PostService {
         extensions: [],
       };
     }
+    await postToUpdate.updatePostBody(updatePostDTO);
 
     return {
       status: ResultStatus.Success,
@@ -62,8 +50,8 @@ export class PostService {
   }
 
   async deletePost(id: string): Promise<Result<boolean>> {
-    const _id = toObjectId(id);
-    if (!_id) {
+    const postToDelete = await this.postRepository.findPostById(id);
+    if (!postToDelete) {
       return {
         status: ResultStatus.NotFound,
         data: false,
@@ -72,16 +60,7 @@ export class PostService {
       };
     }
 
-    const isPostDeleted = await this.postRepository.deletePost(_id);
-
-    if (!isPostDeleted) {
-      return {
-        status: ResultStatus.NotFound,
-        data: false,
-        errorMessage: 'Post not found',
-        extensions: [],
-      };
-    }
+    await this.postRepository.deletePost(postToDelete);
 
     return {
       status: ResultStatus.Success,

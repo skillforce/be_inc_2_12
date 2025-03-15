@@ -27,8 +27,9 @@ export const inputValidationMiddleware = (req: Request, res: Response, next: Nex
 
 export const validateUrlParamId = (req: Request, res: Response, next: NextFunction) => {
   const paramId = req.params.id;
-  if (!paramId) {
-    res.status(404);
+  const paramIdAsObjectId = toObjectId(paramId);
+  if (!paramId || !paramIdAsObjectId) {
+    res.sendStatus(404);
     return;
   }
   return next();

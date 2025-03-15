@@ -1,6 +1,5 @@
 import { ObjectId } from 'mongodb';
 import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
-import { HydratedDocument } from 'mongoose';
 
 export interface UserViewModel {
   id: string;
@@ -23,15 +22,6 @@ export interface CodeConfirmation {
 
 export interface UserDBModel {
   _id: ObjectId;
-  login: string;
-  email: string;
-  password: string;
-  createdAt: string;
-  emailConfirmation: CodeConfirmation;
-  recoverPasswordEmailConfirmation: CodeConfirmation | null;
-}
-
-export interface AddUserDto {
   login: string;
   email: string;
   password: string;

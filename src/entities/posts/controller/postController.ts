@@ -3,7 +3,7 @@ import { PostQueryRepository } from '../infrastructure/postQueryRepository';
 import { BlogQueryRepository } from '../../blogs/infrastructure/blogQueryRepository';
 import { Request, Response } from 'express';
 import { PaginatedData } from '../../../common/types/pagination';
-import { AddUpdatePostRequiredInputData, PostViewModel } from '../types/types';
+import { UpdatePostDTO, PostViewModel } from '../types/types';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { toObjectId } from '../../../common/helpers/helper';
 import {
@@ -152,10 +152,7 @@ export class PostController {
 
     res.status(HttpStatuses.Created).send({ ...createdComment, likesInfo });
   }
-  async createPostByBlogId(
-    req: Request<any, AddUpdatePostRequiredInputData>,
-    res: Response<PostViewModel>,
-  ) {
+  async createPostByBlogId(req: Request<any, UpdatePostDTO>, res: Response<PostViewModel>) {
     const { blogId } = req.body;
     const _id = toObjectId(blogId);
     if (!_id) {
@@ -187,22 +184,14 @@ export class PostController {
     res.status(HttpStatuses.Created).json(createdPostForOutput);
   }
   async updatePost(
-    req: Request<{ id: string }, AddUpdatePostRequiredInputData>,
+    req: RequestWithParamsAndBodyAndUserId<{ id: string }, UpdatePostDTO, IdType>,
     res: Response<any>,
   ) {
-    const queryIdForUpdate = req.params.id;
-    const newDataForPostToUpdate = req.body;
-    const _id = toObjectId(queryIdForUpdate);
+    const postId = req.params.id;
+    const updatePostDTO = req.body;
+    const postBlogId = toObjectId(updatePostDTO.blogId);
 
-    if (!_id) {
-      res.sendStatus(HttpStatuses.NotFound);
-      return;
-    }
-
-    const postById = await this.postQueryRepository.getPostById(_id);
-    const postBlogId = toObjectId(newDataForPostToUpdate.blogId);
-
-    if (!postById || !postBlogId) {
+    if (!postBlogId) {
       res.sendStatus(HttpStatuses.NotFound);
       return;
     }
@@ -212,14 +201,14 @@ export class PostController {
       res.sendStatus(HttpStatuses.NotFound);
       return;
     }
-    const isBlogUpdatedResult = await this.postService.updatePost(
-      _id,
-      blogById,
-      newDataForPostToUpdate,
-    );
 
-    if (isBlogUpdatedResult.status !== ResultStatus.Success) {
-      res.sendStatus(HttpStatuses.NotFound);
+    const postUpdateResult = await this.postService.updatePost(postId, {
+      ...updatePostDTO,
+      blogName: blogById.name,
+    });
+
+    if (postUpdateResult.status !== ResultStatus.Success) {
+      res.sendStatus(resultCodeToHttpException(postUpdateResult.status));
       return;
     }
     res.sendStatus(HttpStatuses.NoContent);

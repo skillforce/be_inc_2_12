@@ -5,7 +5,7 @@ import { BlogQueryRepository } from '../infrastructure/blogQueryRepository';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { toObjectId } from '../../../common/helpers/helper';
 import { ObjectId } from 'mongodb';
-import { AddUpdatePostRequiredInputData, PostViewModel } from '../../posts/types/types';
+import { UpdatePostDTO, PostViewModel } from '../../posts/types/types';
 import { PostQueryRepository } from '../../posts/infrastructure/postQueryRepository';
 import { BlogService } from '../service/blogService';
 import { ResultStatus } from '../../../common/result/resultCode';
@@ -87,7 +87,7 @@ export class BlogsController {
       {
         id: string;
       },
-      Omit<AddUpdatePostRequiredInputData, 'blogId'>
+      Omit<UpdatePostDTO, 'blogId'>
     >,
     res: Response<PostViewModel>,
   ) {

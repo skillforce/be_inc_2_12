@@ -36,7 +36,7 @@ export class PostQueryRepository {
     };
   }
   async getPostById(_id: ObjectId): Promise<PostViewModel | null> {
-    const postById = await PostModel.findOne({ _id });
+    const postById = await PostModel.findOne({ _id }).lean();
     if (!postById) {
       return null;
     }
