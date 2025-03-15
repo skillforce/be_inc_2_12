@@ -13,7 +13,7 @@ const userSchema = new Schema<UserDBModel>({
   login: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  createdAt: { type: String, required: true, default: Date.now().toString() },
+  createdAt: { type: String, required: true, default: dayjs().toISOString() },
   emailConfirmation: { type: CodeConfirmationSchema, default: null },
   recoverPasswordEmailConfirmation: { type: CodeConfirmationSchema, default: null },
 });
