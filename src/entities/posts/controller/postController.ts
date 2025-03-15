@@ -19,7 +19,7 @@ import { ObjectId } from 'mongodb';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
 import { inject } from 'inversify';
-import { CommentsLikesQueryRepository } from '../../likes';
+import { LikesQueryRepository } from '../../likes';
 
 export class PostController {
   constructor(
@@ -28,8 +28,8 @@ export class PostController {
     @inject(BlogQueryRepository) protected blogQueryRepository: BlogQueryRepository,
     @inject(CommentsService) protected commentsService: CommentsService,
     @inject(CommentsQueryRepository) protected commentsQueryRepository: CommentsQueryRepository,
-    @inject(CommentsLikesQueryRepository)
-    protected commentsLikesQueryRepository: CommentsLikesQueryRepository,
+    @inject(LikesQueryRepository)
+    protected commentsLikesQueryRepository: LikesQueryRepository,
   ) {}
   async getPosts(req: Request, res: Response<PaginatedData<PostViewModel[]>>) {
     const queryObj = req.query;

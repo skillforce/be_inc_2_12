@@ -1,3 +1,3 @@
-export { CommentLikeDBModel, LikeStatusEnum } from './types/types';
-export { CommentsLikesQueryRepository } from './infrastructure/commentsLikes/commentsLikesQueryRepository';
-export { CommentsLikesRepository } from './infrastructure/commentsLikes/commentsLikesRepository';
+export { LikeDBModel, LikeStatusEnum } from './types/types';
+export { LikesQueryRepository } from './infrastructure/likesQueryRepository';
+export { LikesRepository } from './infrastructure/likesRepository';

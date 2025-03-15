@@ -3,13 +3,13 @@ export enum LikeStatusEnum {
   DISLIKE = 'Dislike',
   NONE = 'None',
 }
-export interface CommentLikeDBModel {
+export interface LikeDBModel {
   userId: string;
   parentId: string;
   likeStatus: LikeStatusEnum;
 }
 
-export interface CommentLikesInfoViewModel {
+export interface LikesInfoViewModel {
   likesCount: number;
   dislikesCount: number;
   myStatus: LikeStatusEnum;

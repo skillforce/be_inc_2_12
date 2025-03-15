@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { CommentLikesInfoViewModel } from '../../likes/types/types';
+import { LikesInfoViewModel } from '../../likes/types/types';
 
 export interface CommentatorInfo {
   userId: ObjectId;
@@ -11,7 +11,7 @@ export interface CommentViewModel {
   content: string;
   commentatorInfo: CommentatorInfo;
   createdAt: string;
-  likesInfo: CommentLikesInfoViewModel;
+  likesInfo: LikesInfoViewModel;
 }
 
 export interface CommentDBModel {

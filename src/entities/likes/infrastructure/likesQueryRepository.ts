@@ -1,13 +1,13 @@
 import { injectable } from 'inversify';
-import { CommentLikesInfoViewModel, LikeStatusEnum } from '../../types/types';
-import { CommentLikeModel } from '../../domain/CommentLike.entity';
+import { LikesInfoViewModel, LikeStatusEnum } from '../types/types';
+import { LikeModel } from '../domain/Like.entity';
 
 @injectable()
-export class CommentsLikesQueryRepository {
+export class LikesQueryRepository {
   constructor() {}
   async getCommentLikesCount({ commentId }: { commentId: string }): Promise<number> {
     return (
-      CommentLikeModel.countDocuments({
+      LikeModel.countDocuments({
         parentId: commentId,
         likeStatus: LikeStatusEnum.LIKE,
       }) || 0
@@ -15,7 +15,7 @@ export class CommentsLikesQueryRepository {
   }
   async getCommentDislikesCount({ commentId }: { commentId: string }): Promise<number> {
     return (
-      CommentLikeModel.countDocuments({
+      LikeModel.countDocuments({
         parentId: commentId,
         likeStatus: LikeStatusEnum.DISLIKE,
       }) || 0
@@ -28,7 +28,7 @@ export class CommentsLikesQueryRepository {
     commentId: string;
     userId: string;
   }): Promise<LikeStatusEnum> {
-    const likeData = await CommentLikeModel.findOne({
+    const likeData = await LikeModel.findOne({
       parentId: commentId,
       userId,
     });
@@ -43,7 +43,7 @@ export class CommentsLikesQueryRepository {
   }: {
     commentId: string;
     userId?: string;
-  }): Promise<CommentLikesInfoViewModel> {
+  }): Promise<LikesInfoViewModel> {
     const likesCount = await this.getCommentLikesCount({ commentId });
     const dislikesCount = await this.getCommentDislikesCount({ commentId });
     const likeStatus = userId
@@ -61,7 +61,7 @@ export class CommentsLikesQueryRepository {
   }: {
     commentIds: string[];
     userId?: string;
-  }): Promise<Record<string, CommentLikesInfoViewModel>> {
+  }): Promise<Record<string, LikesInfoViewModel>> {
     const pipeline = [
       {
         $match: {
@@ -90,9 +90,9 @@ export class CommentsLikesQueryRepository {
       },
     ];
 
-    const likesInfo = await CommentLikeModel.aggregate(pipeline);
+    const likesInfo = await LikeModel.aggregate(pipeline);
 
-    const result: Record<string, CommentLikesInfoViewModel> = {};
+    const result: Record<string, LikesInfoViewModel> = {};
 
     commentIds.forEach((commentId) => {
       result[commentId] = {

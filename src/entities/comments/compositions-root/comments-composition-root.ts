@@ -4,12 +4,12 @@ import { CommentsService } from '../service/commentsService';
 import { UsersRepository } from '../../users/infrastructure/usersRepository';
 import { CommentsRepository } from '../infrastructure/commentsRepository';
 import { Container } from 'inversify';
-import { CommentsLikesQueryRepository, CommentsLikesRepository } from '../../likes';
+import { LikesQueryRepository, LikesRepository } from '../../likes';
 
 const container = new Container({ defaultScope: 'Singleton' });
 
-container.bind(CommentsLikesRepository).to(CommentsLikesRepository);
-container.bind(CommentsLikesQueryRepository).to(CommentsLikesQueryRepository);
+container.bind(LikesRepository).to(LikesRepository);
+container.bind(LikesQueryRepository).to(LikesQueryRepository);
 container.bind(UsersRepository).to(UsersRepository);
 container.bind(CommentsRepository).to(CommentsRepository);
 container.bind(CommentsQueryRepository).to(CommentsQueryRepository);

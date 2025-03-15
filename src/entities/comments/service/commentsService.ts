@@ -12,14 +12,15 @@ import { ResultStatus } from '../../../common/result/resultCode';
 import { UserDBModel } from '../../users';
 import { toObjectId } from '../../../common/helpers/helper';
 import { inject, injectable } from 'inversify';
-import { CommentsLikesRepository, LikeStatusEnum } from '../../likes';
+import { LikesRepository, LikeStatusEnum } from '../../likes';
+import { LikeModel } from '../../likes/domain/Like.entity';
 
 @injectable()
 export class CommentsService {
   constructor(
     @inject(UsersRepository) protected usersRepository: UsersRepository,
     @inject(CommentsRepository) protected commentsRepository: CommentsRepository,
-    @inject(CommentsLikesRepository) protected commentsLikesRepository: CommentsLikesRepository,
+    @inject(LikesRepository) protected likesRepository: LikesRepository,
   ) {}
   async createComment({
     userId,
@@ -150,20 +151,18 @@ export class CommentsService {
       };
     }
 
-    const isLikeStatusUpdated = await this.commentsLikesRepository.updateLikeStatus({
-      parentId: commentId,
-      userId,
-      likeStatus,
-    });
+    const likeDocument = await this.likesRepository.findLikeByParentIdAndUserId(commentId, userId);
 
-    if (!isLikeStatusUpdated) {
-      return {
-        status: ResultStatus.ServerError,
-        data: false,
-        errorMessage: 'Server error occurred',
-        extensions: [],
-      };
+    if (!likeDocument) {
+      const newLike = LikeModel.createLike({
+        userId,
+        parentId: commentId,
+        likeStatus,
+      });
+      await this.likesRepository.saveLike(newLike);
     }
+
+    await likeDocument?.updateStatus(likeStatus);
 
     return {
       status: ResultStatus.Success,
@@ -213,7 +212,7 @@ export class CommentsService {
       };
     }
     const commentsIds = commentsList.map((comment) => comment._id.toString());
-    await this.commentsLikesRepository.deleteAllLikesByCommentsId(commentsIds);
+    await this.likesRepository.deleteAllLikesByParentIds(commentsIds);
 
     return {
       status: ResultStatus.Success,
@@ -242,10 +241,8 @@ export class CommentsService {
     }
 
     const isDeletedComment = await this.commentsRepository.deleteComment(commentObjectId);
-    const deleteAllCommentsLikesResult =
-      await this.commentsLikesRepository.deleteAllLikesByCommentId(commentId);
 
-    if (!isDeletedComment || !deleteAllCommentsLikesResult) {
+    if (!isDeletedComment) {
       return {
         status: ResultStatus.ServerError,
         data: false,
@@ -253,6 +250,7 @@ export class CommentsService {
         extensions: [],
       };
     }
+    await this.likesRepository.deleteAllLikesByParentId(commentId);
 
     return {
       status: ResultStatus.Success,

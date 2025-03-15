@@ -12,15 +12,15 @@ import { ObjectId } from 'mongodb';
 import { IdType } from '../../../common/types/id';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { inject } from 'inversify';
-import { CommentsLikesQueryRepository, LikeStatusEnum } from '../../likes';
+import { LikesQueryRepository, LikeStatusEnum } from '../../likes';
 import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
 
 export class CommentsController {
   constructor(
     @inject(CommentsQueryRepository) protected commentsQueryRepository: CommentsQueryRepository,
     @inject(CommentsService) protected commentsService: CommentsService,
-    @inject(CommentsLikesQueryRepository)
-    protected commentsLikesQueryRepository: CommentsLikesQueryRepository,
+    @inject(LikesQueryRepository)
+    protected commentsLikesQueryRepository: LikesQueryRepository,
   ) {}
 
   async getCommentById(
