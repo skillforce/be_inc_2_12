@@ -102,13 +102,8 @@ export const accessTokenGuardNotStrict = async (
   }
 
   const { userId } = payload;
-  const userObjectId = toObjectId(userId);
 
-  if (!userObjectId) {
-    return next();
-  }
-
-  const doesUserExist = await usersRepository.doesExistById(userObjectId);
+  const doesUserExist = await usersRepository.findById(userId);
   if (!doesUserExist) {
     return next();
   }

@@ -81,15 +81,15 @@ export class PostController {
       postId,
     );
 
-    const commentIds = commentsList.items.map(comment => comment.id);
+    const commentIds = commentsList.items.map((comment) => comment.id);
     const likesInfoMap = await this.commentsLikesQueryRepository.getBulkCommentLikesInfo({
       commentIds,
       userId: req.user?.id,
     });
 
-    const commentsListWithLikesInfo = commentsList.items.map(comment => ({
+    const commentsListWithLikesInfo = commentsList.items.map((comment) => ({
       ...comment,
-      likesInfo: likesInfoMap[comment.id]
+      likesInfo: likesInfoMap[comment.id],
     }));
 
     const paginatedCommentsList = {
@@ -111,7 +111,7 @@ export class PostController {
   ) {
     const postId = toObjectId(req.params.id);
     const newCommentContent = req.body.content;
-    const userObjectId = toObjectId(req.user?.id!);
+    const userId = req.user?.id!;
 
     if (!postId) {
       res.sendStatus(HttpStatuses.NotFound);
@@ -126,7 +126,7 @@ export class PostController {
     }
 
     const newCommentResult = await this.commentsService.createComment({
-      userId: userObjectId as ObjectId,
+      userId,
       postId,
       content: newCommentContent,
     });

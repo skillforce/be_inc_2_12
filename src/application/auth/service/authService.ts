@@ -4,12 +4,11 @@ import { UserDBModel, UserModel } from '../../../entities/users';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { AuthLoginDto, SessionDto } from '../types/types';
 import { jwtService } from '../../../common/adapters/jwt.service';
-import { AddUserDto, CreateUserDto } from '../../../entities/users/types/types';
+import { CreateUserDto } from '../../../entities/users/types/types';
 import { authEmails } from '../../../common/layout/authEmails';
 import { mailService } from '../../../common/adapters/mail.service';
 import dayjs from 'dayjs';
 import { randomUUID } from 'crypto';
-import { User } from '../../../entities/users/service/user.entity';
 import { generateIsoStringFromSeconds } from '../../../common/helpers/helper';
 import { AuthRepository } from '../repository/authRepository';
 import { UsersRepository } from '../../../entities/users/repository/usersRepository';
@@ -84,19 +83,18 @@ export class AuthService {
 
       const hashedPassword = await bcryptService.generateHash(newPassword);
 
-      const isPasswordChanged = await this.usersRepository.changePasswordByRecoveryCode(
-        recoveryCode,
-        hashedPassword,
-      );
+      const userToChangePassword = await this.usersRepository.findByRecoveryCode(recoveryCode);
 
-      if (!isPasswordChanged) {
+      if (!userToChangePassword) {
         return {
-          status: ResultStatus.ServerError,
-          errorMessage: 'Internal server error occurred',
+          status: ResultStatus.NotFound,
+          errorMessage: 'User not found',
           data: null,
           extensions: [],
         };
       }
+
+      await userToChangePassword.changePassword(hashedPassword);
 
       return {
         status: ResultStatus.Success,
@@ -126,10 +124,9 @@ export class AuthService {
     const newExpDate = dayjs().add(30, 'minute').toISOString();
     const newCode = randomUUID();
 
-    const isRecoverPasswordFeatureInitialized =
-      await this.usersRepository.initializeRecoverPassword(user._id, newExpDate, newCode);
+    await user.initializeRecoverPassword(newExpDate, newCode);
 
-    if (!isRecoverPasswordFeatureInitialized) {
+    if (!user.recoverPasswordEmailConfirmation?.confirmationCode) {
       return {
         status: ResultStatus.ServerError,
         data: null,
@@ -138,7 +135,11 @@ export class AuthService {
       };
     }
 
-    this.sendConfirmationEmail(user.email, newCode, EmailType.RECOVERY_PASSWORD);
+    this.sendConfirmationEmail(
+      user.email,
+      user.recoverPasswordEmailConfirmation.confirmationCode,
+      EmailType.RECOVERY_PASSWORD,
+    );
     return {
       status: ResultStatus.Success,
       data: null,
@@ -147,32 +148,20 @@ export class AuthService {
   }
 
   async registerUser({ login, email, password }: CreateUserDto): Promise<Result> {
-    const isLoginUnique = await this.usersRepository.isFieldValueUnique('login', login);
-    const isEmailUnique = await this.usersRepository.isFieldValueUnique('email', email);
+    const isCredentialsUnique = await UserModel.isEmailAndLoginUnique({
+      email,
+      login,
+    });
 
-    if (!isLoginUnique) {
+    if (!isCredentialsUnique) {
       return {
         status: ResultStatus.BadRequest,
         data: null,
-        errorMessage: 'Login must be unique',
+        errorMessage: 'Login and Email must be unique',
         extensions: [
           {
             field: 'login',
             message: 'Login must be unique',
-          },
-        ],
-      };
-    }
-
-    if (!isEmailUnique) {
-      return {
-        status: ResultStatus.BadRequest,
-        data: null,
-        errorMessage: 'Email must be unique',
-        extensions: [
-          {
-            field: 'email',
-            message: 'Email must be unique',
           },
         ],
       };
@@ -217,7 +206,7 @@ export class AuthService {
       };
     }
 
-    if (user.emailConfirmation.isConfirmed) {
+    if (user.isUserVerifiedByEmail()) {
       return {
         status: ResultStatus.BadRequest,
         data: null,
@@ -226,16 +215,12 @@ export class AuthService {
       };
     }
 
-    const newExpDate = dayjs().add(30, 'minute').toISOString();
-    const newCode = randomUUID();
+    await user.renewVerificationData({
+      newExpirationDate: dayjs().add(30, 'minute').toISOString(),
+      newCode: randomUUID(),
+    });
 
-    const isCodeSent = await this.usersRepository.renewVerificationData(
-      user._id,
-      newExpDate,
-      newCode,
-    );
-
-    if (!isCodeSent) {
+    if (!user.emailConfirmation.confirmationCode) {
       return {
         status: ResultStatus.ServerError,
         data: null,
@@ -244,7 +229,11 @@ export class AuthService {
       };
     }
 
-    this.sendConfirmationEmail(user.email, newCode, EmailType.CONFIRM_EMAIL);
+    this.sendConfirmationEmail(
+      user.email,
+      user.emailConfirmation.confirmationCode,
+      EmailType.CONFIRM_EMAIL,
+    );
     return {
       status: ResultStatus.Success,
       data: null,
@@ -266,9 +255,9 @@ export class AuthService {
       };
     }
 
-    const userByCodeResult = await this.usersRepository.getUserByRegistrationCode(code);
+    const user = await this.usersRepository.findUserByRegistrationCode(code);
 
-    if (!userByCodeResult) {
+    if (!user) {
       return {
         status: ResultStatus.BadRequest,
         errorMessage: 'Bad Request',
@@ -278,9 +267,8 @@ export class AuthService {
     }
 
     const {
-      _id,
       emailConfirmation: { expirationDate, isConfirmed },
-    } = userByCodeResult;
+    } = user;
 
     if (dayjs(expirationDate).isBefore(dayjs()) || isConfirmed) {
       return {
@@ -291,16 +279,7 @@ export class AuthService {
       };
     }
 
-    const isCodeConfirmed = await this.usersRepository.confirmUserEmailById(_id);
-
-    if (!isCodeConfirmed) {
-      return {
-        status: ResultStatus.BadRequest,
-        errorMessage: 'Bad Request',
-        data: null,
-        extensions: [{ field: '', message: 'Internal server error occurred' }],
-      };
-    }
+    await user.confirmUserEmailById();
 
     return {
       status: ResultStatus.Success,

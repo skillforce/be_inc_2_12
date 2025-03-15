@@ -35,7 +35,6 @@ describe('/users', () => {
   });
   it('should return error when there is no authorization header provided', async () => {
     await req.get(PATHS.USERS).expect(401);
-
     await req.post(PATHS.USERS).send(newUser).expect(401);
 
     await req.delete(PATHS.USERS + '/1').expect(401);

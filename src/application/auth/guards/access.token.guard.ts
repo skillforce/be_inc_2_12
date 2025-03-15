@@ -24,14 +24,12 @@ export const accessTokenGuard = async (req: Request, res: Response, next: NextFu
   if (payload) {
     const { userId } = payload;
 
-    const userObjectId = toObjectId(userId);
-
-    if (!userObjectId) {
+    if (!userId) {
       res.sendStatus(HttpStatuses.Unauthorized);
       return;
     }
 
-    const doesUserExist = await usersRepository.doesExistById(userObjectId);
+    const doesUserExist = await usersRepository.findById(userId);
 
     if (!doesUserExist) {
       res.sendStatus(HttpStatuses.Unauthorized);

@@ -2,6 +2,7 @@ import mongoose, { HydratedDocument, Model, Schema } from 'mongoose';
 import { CodeConfirmation, CreateUserDto, UserDBModel } from '../types/types';
 import dayjs from 'dayjs';
 import { randomUUID } from 'crypto';
+import { ObjectId } from 'mongodb';
 
 const CodeConfirmationSchema = new Schema<CodeConfirmation>({
   confirmationCode: { type: String, default: null },
@@ -18,7 +19,51 @@ const userSchema = new Schema<UserDBModel>({
   recoverPasswordEmailConfirmation: { type: CodeConfirmationSchema, default: null },
 });
 
-const userMethods = {};
+const userMethods = {
+  async renewVerificationData({
+    newExpirationDate,
+    newCode,
+  }: {
+    newExpirationDate: string;
+    newCode: string;
+  }): Promise<void> {
+    const user = this as unknown as UserDocument;
+
+    user.emailConfirmation.expirationDate = newExpirationDate;
+    user.emailConfirmation.confirmationCode = newCode;
+    await user.save();
+  },
+  isUserVerifiedByEmail(): boolean {
+    const user = this as unknown as UserDocument;
+
+    return user.emailConfirmation.isConfirmed;
+  },
+  async initializeRecoverPassword(newExpirationDate: string, newCode: string): Promise<void> {
+    const user = this as unknown as UserDocument;
+
+    user.recoverPasswordEmailConfirmation = {
+      expirationDate: newExpirationDate,
+      confirmationCode: newCode,
+      isConfirmed: false,
+    };
+
+    await user.save();
+  },
+  async changePassword(newPassword: string): Promise<void> {
+    const user = this as unknown as UserDocument;
+    user.password = newPassword;
+    user.recoverPasswordEmailConfirmation = null;
+
+    await user.save();
+  },
+
+  async confirmUserEmailById(): Promise<void> {
+    const user = this as unknown as UserDocument;
+
+    user.emailConfirmation.isConfirmed = true;
+    await user.save();
+  },
+};
 
 const userStatics = {
   createUser({ password, login, email, isConfirmed = false }: CreateUserDto) {
@@ -42,6 +87,16 @@ const userStatics = {
     }
 
     return newUser;
+  },
+  async isEmailAndLoginUnique({
+    email,
+    login,
+  }: {
+    email: string;
+    login: string;
+  }): Promise<boolean> {
+    const userList = await UserModel.findOne({ $or: [{ email }, { login }] });
+    return !userList;
   },
 };
 

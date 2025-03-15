@@ -4,11 +4,8 @@ import { ADMIN_AUTH_HEADER } from '../../src/application/auth/guards/base.auth.g
 import { req } from './test-helpers';
 import { HttpStatuses } from '../../src/common/types/httpStatuses';
 import { UserDBModel, UserModel } from '../../src/entities/users';
-import { User } from '../../src/entities/users/service/user.entity';
-import { ObjectId, WithId } from 'mongodb';
 import { CodeConfirmation, UserViewModel } from '../../src/entities/users/types/types';
 import { Response } from 'supertest';
-import { db } from '../../src/db/composition-root';
 
 type CreateUserParams = {
   userDto?: UserDto;

@@ -26,7 +26,16 @@ export class CommentsService {
     postId,
     content,
   }: AddCommentDto): Promise<Result<ObjectId | null>> {
-    const creator = (await this.usersRepository.getUserById(userId)) as UserDBModel;
+    const creator = await this.usersRepository.findById(userId);
+
+    if (!creator) {
+      return {
+        status: ResultStatus.NotFound,
+        data: null,
+        errorMessage: 'User not found',
+        extensions: [],
+      };
+    }
 
     const commentatorInfo: CommentatorInfo = {
       userId: creator._id,
@@ -65,9 +74,8 @@ export class CommentsService {
     userId: string,
   ): Promise<Result<boolean>> {
     const commentObjectId = toObjectId(commentId);
-    const userObjectId = toObjectId(userId);
 
-    if (!commentObjectId || !userObjectId) {
+    if (!commentObjectId) {
       return {
         status: ResultStatus.NotFound,
         data: false,
@@ -75,7 +83,7 @@ export class CommentsService {
         extensions: [],
       };
     }
-    const user = await this.usersRepository.getUserById(userObjectId);
+    const user = await this.usersRepository.findById(userId);
     const comment = await this.commentsRepository.getCommentById(commentObjectId);
 
     if (!user || !comment) {
@@ -164,9 +172,9 @@ export class CommentsService {
       extensions: [],
     };
   }
-  async checkIsUserOwnComment(commentId: ObjectId, userId: ObjectId): Promise<Result<boolean>> {
+  async checkIsUserOwnComment(commentId: ObjectId, userId: string): Promise<Result<boolean>> {
     const comment = await this.commentsRepository.getCommentById(commentId);
-    const user = await this.usersRepository.getUserById(userId);
+    const user = await this.usersRepository.findById(userId);
 
     if (!comment || !user) {
       return {
@@ -217,9 +225,8 @@ export class CommentsService {
 
   async deleteComment(commentId: string, userId: string): Promise<Result<boolean>> {
     const commentObjectId = toObjectId(commentId);
-    const userObjectId = toObjectId(userId);
 
-    if (!commentObjectId || !userObjectId) {
+    if (!commentObjectId) {
       return {
         status: ResultStatus.NotFound,
         data: false,
@@ -228,7 +235,7 @@ export class CommentsService {
       };
     }
 
-    const isUserOwnCommentResult = await this.checkIsUserOwnComment(commentObjectId, userObjectId);
+    const isUserOwnCommentResult = await this.checkIsUserOwnComment(commentObjectId, userId);
 
     if (isUserOwnCommentResult.status !== ResultStatus.Success) {
       return isUserOwnCommentResult;
