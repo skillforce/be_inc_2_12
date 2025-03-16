@@ -30,24 +30,7 @@ export class CommentsRepository {
     return true;
   }
 
-  // async deleteComment(_id: ObjectId): Promise<boolean> {
-  //   const commentToDelete = await CommentModel.findOne({ _id });
-  //   if (!commentToDelete) {
-  //     return false;
-  //   }
-  //   await CommentModel.deleteOne({ _id });
-  //   return true;
-  // }
-
-  async getCommentById(_id: ObjectId): Promise<CommentDBModel | null> {
-    const commentById = await CommentModel.findOne({ _id });
-
-    if (!commentById) {
-      return null;
-    }
-    return commentById;
-  }
-  async getCommentsByPostId(_id: string): Promise<CommentDBModel[] | null> {
+  async getCommentsByPostId(_id: string): Promise<CommentDocument[] | null> {
     try {
       const commentsByPostId = await CommentModel.find({ postId: _id });
       if (!commentsByPostId) {

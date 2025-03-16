@@ -68,12 +68,8 @@ export const checkIfCommentWithProvidedQueryParamIdExists = async (
     res.sendStatus(404);
     return;
   }
-  const _id = toObjectId(paramId);
-  if (!_id) {
-    res.sendStatus(404);
-    return;
-  }
-  const isCommentExist = await commentRepository.getCommentById(_id);
+
+  const isCommentExist = await commentRepository.findById(paramId);
   if (!isCommentExist) {
     res.sendStatus(404);
     return;
