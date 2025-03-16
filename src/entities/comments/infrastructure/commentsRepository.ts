@@ -1,14 +1,23 @@
 import { AddUpdateCommentInputData, CommentDBModel } from '../types/types';
 import { ObjectId } from 'mongodb';
 import { injectable } from 'inversify';
-import { CommentModel } from '../domain/Comment.entity';
+import { CommentDocument, CommentModel } from '../domain/Comment.entity';
+import { UserDocument } from '../../users/domain/User.entity';
 
 @injectable()
 export class CommentsRepository {
   constructor() {}
-  async addComment(newCommentData: Omit<CommentDBModel, '_id'>): Promise<ObjectId> {
-    const result = await CommentModel.create(newCommentData);
-    return result._id;
+
+  async saveComment(comment: CommentDocument): Promise<void> {
+    await comment.save();
+  }
+
+  async findById(_id: string): Promise<CommentDocument | null> {
+    return CommentModel.findOne({ _id });
+  }
+
+  async deleteComment(comment: CommentDocument): Promise<void> {
+    await comment.deleteOne();
   }
 
   async updateComment(_id: ObjectId, dataForUpdate: AddUpdateCommentInputData): Promise<boolean> {
@@ -21,14 +30,14 @@ export class CommentsRepository {
     return true;
   }
 
-  async deleteComment(_id: ObjectId): Promise<boolean> {
-    const commentToDelete = await CommentModel.findOne({ _id });
-    if (!commentToDelete) {
-      return false;
-    }
-    await CommentModel.deleteOne({ _id });
-    return true;
-  }
+  // async deleteComment(_id: ObjectId): Promise<boolean> {
+  //   const commentToDelete = await CommentModel.findOne({ _id });
+  //   if (!commentToDelete) {
+  //     return false;
+  //   }
+  //   await CommentModel.deleteOne({ _id });
+  //   return true;
+  // }
 
   async getCommentById(_id: ObjectId): Promise<CommentDBModel | null> {
     const commentById = await CommentModel.findOne({ _id });

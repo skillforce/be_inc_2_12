@@ -26,8 +26,15 @@ export interface AddUpdateCommentInputData {
   content: string;
 }
 
-export interface AddCommentDto {
+export interface AddCommentRequestDto {
   userId: string;
   content: string;
+  postId: ObjectId;
+}
+
+export interface CreateCommentDTO {
+  content: string;
+  commentatorInfo: CommentatorInfo;
+  createdAt?: string;
   postId: ObjectId;
 }

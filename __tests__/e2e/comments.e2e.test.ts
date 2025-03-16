@@ -240,13 +240,13 @@ describe('/comments', () => {
       .get(`${PATHS.POSTS}/${createdPost.id}/comments`)
       .auth(createdFirstUserAccessToken, { type: 'bearer' })
       .expect(200);
-    console.log(comments.body.items);
+    console.log(comments.body.items[1].likesInfo.likesCount);
     expect(comments.body.items.length).toBe(2);
-    expect(comments.body.items[1].likesInfo.likesCount).toBe(1);
-    expect(comments.body.items[1].likesInfo.dislikesCount).toBe(0);
-    expect(comments.body.items[1].likesInfo.myStatus).toBe('Like');
-    expect(comments.body.items[0].likesInfo.likesCount).toBe(0);
-    expect(comments.body.items[0].likesInfo.dislikesCount).toBe(1);
-    expect(comments.body.items[0].likesInfo.myStatus).toBe('Dislike');
+    expect(comments.body.items[0].likesInfo.likesCount).toBe(1);
+    expect(comments.body.items[0].likesInfo.dislikesCount).toBe(0);
+    expect(comments.body.items[0].likesInfo.myStatus).toBe('Like');
+    expect(comments.body.items[1].likesInfo.likesCount).toBe(0);
+    expect(comments.body.items[1].likesInfo.dislikesCount).toBe(1);
+    expect(comments.body.items[1].likesInfo.myStatus).toBe('Dislike');
   });
 });

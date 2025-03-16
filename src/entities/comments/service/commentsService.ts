@@ -1,19 +1,18 @@
 import {
-  AddCommentDto,
-  CommentatorInfo,
-  CommentDBModel,
+  AddCommentRequestDto,
   AddUpdateCommentInputData,
+  CommentatorInfo,
+  CreateCommentDTO,
 } from '../types/types';
 import { CommentsRepository } from '../infrastructure/commentsRepository';
 import { ObjectId } from 'mongodb';
 import { UsersRepository } from '../../users/infrastructure/usersRepository';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
-import { UserDBModel } from '../../users';
-import { toObjectId } from '../../../common/helpers/helper';
 import { inject, injectable } from 'inversify';
 import { LikesRepository, LikeStatusEnum } from '../../likes';
 import { LikeModel } from '../../likes/domain/Like.entity';
+import { CommentModel } from '../domain/Comment.entity';
 
 @injectable()
 export class CommentsService {
@@ -26,7 +25,7 @@ export class CommentsService {
     userId,
     postId,
     content,
-  }: AddCommentDto): Promise<Result<ObjectId | null>> {
+  }: AddCommentRequestDto): Promise<Result<ObjectId | null>> {
     const creator = await this.usersRepository.findById(userId);
 
     if (!creator) {
@@ -43,27 +42,19 @@ export class CommentsService {
       userLogin: creator.login,
     };
 
-    const newCommentData: Omit<CommentDBModel, '_id'> = {
+    const newCommentData: CreateCommentDTO = {
       content,
       commentatorInfo,
       postId,
-      createdAt: new Date().toISOString(),
     };
 
-    const createdCommentId = await this.commentsRepository.addComment(newCommentData);
+    const newComment = CommentModel.createComment(newCommentData);
 
-    if (!createdCommentId) {
-      return {
-        status: ResultStatus.ServerError,
-        data: null,
-        errorMessage: 'Internal server error occurred',
-        extensions: [],
-      };
-    }
+    await this.commentsRepository.saveComment(newComment);
 
     return {
       status: ResultStatus.Success,
-      data: createdCommentId,
+      data: newComment._id,
       errorMessage: '',
       extensions: [],
     };
@@ -71,23 +62,12 @@ export class CommentsService {
 
   async updateComment(
     commentId: string,
-    videoDataForUpdate: AddUpdateCommentInputData,
+    dataForCommentUpdate: AddUpdateCommentInputData,
     userId: string,
   ): Promise<Result<boolean>> {
-    const commentObjectId = toObjectId(commentId);
+    const comment = await this.commentsRepository.findById(commentId);
 
-    if (!commentObjectId) {
-      return {
-        status: ResultStatus.NotFound,
-        data: false,
-        errorMessage: 'Comment not found',
-        extensions: [],
-      };
-    }
-    const user = await this.usersRepository.findById(userId);
-    const comment = await this.commentsRepository.getCommentById(commentObjectId);
-
-    if (!user || !comment) {
+    if (!comment) {
       return {
         status: ResultStatus.NotFound,
         data: false,
@@ -96,7 +76,7 @@ export class CommentsService {
       };
     }
 
-    if (user._id.toString() !== comment.commentatorInfo.userId.toString()) {
+    if (!comment.isBelongToUser(userId)) {
       return {
         status: ResultStatus.Forbidden,
         data: false,
@@ -104,19 +84,8 @@ export class CommentsService {
         extensions: [],
       };
     }
-    const isUpdatedComment = await this.commentsRepository.updateComment(
-      commentObjectId,
-      videoDataForUpdate,
-    );
 
-    if (!isUpdatedComment) {
-      return {
-        status: ResultStatus.NotFound,
-        data: false,
-        errorMessage: 'Comment not found',
-        extensions: [],
-      };
-    }
+    await comment.updateComment(dataForCommentUpdate);
 
     return {
       status: ResultStatus.Success,
@@ -130,17 +99,7 @@ export class CommentsService {
     userId: string,
     likeStatus: LikeStatusEnum,
   ): Promise<Result<boolean>> {
-    const commentObjectId = toObjectId(commentId);
-
-    if (!commentObjectId) {
-      return {
-        status: ResultStatus.NotFound,
-        data: false,
-        errorMessage: 'Comment not found',
-        extensions: [],
-      };
-    }
-    const comment = await this.commentsRepository.getCommentById(commentObjectId);
+    const comment = await this.commentsRepository.findById(commentId);
 
     if (!comment) {
       return {
@@ -160,38 +119,15 @@ export class CommentsService {
         likeStatus,
       });
       await this.likesRepository.saveLike(newLike);
-    }
-
-    await likeDocument?.updateStatus(likeStatus);
-
-    return {
-      status: ResultStatus.Success,
-      data: true,
-      errorMessage: '',
-      extensions: [],
-    };
-  }
-  async checkIsUserOwnComment(commentId: ObjectId, userId: string): Promise<Result<boolean>> {
-    const comment = await this.commentsRepository.getCommentById(commentId);
-    const user = await this.usersRepository.findById(userId);
-
-    if (!comment || !user) {
       return {
-        status: ResultStatus.NotFound,
-        data: false,
-        errorMessage: 'Comment not found',
+        status: ResultStatus.Success,
+        data: true,
+        errorMessage: '',
         extensions: [],
       };
     }
 
-    if (comment.commentatorInfo.userId.toString() !== user._id.toString()) {
-      return {
-        status: ResultStatus.Forbidden,
-        data: false,
-        errorMessage: 'Comment not found',
-        extensions: [],
-      };
-    }
+    await likeDocument.updateStatus(likeStatus);
 
     return {
       status: ResultStatus.Success,
@@ -223,9 +159,9 @@ export class CommentsService {
   }
 
   async deleteComment(commentId: string, userId: string): Promise<Result<boolean>> {
-    const commentObjectId = toObjectId(commentId);
+    const commentToDelete = await this.commentsRepository.findById(commentId);
 
-    if (!commentObjectId) {
+    if (!commentToDelete) {
       return {
         status: ResultStatus.NotFound,
         data: false,
@@ -234,22 +170,16 @@ export class CommentsService {
       };
     }
 
-    const isUserOwnCommentResult = await this.checkIsUserOwnComment(commentObjectId, userId);
-
-    if (isUserOwnCommentResult.status !== ResultStatus.Success) {
-      return isUserOwnCommentResult;
-    }
-
-    const isDeletedComment = await this.commentsRepository.deleteComment(commentObjectId);
-
-    if (!isDeletedComment) {
+    if (!commentToDelete.isBelongToUser(userId)) {
       return {
-        status: ResultStatus.ServerError,
+        status: ResultStatus.Forbidden,
         data: false,
-        errorMessage: 'Server error occurred',
+        errorMessage: "Comment can be deleted only by it's creator",
         extensions: [],
       };
     }
+
+    await this.commentsRepository.deleteComment(commentToDelete);
     await this.likesRepository.deleteAllLikesByParentId(commentId);
 
     return {
