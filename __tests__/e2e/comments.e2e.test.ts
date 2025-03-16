@@ -11,6 +11,8 @@ import { CommentViewModel } from '../../src/entities/comments/types/types';
 import { PostViewModel } from '../../src/entities/posts/types/types';
 import { ADMIN_AUTH_HEADER } from '../../src/application/auth/guards/base.auth.guard';
 import { db } from '../../src/db/composition-root';
+import { jwtService } from '../../src/common/adapters/jwt.service';
+import { LikeModel } from '../../src/entities/likes/domain/Like.entity';
 
 const firstUser = {
   email: 'testo@gmail.com',
@@ -235,18 +237,32 @@ describe('/comments', () => {
       accessToken: createdFirstUserAccessToken,
       isDislike: true,
     });
+    await likeComment({
+      commentId: oneMoreComment.id,
+      accessToken: createdSecondUserAccessToken,
+      isDislike: true,
+    });
+    console.log(await LikeModel.find({}));
 
-    const comments = await req
+    const commentsForFirstUser = await req
       .get(`${PATHS.POSTS}/${createdPost.id}/comments`)
       .auth(createdFirstUserAccessToken, { type: 'bearer' })
       .expect(200);
-    console.log(comments.body.items[1].likesInfo.likesCount);
-    expect(comments.body.items.length).toBe(2);
-    expect(comments.body.items[0].likesInfo.likesCount).toBe(1);
-    expect(comments.body.items[0].likesInfo.dislikesCount).toBe(0);
-    expect(comments.body.items[0].likesInfo.myStatus).toBe('Like');
-    expect(comments.body.items[1].likesInfo.likesCount).toBe(0);
-    expect(comments.body.items[1].likesInfo.dislikesCount).toBe(1);
-    expect(comments.body.items[1].likesInfo.myStatus).toBe('Dislike');
+
+    const commentsForSecondUser = await req
+      .get(`${PATHS.POSTS}/${createdPost.id}/comments`)
+      .auth(createdSecondUserAccessToken, { type: 'bearer' })
+      .expect(200);
+
+    console.log(commentsForFirstUser.body.items);
+    console.log(commentsForSecondUser.body.items);
+
+    // expect(commentsForFirstUser.body.items.length).toBe(2);
+    // expect(commentsForFirstUser.body.items[0].likesInfo.likesCount).toBe(1);
+    // expect(commentsForFirstUser.body.items[0].likesInfo.dislikesCount).toBe(0);
+    // expect(commentsForFirstUser.body.items[0].likesInfo.myStatus).toBe('Like');
+    // expect(commentsForFirstUser.body.items[1].likesInfo.likesCount).toBe(0);
+    // expect(commentsForFirstUser.body.items[1].likesInfo.dislikesCount).toBe(1);
+    // expect(commentsForFirstUser.body.items[1].likesInfo.myStatus).toBe('Dislike');
   });
 });

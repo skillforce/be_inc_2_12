@@ -1,5 +1,5 @@
 import { BlogDbModel } from '../types/types';
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { HydratedDocument, Model, Schema } from 'mongoose';
 
 const BlogSchema = new Schema<BlogDbModel>({
   name: { type: String, required: true },
@@ -18,4 +18,16 @@ const BlogSchema = new Schema<BlogDbModel>({
   isMembership: { type: Boolean, required: true },
 });
 
-export const BlogModel = mongoose.model<BlogDbModel>('Blog', BlogSchema);
+const blogMethods = {};
+const blogStaticMethods = {};
+
+BlogSchema.methods = blogMethods;
+BlogSchema.statics = blogStaticMethods;
+
+type BlogMethods = typeof blogMethods;
+type BlogStaticMethods = typeof blogStaticMethods;
+
+export type BlogDocument = HydratedDocument<BlogDbModel, BlogMethods>;
+type BlogModel = Model<BlogDbModel, {}, BlogMethods> & BlogStaticMethods;
+
+export const BlogModel = mongoose.model<BlogDbModel, BlogModel>('Blog', BlogSchema);

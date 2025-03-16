@@ -81,10 +81,27 @@ export class LikesQueryRepository {
               $cond: [{ $eq: ['$likeStatus', LikeStatusEnum.DISLIKE] }, 1, 0],
             },
           },
-          myStatus: {
-            $first: {
+          myStatuses: {
+            $push: {
               $cond: [{ $eq: ['$userId', userId] }, '$likeStatus', null],
             },
+          },
+        },
+      },
+      {
+        $project: {
+          likesCount: 1,
+          dislikesCount: 1,
+          myStatus: {
+            $arrayElemAt: [
+              {
+                $filter: {
+                  input: '$myStatuses',
+                  cond: { $ne: ['$$this', null] },
+                },
+              },
+              0,
+            ],
           },
         },
       },

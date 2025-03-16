@@ -1,11 +1,24 @@
 import { AddBlogDto, AddUpdateBlogRequiredInputData } from '../types/types';
 import { ObjectId } from 'mongodb';
 import { injectable } from 'inversify';
-import { BlogModel } from '../domain/Blogs.entity';
+import { BlogDocument, BlogModel } from '../domain/Blogs.entity';
+import { PostDocument, PostModel } from '../../posts/domain/Post.entity';
 
 @injectable()
 export class BlogRepository {
   constructor() {}
+
+  async saveBlog(blogData: BlogDocument): Promise<void> {
+    await blogData.save();
+  }
+
+  async findBlogById(id: string): Promise<BlogDocument | null> {
+    return BlogModel.findOne({ _id: id });
+  }
+
+  // async deleteBlog(blogData: BlogDocument): Promise<void> {
+  //   await blogData.deleteOne();
+  // }
 
   async addBlog(newBlogData: AddBlogDto): Promise<ObjectId | null> {
     const result = await BlogModel.create(newBlogData);
