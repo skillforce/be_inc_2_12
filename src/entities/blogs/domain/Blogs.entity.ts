@@ -1,5 +1,6 @@
-import { BlogDbModel } from '../types/types';
+import { AddBlogDto, AddUpdateBlogRequiredInputData, BlogDbModel } from '../types/types';
 import mongoose, { HydratedDocument, Model, Schema } from 'mongoose';
+import dayjs from 'dayjs';
 
 const BlogSchema = new Schema<BlogDbModel>({
   name: { type: String, required: true },
@@ -14,12 +15,37 @@ const BlogSchema = new Schema<BlogDbModel>({
       message: (props) => `${props.value} is not a valid URL!`,
     },
   },
-  createdAt: { type: String, default: Date.now.toString() },
+  createdAt: { type: String, default: dayjs().toISOString() },
   isMembership: { type: Boolean, required: true },
 });
 
-const blogMethods = {};
-const blogStaticMethods = {};
+const blogMethods = {
+  async updateBlogBody(updateBlogDTO: AddUpdateBlogRequiredInputData): Promise<void> {
+    const blog = this as unknown as BlogDocument;
+    blog.name = updateBlogDTO.name;
+    blog.description = updateBlogDTO.description;
+    blog.websiteUrl = updateBlogDTO.websiteUrl;
+
+    await blog.save();
+  },
+};
+const blogStaticMethods = {
+  createBlog(blogDTO: AddBlogDto) {
+    const newBlog = new BlogModel(blogDTO) as unknown as BlogDocument;
+
+    newBlog.name = blogDTO.name;
+    newBlog.description = blogDTO.description;
+    newBlog.websiteUrl = blogDTO.websiteUrl;
+    newBlog.isMembership = blogDTO.isMembership;
+
+    return newBlog;
+  },
+  async checkIsBlogWithIdExist(id: string): Promise<boolean> {
+    const blog = await BlogModel.findOne({ _id: id });
+
+    return !!blog;
+  },
+};
 
 BlogSchema.methods = blogMethods;
 BlogSchema.statics = blogStaticMethods;

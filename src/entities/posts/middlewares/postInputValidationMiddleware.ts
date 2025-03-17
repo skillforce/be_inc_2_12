@@ -11,6 +11,7 @@ import { accessTokenGuard } from '../../../application/auth/guards/access.token.
 import { BlogService } from '../../blogs/service/blogService';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { BlogRepository } from '../../blogs/infrastructure/blogRepository';
+import { BlogModel } from '../../blogs';
 
 const blogRepository = new BlogRepository();
 const blogService = new BlogService(blogRepository);
@@ -46,8 +47,8 @@ const createCommentBodyContentErrors: ErrorMessages = {
 const additionalWebsiteUrlRules: ((chain: ValidationChain) => ValidationChain)[] = [
   (chain) =>
     chain.custom(async (value) => {
-      const blogCheckResult = await blogService.checkIsBlogWithIdExist(value);
-      if (blogCheckResult.status !== ResultStatus.Success) {
+      const blogCheckResult = await BlogModel.checkIsBlogWithIdExist(value);
+      if (!blogCheckResult) {
         throw new Error('Invalid blogId: Blog does not exist');
       }
       return true;

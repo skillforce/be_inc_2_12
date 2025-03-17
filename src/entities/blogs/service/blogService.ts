@@ -1,10 +1,10 @@
-import { AddBlogDto, AddUpdateBlogRequiredInputData } from '../types/types';
+import { AddUpdateBlogRequiredInputData } from '../types/types';
 import { BlogRepository } from '../infrastructure/blogRepository';
 import { ObjectId } from 'mongodb';
-import { toObjectId } from '../../../common/helpers/helper';
 import { Result } from '../../../common/result/result.type';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { inject, injectable } from 'inversify';
+import { BlogModel } from '../domain/Blogs.entity';
 
 @injectable()
 export class BlogService {
@@ -14,30 +14,25 @@ export class BlogService {
     websiteUrl,
     description,
   }: AddUpdateBlogRequiredInputData): Promise<Result<ObjectId | null>> {
-    const newBlogData: AddBlogDto = {
+    const newBlogData = {
       name,
       websiteUrl,
       description,
-      createdAt: new Date().toISOString(),
       isMembership: false,
     };
 
-    const createdBlogId = await this.blogRepository.addBlog(newBlogData);
+    const newBlog = BlogModel.createBlog(newBlogData);
 
-    if (!createdBlogId) {
-      return {
-        status: ResultStatus.ServerError,
-        data: null,
-        errorMessage: 'Internal server error occurred',
-        extensions: [],
-      };
-    }
+    await this.blogRepository.saveBlog(newBlog);
 
-    return { status: ResultStatus.Success, data: createdBlogId, extensions: [] };
+    return { status: ResultStatus.Success, data: newBlog._id, extensions: [] };
   }
-  async checkIsBlogWithIdExist(id: string): Promise<Result<boolean>> {
-    const _id = toObjectId(id);
-    if (!_id) {
+  async updateBlog(
+    id: string,
+    updateBlogDTO: AddUpdateBlogRequiredInputData,
+  ): Promise<Result<boolean>> {
+    const blogForUpdate = await this.blogRepository.findBlogById(id);
+    if (!blogForUpdate) {
       return {
         status: ResultStatus.NotFound,
         data: false,
@@ -45,15 +40,9 @@ export class BlogService {
         extensions: [],
       };
     }
-    const blogsFromDb = await this.blogRepository.getBlogById(_id);
-    if (!blogsFromDb) {
-      return {
-        status: ResultStatus.NotFound,
-        data: false,
-        errorMessage: 'Blog not found',
-        extensions: [],
-      };
-    }
+
+    await blogForUpdate.updateBlogBody(updateBlogDTO);
+
     return {
       status: ResultStatus.Success,
       data: true,
@@ -61,40 +50,10 @@ export class BlogService {
     };
   }
 
-  async updateBlog(
-    id: string,
-    videoDataForUpdate: AddUpdateBlogRequiredInputData,
-  ): Promise<Result<boolean>> {
-    const _id = toObjectId(id);
-    if (!_id) {
-      return {
-        status: ResultStatus.NotFound,
-        data: false,
-        errorMessage: 'Blog not found',
-        extensions: [],
-      };
-    }
-    const isBlogUpdated = await this.blogRepository.updateBlog(_id, videoDataForUpdate);
-    if (!isBlogUpdated) {
-      return {
-        status: ResultStatus.NotFound,
-        data: false,
-        errorMessage: 'Blog not found',
-        extensions: [],
-      };
-    }
-
-    return {
-      status: ResultStatus.Success,
-      data: isBlogUpdated,
-      extensions: [],
-    };
-  }
-
   async deleteBlog(id: string): Promise<Result<boolean>> {
-    const _id = toObjectId(id);
+    const blogToDelete = await this.blogRepository.findBlogById(id);
 
-    if (!_id) {
+    if (!blogToDelete) {
       return {
         status: ResultStatus.NotFound,
         data: false,
@@ -102,21 +61,11 @@ export class BlogService {
         extensions: [],
       };
     }
-
-    const isBlogDeleted = await this.blogRepository.deleteBlog(_id);
-
-    if (!isBlogDeleted) {
-      return {
-        status: ResultStatus.NotFound,
-        data: false,
-        errorMessage: 'Blog not found',
-        extensions: [],
-      };
-    }
+    await this.blogRepository.deleteBlog(blogToDelete);
 
     return {
       status: ResultStatus.Success,
-      data: isBlogDeleted,
+      data: true,
       extensions: [],
     };
   }
