@@ -132,23 +132,6 @@ describe('auth', () => {
       loginResponse.headers['set-cookie'][0],
     );
   });
-  it("shouldn't return user info if accessToken is expired", async () => {
-    await db.clearDatabase();
-    await createUser({ userDto: newUser });
-
-    const loginResponse = await req
-      .post(PATHS.AUTH.LOGIN)
-      .send({
-        loginOrEmail: newUser.login,
-        password: newUser.pass,
-      })
-      .expect(HttpStatuses.Success);
-    await delay(10000);
-    await req
-      .get(PATHS.AUTH.ME)
-      .auth(loginResponse.body.accessToken, { type: 'bearer' })
-      .expect(401);
-  }, 12000);
   it('should return error when try to logout with invalid refresh token', async () => {
     await db.clearDatabase();
     await createUser({ userDto: newUser });

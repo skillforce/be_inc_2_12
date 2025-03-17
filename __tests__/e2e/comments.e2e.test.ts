@@ -242,7 +242,6 @@ describe('/comments', () => {
       accessToken: createdSecondUserAccessToken,
       isDislike: true,
     });
-    console.log(await LikeModel.find({}));
 
     const commentsForFirstUser = await req
       .get(`${PATHS.POSTS}/${createdPost.id}/comments`)
@@ -254,15 +253,12 @@ describe('/comments', () => {
       .auth(createdSecondUserAccessToken, { type: 'bearer' })
       .expect(200);
 
-    console.log(commentsForFirstUser.body.items);
-    console.log(commentsForSecondUser.body.items);
-
-    // expect(commentsForFirstUser.body.items.length).toBe(2);
-    // expect(commentsForFirstUser.body.items[0].likesInfo.likesCount).toBe(1);
-    // expect(commentsForFirstUser.body.items[0].likesInfo.dislikesCount).toBe(0);
-    // expect(commentsForFirstUser.body.items[0].likesInfo.myStatus).toBe('Like');
-    // expect(commentsForFirstUser.body.items[1].likesInfo.likesCount).toBe(0);
-    // expect(commentsForFirstUser.body.items[1].likesInfo.dislikesCount).toBe(1);
-    // expect(commentsForFirstUser.body.items[1].likesInfo.myStatus).toBe('Dislike');
+    expect(commentsForFirstUser.body.items.length).toBe(2);
+    expect(commentsForFirstUser.body.items[1].likesInfo.likesCount).toBe(1);
+    expect(commentsForFirstUser.body.items[1].likesInfo.dislikesCount).toBe(0);
+    expect(commentsForFirstUser.body.items[1].likesInfo.myStatus).toBe('Like');
+    expect(commentsForFirstUser.body.items[0].likesInfo.likesCount).toBe(0);
+    expect(commentsForFirstUser.body.items[0].likesInfo.dislikesCount).toBe(2);
+    expect(commentsForFirstUser.body.items[0].likesInfo.myStatus).toBe('Dislike');
   });
 });
