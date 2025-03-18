@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+import { ExtendedLikesInfoViewModel } from '../../likes/types/types';
 
 export interface PostViewModel {
   id: string;
@@ -8,6 +9,7 @@ export interface PostViewModel {
   blogId: string;
   blogName: string;
   createdAt: string;
+  extendedLikesInfo: ExtendedLikesInfoViewModel;
 }
 
 export interface PostDBModel {

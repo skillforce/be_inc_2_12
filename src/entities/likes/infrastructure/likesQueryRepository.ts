@@ -1,35 +1,38 @@
 import { injectable } from 'inversify';
-import { LikesInfoViewModel, LikeStatusEnum } from '../types/types';
+import { LikesInfoViewModel, LikeStatusEnum, NewestLike } from '../types/types';
 import { LikeModel } from '../domain/Like.entity';
+import { UserModel } from '../../users';
+import { PipelineStage } from 'mongoose';
+import dayjs from 'dayjs';
 
 @injectable()
 export class LikesQueryRepository {
   constructor() {}
-  async getCommentLikesCount({ commentId }: { commentId: string }): Promise<number> {
+  async getEntityLikesCount({ parentId }: { parentId: string }): Promise<number> {
     return (
       LikeModel.countDocuments({
-        parentId: commentId,
+        parentId,
         likeStatus: LikeStatusEnum.LIKE,
       }) || 0
     );
   }
-  async getCommentDislikesCount({ commentId }: { commentId: string }): Promise<number> {
+  async getEntityDislikesCount({ parentId }: { parentId: string }): Promise<number> {
     return (
       LikeModel.countDocuments({
-        parentId: commentId,
+        parentId,
         likeStatus: LikeStatusEnum.DISLIKE,
       }) || 0
     );
   }
-  async getUserLikeStatusForComment({
-    commentId,
+  async getUserLikeStatusForEntity({
+    parentId,
     userId,
   }: {
-    commentId: string;
+    parentId: string;
     userId: string;
   }): Promise<LikeStatusEnum> {
     const likeData = await LikeModel.findOne({
-      parentId: commentId,
+      parentId,
       userId,
     });
     if (likeData) {
@@ -37,17 +40,17 @@ export class LikesQueryRepository {
     }
     return LikeStatusEnum.NONE;
   }
-  async getCommentLikesInfo({
-    commentId,
+  async getEntityLikesInfo({
+    parentId,
     userId,
   }: {
-    commentId: string;
+    parentId: string;
     userId?: string;
   }): Promise<LikesInfoViewModel> {
-    const likesCount = await this.getCommentLikesCount({ commentId });
-    const dislikesCount = await this.getCommentDislikesCount({ commentId });
+    const likesCount = await this.getEntityLikesCount({ parentId });
+    const dislikesCount = await this.getEntityDislikesCount({ parentId });
     const likeStatus = userId
-      ? await this.getUserLikeStatusForComment({ commentId, userId })
+      ? await this.getUserLikeStatusForEntity({ parentId, userId })
       : LikeStatusEnum.NONE;
     return {
       likesCount: Number(likesCount),
@@ -55,17 +58,17 @@ export class LikesQueryRepository {
       myStatus: likeStatus,
     };
   }
-  async getBulkCommentLikesInfo({
-    commentIds,
+  async getBulkLikesInfo({
+    parentIds,
     userId,
   }: {
-    commentIds: string[];
+    parentIds: string[];
     userId?: string;
   }): Promise<Record<string, LikesInfoViewModel>> {
     const pipeline = [
       {
         $match: {
-          parentId: { $in: commentIds },
+          parentId: { $in: parentIds },
         },
       },
       {
@@ -111,7 +114,7 @@ export class LikesQueryRepository {
 
     const result: Record<string, LikesInfoViewModel> = {};
 
-    commentIds.forEach((commentId) => {
+    parentIds.forEach((commentId) => {
       result[commentId] = {
         likesCount: 0,
         dislikesCount: 0,
@@ -128,5 +131,84 @@ export class LikesQueryRepository {
     });
 
     return result;
+  }
+
+  async getNewestLikesForParentId(parentId: string): Promise<NewestLike[]> {
+    const lastLikes = await LikeModel.find({ parentId, likeStatus: LikeStatusEnum.LIKE })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean();
+
+    const userIds = lastLikes.map((like) => like.userId);
+    const users = await UserModel.find({ _id: { $in: userIds } })
+      .select('login')
+      .lean();
+
+    const userMap = new Map(users.map((user) => [user._id.toString(), user.login]));
+
+    return lastLikes.map((like) => ({
+      addedAt: like.createdAt,
+      userId: like.userId,
+      login: userMap.get(like.userId) || 'Unknown User',
+    }));
+  }
+
+  async getBulkNewestLikesForParentIds(parentIds: string[]): Promise<Record<string, NewestLike[]>> {
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          parentId: { $in: parentIds },
+          likeStatus: { $in: [LikeStatusEnum.LIKE] },
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $group: {
+          _id: '$parentId',
+          likes: {
+            $push: {
+              userId: '$userId',
+              createdAt: '$createdAt',
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          likes: { $slice: ['$likes', 3] },
+        },
+      },
+    ];
+
+    const results = await LikeModel.aggregate(pipeline);
+    const userIds = results.flatMap((result) =>
+      result.likes.map((like: { userId: string }) => like.userId),
+    );
+    const users = await UserModel.find({ _id: { $in: userIds } })
+      .select('login')
+      .lean();
+
+    const userMap = new Map(users.map((user) => [user._id.toString(), user.login]));
+
+    const resultMap: Record<string, NewestLike[]> = {};
+    results.forEach((result) => {
+      resultMap[result._id] = result.likes.map((like: { userId: string; createdAt: Date }) => ({
+        addedAt: dayjs(like.createdAt).toISOString(),
+        userId: like.userId,
+        login: userMap.get(like.userId) || 'Unknown User',
+      }));
+    });
+
+    // Fill in empty arrays for parentIds that had no likes
+    parentIds.forEach((id) => {
+      if (!resultMap[id]) {
+        resultMap[id] = [];
+      }
+    });
+
+    return resultMap;
   }
 }

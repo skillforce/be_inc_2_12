@@ -4,20 +4,29 @@ import {
   createCommentByPostIdValidators,
   deletePostValidators,
   getCommentByPostIdValidators,
+  getPostByIdValidators,
+  getPostsByIdValidators,
   updatePostBodyValidators,
+  updatePostLikeStatusValidators,
 } from '../middlewares/postInputValidationMiddleware';
 import { postController } from '../composition-root/posts-composition-root';
 
 export const postRouter = Router({});
 
-postRouter.get('/', postController.getPosts.bind(postController));
+postRouter.get('/', getPostsByIdValidators, postController.getPosts.bind(postController));
 
-postRouter.get('/:id', postController.getPostById.bind(postController));
+postRouter.get('/:id', getPostByIdValidators, postController.getPostById.bind(postController));
 
 postRouter.get(
   '/:id/comments',
   getCommentByPostIdValidators,
   postController.getPostCommentsByPostId.bind(postController),
+);
+
+postRouter.put(
+  '/:id/like-status',
+  updatePostLikeStatusValidators,
+  postController.updatePostLikeStatus.bind(postController),
 );
 
 postRouter.post(

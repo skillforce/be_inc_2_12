@@ -3,18 +3,16 @@ import { basicStringFieldMiddlewareGenerator, ErrorMessages } from '../../../com
 import {
   accessTokenGuardNotStrict,
   checkIfBlogWithProvidedQueryParamIdExists,
+  checkIsPostWithProvidedQueryParamIdExists,
   inputValidationMiddleware,
   validateUrlParamId,
 } from '../../../common/middlewares/commonValidationMiddlewares';
 import { authMiddleware } from '../../../application/auth/guards/base.auth.guard';
 import { accessTokenGuard } from '../../../application/auth/guards/access.token.guard';
-import { BlogService } from '../../blogs/service/blogService';
-import { ResultStatus } from '../../../common/result/resultCode';
-import { BlogRepository } from '../../blogs/infrastructure/blogRepository';
 import { BlogModel } from '../../blogs';
+import { BlogRepository } from '../../blogs/infrastructure/blogRepository';
 
 const blogRepository = new BlogRepository();
-const blogService = new BlogService(blogRepository);
 
 const postTitleErrors: ErrorMessages = {
   required: 'title field is required',
@@ -44,10 +42,16 @@ const createCommentBodyContentErrors: ErrorMessages = {
   isString: 'content should be provided as a string',
 };
 
+const postBodyLikeStatusErrors: ErrorMessages = {
+  required: 'likeStatus field is required',
+  isString: 'likeStatus should be provided as a string',
+  invalidValue: 'likeStatus should be "None", "Like" or "Dislike"',
+};
+
 const additionalWebsiteUrlRules: ((chain: ValidationChain) => ValidationChain)[] = [
   (chain) =>
     chain.custom(async (value) => {
-      const blogCheckResult = await BlogModel.checkIsBlogWithIdExist(value);
+      const blogCheckResult = await blogRepository.findBlogById(value);
       if (!blogCheckResult) {
         throw new Error('Invalid blogId: Blog does not exist');
       }
@@ -89,6 +93,12 @@ export const createCommentByPostIdBodyContentValidationMiddleware =
     errorMessages: createCommentBodyContentErrors,
   });
 
+export const postBodyLikeStatusValidationMiddleware = basicStringFieldMiddlewareGenerator({
+  fieldName: 'likeStatus',
+  allowedValues: ['None', 'Like', 'Dislike'],
+  errorMessages: postBodyLikeStatusErrors,
+});
+
 export const addPostBodyValidators = [
   authMiddleware,
   postTitleBodyValidationMiddleware,
@@ -99,6 +109,7 @@ export const addPostBodyValidators = [
 ];
 
 export const getPostsByBlogIdValidators = [
+  accessTokenGuardNotStrict,
   checkIfBlogWithProvidedQueryParamIdExists,
   inputValidationMiddleware,
 ];
@@ -112,6 +123,13 @@ export const createPostByBlogIdValidators = [
   inputValidationMiddleware,
 ];
 
+export const updatePostLikeStatusValidators = [
+  accessTokenGuard,
+  checkIsPostWithProvidedQueryParamIdExists,
+  postBodyLikeStatusValidationMiddleware,
+  inputValidationMiddleware,
+];
+
 export const deletePostValidators = [authMiddleware, validateUrlParamId];
 export const updatePostBodyValidators = [...deletePostValidators, ...addPostBodyValidators];
 
@@ -121,3 +139,6 @@ export const createCommentByPostIdValidators = [
   createCommentByPostIdBodyContentValidationMiddleware,
   inputValidationMiddleware,
 ];
+
+export const getPostByIdValidators = [accessTokenGuardNotStrict];
+export const getPostsByIdValidators = [accessTokenGuardNotStrict];

@@ -12,7 +12,7 @@ export class PostQueryRepository {
   async getPaginatedPosts(
     query: Record<string, string | undefined>,
     filter: Record<string, any> = {},
-  ): Promise<PaginatedData<PostViewModel[]>> {
+  ): Promise<PaginatedData<Omit<PostViewModel, 'extendedLikesInfo'>[]>> {
     const sanitizedQuery = queryFilterGenerator(query as Record<string, string | undefined>);
 
     const { pageNumber, pageSize, sortBy, sortDirection } = sanitizedQuery;
@@ -35,7 +35,7 @@ export class PostQueryRepository {
       items: itemsForOutput,
     };
   }
-  async getPostById(_id: ObjectId): Promise<PostViewModel | null> {
+  async getPostById(_id: ObjectId): Promise<Omit<PostViewModel, 'extendedLikesInfo'> | null> {
     const postById = await PostModel.findOne({ _id }).lean();
     if (!postById) {
       return null;
@@ -46,7 +46,7 @@ export class PostQueryRepository {
     return PostModel.countDocuments(filter);
   }
 
-  mapPostToOutput(post: PostDBModel): PostViewModel {
+  mapPostToOutput(post: PostDBModel): Omit<PostViewModel, 'extendedLikesInfo'> {
     return {
       id: post._id.toString(),
       title: post.title,

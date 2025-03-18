@@ -5,7 +5,6 @@ import { db } from './db/composition-root';
 const app = initApp();
 
 const startServer = async () => {
-  console.log(db);
   await db.connect(APP_CONFIG.MONGO_URL);
 
   app.listen(APP_CONFIG.PORT, () => {

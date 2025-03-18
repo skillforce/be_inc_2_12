@@ -3,9 +3,11 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PATHS } from '../../src/common/paths/paths';
 import { createBlog } from '../utils/createBlog';
 import { createPost } from '../utils/createPost';
-import { PostDto } from '../utils/testingDtosCreator';
+import { PostDto, UserDto } from '../utils/testingDtosCreator';
 import { ADMIN_AUTH_HEADER } from '../../src/application/auth/guards/base.auth.guard';
 import { db } from '../../src/db/composition-root';
+import { createAndLoginUser, createUser } from '../utils/userHelpers';
+import { LikeModel } from '../../src/entities/likes/domain/Like.entity';
 
 describe('/posts', () => {
   beforeAll(async () => {
@@ -130,5 +132,65 @@ describe('/posts', () => {
       .delete(PATHS.POSTS + '/1')
       .set('Authorization', ADMIN_AUTH_HEADER)
       .expect(404);
+  });
+  it('should return posts with correct extended like statuses ', async () => {
+    const firstUser = await createAndLoginUser();
+    const secondUser = await createAndLoginUser();
+    const thirdUser = await createAndLoginUser();
+    const fourthUser = await createAndLoginUser();
+    const posts = await req.get(PATHS.POSTS).expect(200);
+    const firstPost = posts.body.items[0];
+    const firstPostId = firstPost.id;
+
+    await req
+      .put(PATHS.POSTS + '/' + firstPostId + '/like-status')
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .send({
+        likeStatus: 'Like',
+      })
+      .expect(204);
+    await req
+      .put(PATHS.POSTS + '/' + firstPostId + '/like-status')
+      .auth(secondUser.body.accessToken, { type: 'bearer' })
+      .send({
+        likeStatus: 'Like',
+      })
+      .expect(204);
+    await req
+      .put(PATHS.POSTS + '/' + firstPostId + '/like-status')
+      .auth(thirdUser.body.accessToken, { type: 'bearer' })
+      .send({
+        likeStatus: 'Like',
+      })
+      .expect(204);
+    await req
+      .put(PATHS.POSTS + '/' + firstPostId + '/like-status')
+      .auth(fourthUser.body.accessToken, { type: 'bearer' })
+      .send({
+        likeStatus: 'Dislike',
+      })
+      .expect(204);
+    const postsAfterLikes = await req
+      .get(PATHS.POSTS)
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .expect(200);
+
+    expect(postsAfterLikes.body.items[0].extendedLikesInfo.myStatus).toBe('Like');
+    expect(postsAfterLikes.body.items[0].extendedLikesInfo.likesCount).toBe(3);
+    expect(postsAfterLikes.body.items[0].extendedLikesInfo.dislikesCount).toBe(1);
+  });
+  it('should return error if like status request body is incorrect ', async () => {
+    const firstUser = await createAndLoginUser();
+    const posts = await req.get(PATHS.POSTS).expect(200);
+    const firstPost = posts.body.items[0];
+    const firstPostId = firstPost.id;
+
+    await req
+      .put(PATHS.POSTS + '/' + firstPostId + '/like-status')
+      .auth(firstUser.body.accessToken, { type: 'bearer' })
+      .send({
+        likeStatus: 'sssssss',
+      })
+      .expect(400);
   });
 });

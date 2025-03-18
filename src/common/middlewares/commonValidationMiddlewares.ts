@@ -1,16 +1,17 @@
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
-
 import { toObjectId } from '../helpers/helper';
-import { BlogQueryRepository } from '../../entities/blogs/infrastructure/blogQueryRepository';
 import { CommentsRepository } from '../../entities/comments/infrastructure/commentsRepository';
 import { jwtService } from '../adapters/jwt.service';
 import { IdType } from '../types/id';
 import { UsersRepository } from '../../entities/users/infrastructure/usersRepository';
+import { PostRepository } from '../../entities/posts/infrastructure/postRepository';
+import { BlogRepository } from '../../entities/blogs/infrastructure/blogRepository';
 
-const blogQueryRepository = new BlogQueryRepository();
+const blogRepository = new BlogRepository();
 const commentRepository = new CommentsRepository();
 const usersRepository = new UsersRepository();
+const postRepository = new PostRepository();
 
 export const inputValidationMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
@@ -45,11 +46,28 @@ export const checkIfBlogWithProvidedQueryParamIdExists = async (
     res.sendStatus(404);
     return;
   }
-  const _id = toObjectId(paramId);
-  if (!_id) {
-    return false;
+
+  const isBlogExist = await blogRepository.findBlogById(paramId);
+  if (!isBlogExist) {
+    res.sendStatus(404);
+    return;
   }
-  const isBlogExist = await blogQueryRepository.getBlogById(_id);
+
+  return next();
+};
+
+export const checkIsPostWithProvidedQueryParamIdExists = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const paramId = req.params.id;
+  if (!paramId) {
+    res.sendStatus(404);
+    return;
+  }
+
+  const isBlogExist = await postRepository.findPostById(paramId);
   if (!isBlogExist) {
     res.sendStatus(404);
     return;

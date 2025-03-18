@@ -3,12 +3,13 @@ import { PostQueryRepository } from '../infrastructure/postQueryRepository';
 import { BlogQueryRepository } from '../../blogs/infrastructure/blogQueryRepository';
 import { Request, Response } from 'express';
 import { PaginatedData } from '../../../common/types/pagination';
-import { UpdatePostDTO, PostViewModel } from '../types/types';
+import { PostViewModel, UpdatePostDTO } from '../types/types';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { toObjectId } from '../../../common/helpers/helper';
 import {
   RequestWithParamsAndBodyAndUserId,
   RequestWithParamsAndQueryAndUserId,
+  RequestWithParamsAndUserId,
 } from '../../../common/types/request';
 import { SortQueryFieldsType } from '../../../common/types/sortQueryFieldsType';
 import { IdType } from '../../../common/types/id';
@@ -19,7 +20,8 @@ import { ObjectId } from 'mongodb';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { resultCodeToHttpException } from '../../../common/result/resultCodeToHttpException';
 import { inject } from 'inversify';
-import { LikesQueryRepository } from '../../likes';
+import { LikesQueryRepository, LikeStatusEnum } from '../../likes';
+import { ExtendedLikesInfoViewModel } from '../../likes/types/types';
 
 export class PostController {
   constructor(
@@ -29,27 +31,74 @@ export class PostController {
     @inject(CommentsService) protected commentsService: CommentsService,
     @inject(CommentsQueryRepository) protected commentsQueryRepository: CommentsQueryRepository,
     @inject(LikesQueryRepository)
-    protected commentsLikesQueryRepository: LikesQueryRepository,
+    protected likesQueryRepository: LikesQueryRepository,
   ) {}
   async getPosts(req: Request, res: Response<PaginatedData<PostViewModel[]>>) {
     const queryObj = req.query;
-    const responseData = await this.postQueryRepository.getPaginatedPosts(
+    const userId = req.user?.id;
+    const postsList = await this.postQueryRepository.getPaginatedPosts(
       queryObj as Record<string, string | undefined>,
     );
-    res.status(HttpStatuses.Success).json(responseData);
+    const postsIds = postsList.items.map((post) => post.id);
+    const likesInfoMap = await this.likesQueryRepository.getBulkLikesInfo({
+      parentIds: postsIds,
+      userId: userId,
+    });
+    const newestLikesMap = await this.likesQueryRepository.getBulkNewestLikesForParentIds(postsIds);
+
+    const extendedLikesInfoMap: Record<string, ExtendedLikesInfoViewModel> = {};
+    postsList.items.forEach((post) => {
+      const likesInfo = likesInfoMap[post.id];
+      const newestLikes = newestLikesMap[post.id];
+      const extendedLikesInfo: ExtendedLikesInfoViewModel = {
+        ...likesInfo,
+        newestLikes,
+      };
+      extendedLikesInfoMap[post.id] = extendedLikesInfo;
+    });
+    const postsListWithLikesInfo = postsList.items.map((post) => {
+      const extendedLikesInfo = extendedLikesInfoMap[post.id];
+      const postWithExtendedLikesInfo: PostViewModel = { ...post, extendedLikesInfo };
+      return postWithExtendedLikesInfo;
+    });
+
+    const paginatedCommentsList = {
+      ...postsList,
+      items: postsListWithLikesInfo.reverse(),
+    };
+    res.status(HttpStatuses.Success).json(paginatedCommentsList);
   }
-  async getPostById(req: Request<{ id: string }>, res: Response<PostViewModel>) {
+  async getPostById(
+    req: RequestWithParamsAndUserId<{ id: string }, IdType>,
+    res: Response<PostViewModel>,
+  ) {
+    const postId = req.params.id;
+    const userId = req.user?.id;
     const _id = toObjectId(req.params.id);
     if (!_id) {
       res.sendStatus(HttpStatuses.NotFound);
       return;
     }
-    const responseData = await this.postQueryRepository.getPostById(_id);
-    if (responseData) {
-      res.status(HttpStatuses.Success).json(responseData);
+    const postById = await this.postQueryRepository.getPostById(_id);
+    if (!postById) {
+      res.sendStatus(HttpStatuses.NotFound);
       return;
     }
-    res.sendStatus(HttpStatuses.NotFound);
+    const likesInfo = await this.likesQueryRepository.getEntityLikesInfo({
+      parentId: postId,
+      userId,
+    });
+    const newestLikesInfo = await this.likesQueryRepository.getNewestLikesForParentId(postId);
+
+    const extendedLikesInfo: ExtendedLikesInfoViewModel = {
+      ...likesInfo,
+      newestLikes: newestLikesInfo,
+    };
+
+    const postWithExtendedLikesInfo: PostViewModel = { ...postById, extendedLikesInfo };
+
+    res.status(HttpStatuses.Success).json(postWithExtendedLikesInfo);
+    return;
   }
   async getPostCommentsByPostId(
     req: RequestWithParamsAndQueryAndUserId<
@@ -82,8 +131,8 @@ export class PostController {
     );
 
     const commentIds = commentsList.items.map((comment) => comment.id);
-    const likesInfoMap = await this.commentsLikesQueryRepository.getBulkCommentLikesInfo({
-      commentIds,
+    const likesInfoMap = await this.likesQueryRepository.getBulkLikesInfo({
+      parentIds: commentIds,
       userId: req.user?.id,
     });
 
@@ -98,6 +147,28 @@ export class PostController {
     };
 
     res.status(HttpStatuses.Success).send(paginatedCommentsList);
+  }
+
+  async updatePostLikeStatus(
+    req: RequestWithParamsAndBodyAndUserId<{ id: string }, { likeStatus: LikeStatusEnum }, IdType>,
+    res: Response<{}>,
+  ) {
+    const postId = req.params.id;
+    const userId = req.user?.id as string;
+    const likeStatus = req.body.likeStatus;
+
+    const updateCommentLikeStatus = await this.postService.updatePostLikeStatus(
+      postId,
+      userId,
+      likeStatus,
+    );
+
+    if (updateCommentLikeStatus.status !== ResultStatus.Success) {
+      res.sendStatus(resultCodeToHttpException(updateCommentLikeStatus.status));
+      return;
+    }
+
+    res.sendStatus(HttpStatuses.NoContent);
   }
   async createCommentByPostId(
     req: RequestWithParamsAndBodyAndUserId<
@@ -145,8 +216,8 @@ export class PostController {
       return;
     }
 
-    const likesInfo = await this.commentsLikesQueryRepository.getCommentLikesInfo({
-      commentId: createdComment.id,
+    const likesInfo = await this.likesQueryRepository.getEntityLikesInfo({
+      parentId: createdComment.id,
       userId: req.user?.id,
     });
 
@@ -165,7 +236,6 @@ export class PostController {
       res.sendStatus(HttpStatuses.NotFound);
       return;
     }
-
     const newPostResult = await this.postService.addPost(req.body, blogById);
 
     if (newPostResult.status !== ResultStatus.Success) {
@@ -175,13 +245,19 @@ export class PostController {
     const createdPostForOutput = await this.postQueryRepository.getPostById(
       newPostResult.data as ObjectId,
     );
+    const extendedLikesInfo: ExtendedLikesInfoViewModel = {
+      likesCount: 0,
+      dislikesCount: 0,
+      myStatus: LikeStatusEnum.NONE,
+      newestLikes: [],
+    };
 
     if (!createdPostForOutput) {
       res.sendStatus(HttpStatuses.NotFound);
       return;
     }
 
-    res.status(HttpStatuses.Created).json(createdPostForOutput);
+    res.status(HttpStatuses.Created).json({ ...createdPostForOutput, extendedLikesInfo });
   }
   async updatePost(
     req: RequestWithParamsAndBodyAndUserId<{ id: string }, UpdatePostDTO, IdType>,

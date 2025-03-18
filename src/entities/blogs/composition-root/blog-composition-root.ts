@@ -6,9 +6,12 @@ import { PostQueryRepository } from '../../posts/infrastructure/postQueryReposit
 import { PostRepository } from '../../posts/infrastructure/postRepository';
 import { BlogRepository } from '../infrastructure/blogRepository';
 import { Container } from 'inversify';
+import { LikesQueryRepository, LikesRepository } from '../../likes';
 
 const container = new Container();
 
+container.bind(LikesQueryRepository).to(LikesQueryRepository);
+container.bind(LikesRepository).to(LikesRepository);
 container.bind(PostQueryRepository).to(PostQueryRepository);
 container.bind(PostRepository).to(PostRepository);
 container.bind(BlogQueryRepository).to(BlogQueryRepository);

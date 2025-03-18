@@ -40,11 +40,6 @@ const blogStaticMethods = {
 
     return newBlog;
   },
-  async checkIsBlogWithIdExist(id: string): Promise<boolean> {
-    const blog = await BlogModel.findOne({ _id: id });
-
-    return !!blog;
-  },
 };
 
 BlogSchema.methods = blogMethods;

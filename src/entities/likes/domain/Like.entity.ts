@@ -1,5 +1,6 @@
 import mongoose, { HydratedDocument, Model, Schema } from 'mongoose';
 import { LikeDBModel, LikeStatusEnum } from '../types/types';
+import dayjs from 'dayjs';
 
 const LikeEntity = new Schema<LikeDBModel>(
   {
@@ -11,7 +12,7 @@ const LikeEntity = new Schema<LikeDBModel>(
       required: true,
     },
   },
-  { timestamps: true },
+  { timestamps: { createdAt: true, updatedAt: false } },
 );
 
 const likeMethods = {
@@ -25,7 +26,7 @@ const likeMethods = {
   },
 };
 const likeStaticMethods = {
-  createLike(likeDTO: LikeDBModel) {
+  createLike(likeDTO: Omit<LikeDBModel, 'createdAt'>) {
     const newLike = new LikeModel(likeDTO) as unknown as LikeDocument;
     newLike.parentId = likeDTO.parentId;
     newLike.userId = likeDTO.userId;

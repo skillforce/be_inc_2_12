@@ -5,12 +5,16 @@ import { BlogQueryRepository } from '../infrastructure/blogQueryRepository';
 import { HttpStatuses } from '../../../common/types/httpStatuses';
 import { toObjectId } from '../../../common/helpers/helper';
 import { ObjectId } from 'mongodb';
-import { UpdatePostDTO, PostViewModel } from '../../posts/types/types';
+import { PostViewModel, UpdatePostDTO } from '../../posts/types/types';
 import { PostQueryRepository } from '../../posts/infrastructure/postQueryRepository';
 import { BlogService } from '../service/blogService';
 import { ResultStatus } from '../../../common/result/resultCode';
 import { PostService } from '../../posts/service/postService';
 import { inject } from 'inversify';
+import { ExtendedLikesInfoViewModel, LikeStatusEnum } from '../../likes/types/types';
+import { LikesQueryRepository } from '../../likes';
+import { RequestWithParamsAndUserId } from '../../../common/types/request';
+import { IdType } from '../../../common/types/id';
 
 export class BlogsController {
   constructor(
@@ -18,6 +22,8 @@ export class BlogsController {
     @inject(BlogService) protected blogService: BlogService,
     @inject(PostQueryRepository) protected postQueryRepository: PostQueryRepository,
     @inject(BlogQueryRepository) protected blogQueryRepository: BlogQueryRepository,
+    @inject(LikesQueryRepository)
+    protected likesQueryRepository: LikesQueryRepository,
   ) {}
   async getBlogs(req: Request, res: Response<PaginatedData<BlogViewModel[]>>) {
     const queryObj = req.query;
@@ -45,21 +51,48 @@ export class BlogsController {
   }
 
   async getPostsByBlogId(
-    req: Request<{ id: string }>,
+    req: RequestWithParamsAndUserId<{ id: string }, IdType>,
     res: Response<PaginatedData<PostViewModel[]>>,
   ) {
     const queryObj = req.query;
+    const userId = req.user?.id;
     const id = req.params.id;
 
     const searchBlogId = { blogId: { $regex: id } };
     const filter = { ...searchBlogId };
 
-    const responseData = await this.postQueryRepository.getPaginatedPosts(
+    const paginatedData = await this.postQueryRepository.getPaginatedPosts(
       queryObj as Record<string, string | undefined>,
       filter,
     );
+    const postsIds = paginatedData.items.map((post) => post.id);
+    const newestLikesMap = await this.likesQueryRepository.getBulkNewestLikesForParentIds(postsIds);
+    const likesInfoMap = await this.likesQueryRepository.getBulkLikesInfo({
+      parentIds: postsIds,
+      userId: userId,
+    });
 
-    res.status(HttpStatuses.Success).json(responseData);
+    const extendedLikesInfoMap: Record<string, ExtendedLikesInfoViewModel> = {};
+    paginatedData.items.forEach((post) => {
+      const likesInfo = likesInfoMap[post.id];
+      const newestLikes = newestLikesMap[post.id];
+      extendedLikesInfoMap[post.id] = {
+        ...likesInfo,
+        newestLikes,
+      };
+    });
+    const postsListWithLikesInfo = paginatedData.items.map((post) => {
+      const extendedLikesInfo = extendedLikesInfoMap[post.id];
+      const postWithExtendedLikesInfo: PostViewModel = { ...post, extendedLikesInfo };
+      return postWithExtendedLikesInfo;
+    });
+
+    const paginatedCommentsList = {
+      ...paginatedData,
+      items: postsListWithLikesInfo.reverse(),
+    };
+
+    res.status(HttpStatuses.Success).json(paginatedCommentsList);
   }
   async createBlog(
     req: Request<any, AddUpdateBlogRequiredInputData>,
@@ -120,7 +153,16 @@ export class BlogsController {
       return;
     }
 
-    res.status(HttpStatuses.Created).json(createdPostForOutput);
+    const extendedLikesInfo: ExtendedLikesInfoViewModel = {
+      likesCount: 0,
+      dislikesCount: 0,
+      myStatus: LikeStatusEnum.NONE,
+      newestLikes: [],
+    };
+
+    const responseData = { ...createdPostForOutput, extendedLikesInfo };
+
+    res.status(HttpStatuses.Created).json(responseData);
   }
   async updateBlogById(
     req: Request<{ id: string }, AddUpdateBlogRequiredInputData>,

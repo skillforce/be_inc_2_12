@@ -1,10 +1,5 @@
 import mongoose, { HydratedDocument, Model, Schema } from 'mongoose';
-import {
-  AddUpdateCommentInputData,
-  CommentatorInfo,
-  CommentDBModel,
-  CreateCommentDTO,
-} from '../types/types';
+import { CommentatorInfo, CommentDBModel, CreateCommentDTO } from '../types/types';
 import { ObjectId } from 'mongodb';
 import dayjs from 'dayjs';
 

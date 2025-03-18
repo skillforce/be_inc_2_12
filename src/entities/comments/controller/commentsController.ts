@@ -43,8 +43,8 @@ export class CommentsController {
       return;
     }
 
-    const likesInfo = await this.commentsLikesQueryRepository.getCommentLikesInfo({
-      commentId: id,
+    const likesInfo = await this.commentsLikesQueryRepository.getEntityLikesInfo({
+      parentId: id,
       userId,
     });
 

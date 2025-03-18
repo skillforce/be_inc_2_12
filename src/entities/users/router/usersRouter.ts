@@ -7,6 +7,7 @@ import {
 import { userController } from '../compositions-root/users-composition-root';
 
 export const usersRouter = Router({});
+console.log(userController.createUser.bind(userController));
 
 usersRouter.get('/', getUsersValidators, userController.getUsers.bind(userController));
 
